@@ -1,1 +1,75 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --surface-container-low: #eff4ff;
+    --on-tertiary-fixed-variant: #930013;
+    --on-error-container: #93000a;
+    --on-background: #0b1c30;
+    --on-secondary-fixed: #0f0069;
+    --surface: #f8f9ff;
+    --surface-bright: #f8f9ff;
+    --surface-container: #e5eeff;
+    --on-secondary-container: #fffbff;
+    --tertiary-container: #410004;
+    --primary-fixed-dim: #bec6e0;
+    --surface-container-lowest: #ffffff;
+    --secondary: #4b41e1;
+    --inverse-primary: #bec6e0;
+    --tertiary-fixed-dim: #ffb3ad;
+    --surface-dim: #cbdbf5;
+    --primary-fixed: #dae2fd;
+    --on-surface: #0b1c30;
+    --primary: #000000;
+    --background: #f8f9ff;
+    --surface-container-highest: #d3e4fe;
+    --surface-variant: #d3e4fe;
+    --error-container: #ffdad6;
+    --outline-variant: #c6c6cd;
+    --on-secondary-fixed-variant: #3323cc;
+    --tertiary-fixed: #ffdad7;
+    --secondary-fixed-dim: #c3c0ff;
+    --on-tertiary: #ffffff;
+    --on-surface-variant: #45464d;
+    --surface-container-high: #dce9ff;
+    --on-primary: #ffffff;
+    --secondary-container: #645efb;
+    --primary-container: #131b2e;
+    --surface-tint: #565e74;
+    --on-secondary: #ffffff;
+    --on-tertiary-fixed: #410004;
+    --inverse-surface: #213145;
+    --on-error: #ffffff;
+    --on-primary-fixed-variant: #3f465c;
+    --on-primary-container: #7c839b;
+    --inverse-on-surface: #eaf1ff;
+    --secondary-fixed: #e2dfff;
+    --tertiary: #000000;
+    --on-tertiary-container: #ef4444;
+    --on-primary-fixed: #131b2e;
+    --error: #ba1a1a;
+    --outline: #76777d;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}

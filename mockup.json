@@ -1,0 +1,937 @@
+{
+  "companyInfo": {
+    "name": "TechNova Solutions Pvt. Ltd",
+    "tagline": "Enterprise Technology Management & Dispatch Console",
+    "version": "SYS_REV: v4.19",
+    "slaHealth": "96.4%",
+    "activeBacklog": 142,
+    "allocatedWorkload": "83.8%",
+    "assignedToEngineers": 119,
+    "activeAgents": 28,
+    "avgPerAgent": 4.25
+  },
+  "roles": [
+    {
+      "id": "support_agent",
+      "name": "Support Agent",
+      "description": "Takes customer requests and troubleshoot issues across inbound channels"
+    },
+    {
+      "id": "senior_support",
+      "name": "Senior Support",
+      "description": "Handles escalated tier-2/3 complex technical problems and SLA risks"
+    },
+    {
+      "id": "development_team",
+      "name": "Development Team",
+      "description": "Investigates code defects, fixes bugs, and commits patches"
+    },
+    {
+      "id": "qa",
+      "name": "QA & Test",
+      "description": "Tests bug fixes, staging verification, and signs off on releases"
+    },
+    {
+      "id": "account_manager",
+      "name": "Account Manager",
+      "description": "Communicates with clients, manages contracts, and oversees client satisfaction"
+    },
+    {
+      "id": "operations_manager",
+      "name": "Operations Manager",
+      "description": "Monitors team performance, SLA adherence, and dispatch allocation"
+    }
+  ],
+  "inboundChannels": [
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp",
+      "icon": "chat",
+      "color": "text-emerald-500",
+      "bgColor": "bg-emerald-50"
+    },
+    {
+      "id": "email",
+      "name": "Email",
+      "icon": "mail",
+      "color": "text-blue-500",
+      "bgColor": "bg-blue-50"
+    },
+    {
+      "id": "phone",
+      "name": "Phone",
+      "icon": "call",
+      "color": "text-purple-500",
+      "bgColor": "bg-purple-50"
+    }
+  ],
+  "services": [
+    {
+      "id": "srv-1",
+      "name": "Custom Web Applications & SaaS",
+      "code": "CUST-WEB-01",
+      "department": "Engineering Services",
+      "lead": "Priya Sharma",
+      "activeTickets": 44,
+      "slaTarget": "99.2%",
+      "uptime": "99.98%",
+      "description": "Full-stack web application development, microservices, multi-tenant architectures, and scalable API platforms.",
+      "technologies": [
+        "React",
+        "Node.js",
+        "TypeScript",
+        "PostgreSQL",
+        "Tailwind CSS"
+      ],
+      "status": "Operational"
+    },
+    {
+      "id": "srv-2",
+      "name": "Cloud & Multi-Tenant Infra",
+      "code": "CLOUD-INF-02",
+      "department": "Site Reliability & Cloud",
+      "lead": "Alex Mercer",
+      "activeTickets": 31,
+      "slaTarget": "99.9%",
+      "uptime": "99.95%",
+      "description": "Container orchestration, Kubernetes cluster governance, AWS/GCP architecture, CI/CD pipelines, and high availability systems.",
+      "technologies": [
+        "Kubernetes",
+        "Docker",
+        "AWS",
+        "Terraform",
+        "ArgoCD"
+      ],
+      "status": "Operational"
+    },
+    {
+      "id": "srv-3",
+      "name": "Business Management & ERP",
+      "code": "BIZ-ERP-03",
+      "department": "Enterprise Systems",
+      "lead": "Derek Vance",
+      "activeTickets": 28,
+      "slaTarget": "98.5%",
+      "uptime": "99.85%",
+      "description": "Enterprise resource planning, CRM integrations, billing engines, automated workflow dispatch, and inventory matrix control.",
+      "technologies": [
+        "Python",
+        "SAP Integration",
+        "PostgreSQL",
+        "Redis",
+        "Kafka"
+      ],
+      "status": "Operational"
+    },
+    {
+      "id": "srv-4",
+      "name": "24/7 Technical Support & Maintenance",
+      "code": "SUPP-MNT-04",
+      "department": "Support & Operations",
+      "lead": "Samira Noor",
+      "activeTickets": 26,
+      "slaTarget": "95.0%",
+      "uptime": "100%",
+      "description": "Round-the-clock incident response, triage routing, patch releases, security monitoring, and proactive maintenance.",
+      "technologies": [
+        "Datadog",
+        "PagerDuty",
+        "Grafana",
+        "Prometheus"
+      ],
+      "status": "Operational"
+    },
+    {
+      "id": "srv-5",
+      "name": "IT Consulting & Security Compliance",
+      "code": "SEC-AUD-05",
+      "department": "Compliance & Security",
+      "lead": "Marcus Vance",
+      "activeTickets": 13,
+      "slaTarget": "99.0%",
+      "uptime": "100%",
+      "description": "SOC-2 Type II audit readiness, PCI-DSS ledger verification, security vulnerability scans, and IT architecture advisory.",
+      "technologies": [
+        "Vault",
+        "SonarQube",
+        "OWASP ZAP",
+        "Splunk"
+      ],
+      "status": "Operational"
+    }
+  ],
+  "companies": [
+    {
+      "id": "comp-1",
+      "code": "AF",
+      "name": "Apex Financial Services Inc.",
+      "tier": "Tier 1 Enterprise",
+      "contactName": "Marcus Reed",
+      "contactRole": "Chief Financial Officer",
+      "contactEmail": "m.reed@apexfinancial.com",
+      "contactPhone": "+1 (555) 382-9102",
+      "preferredChannel": "email",
+      "activeContracts": 4,
+      "activeTickets": 42,
+      "slaResponseTime": "15m",
+      "accountManager": "Derek Vance",
+      "subscribedServices": [
+        "Custom Web Applications & SaaS",
+        "IT Consulting & Security Compliance",
+        "Cloud & Multi-Tenant Infra"
+      ],
+      "status": "Active"
+    },
+    {
+      "id": "comp-2",
+      "code": "CS",
+      "name": "CloudScale Systems",
+      "tier": "Tier 1 Enterprise",
+      "contactName": "Sarah Jenkins",
+      "contactRole": "VP of Engineering",
+      "contactEmail": "s.jenkins@cloudscale.io",
+      "contactPhone": "+1 (555) 892-4411",
+      "preferredChannel": "whatsapp",
+      "activeContracts": 3,
+      "activeTickets": 28,
+      "slaResponseTime": "30m",
+      "accountManager": "Derek Vance",
+      "subscribedServices": [
+        "Cloud & Multi-Tenant Infra",
+        "24/7 Technical Support & Maintenance"
+      ],
+      "status": "Active"
+    },
+    {
+      "id": "comp-3",
+      "code": "NB",
+      "name": "NexaBio Therapeutics",
+      "tier": "Tier 2 Growth",
+      "contactName": "Dr. Aris Thorne",
+      "contactRole": "Director of Informatics",
+      "contactEmail": "thorne.a@nexabio.org",
+      "contactPhone": "+1 (555) 721-9923",
+      "preferredChannel": "email",
+      "activeContracts": 2,
+      "activeTickets": 16,
+      "slaResponseTime": "1h",
+      "accountManager": "Derek Vance",
+      "subscribedServices": [
+        "Custom Web Applications & SaaS",
+        "IT Consulting & Security Compliance"
+      ],
+      "status": "Active"
+    },
+    {
+      "id": "comp-4",
+      "code": "OL",
+      "name": "OmniLogistics Global",
+      "tier": "Tier 1 Enterprise",
+      "contactName": "Rajiv Kapoor",
+      "contactRole": "Operations Director",
+      "contactEmail": "r.kapoor@omnilogistics.com",
+      "contactPhone": "+1 (555) 438-1190",
+      "preferredChannel": "whatsapp",
+      "activeContracts": 5,
+      "activeTickets": 34,
+      "slaResponseTime": "15m",
+      "accountManager": "Derek Vance",
+      "subscribedServices": [
+        "Business Management & ERP",
+        "24/7 Technical Support & Maintenance"
+      ],
+      "status": "Active"
+    },
+    {
+      "id": "comp-5",
+      "code": "ZR",
+      "name": "Zenith Retail Corp",
+      "tier": "Tier 2 Growth",
+      "contactName": "Elena Rostova",
+      "contactRole": "E-Commerce VP",
+      "contactEmail": "elena.r@zenithretail.com",
+      "contactPhone": "+1 (555) 609-2244",
+      "preferredChannel": "phone",
+      "activeContracts": 2,
+      "activeTickets": 12,
+      "slaResponseTime": "45m",
+      "accountManager": "Derek Vance",
+      "subscribedServices": [
+        "Custom Web Applications & SaaS",
+        "24/7 Technical Support & Maintenance"
+      ],
+      "status": "Active"
+    },
+    {
+      "id": "comp-6",
+      "code": "IC",
+      "name": "InnovateCorp Labs",
+      "tier": "Standard Business",
+      "contactName": "David Chen",
+      "contactRole": "Lead Architect",
+      "contactEmail": "d.chen@innovatecorp.ai",
+      "contactPhone": "+1 (555) 234-8877",
+      "preferredChannel": "email",
+      "activeContracts": 1,
+      "activeTickets": 10,
+      "slaResponseTime": "2h",
+      "accountManager": "Derek Vance",
+      "subscribedServices": [
+        "Custom Web Applications & SaaS"
+      ],
+      "status": "Active"
+    }
+  ],
+  "employees": [
+    {
+      "id": "emp-1",
+      "name": "Arthur Pendelton",
+      "role": "operations_manager",
+      "roleTitle": "Operations Manager & Lead Dispatcher",
+      "email": "a.pendelton@technova.com",
+      "phone": "+1 (555) 019-2831",
+      "avatar": "person",
+      "activeTicketsCount": 18,
+      "capacityMax": 30,
+      "skills": [
+        "Shift Dispatch",
+        "Incident Triage",
+        "SLA Oversight",
+        "Team Allocations"
+      ],
+      "status": "Available"
+    },
+    {
+      "id": "emp-2",
+      "name": "Samira Noor",
+      "role": "support_agent",
+      "roleTitle": "Support Agent",
+      "email": "s.noor@technova.com",
+      "phone": "+1 (555) 019-4822",
+      "avatar": "person",
+      "activeTicketsCount": 14,
+      "capacityMax": 20,
+      "skills": [
+        "WhatsApp Inbound",
+        "Phone Dispatch",
+        "Initial Triage",
+        "Customer Liaison"
+      ],
+      "status": "Available"
+    },
+    {
+      "id": "emp-3",
+      "name": "Alex Mercer",
+      "role": "senior_support",
+      "roleTitle": "Senior Support Specialist",
+      "email": "a.mercer@technova.com",
+      "phone": "+1 (555) 019-3841",
+      "avatar": "person",
+      "activeTicketsCount": 16,
+      "capacityMax": 20,
+      "skills": [
+        "Kubernetes",
+        "Linux Kernel",
+        "Network Debugging",
+        "P1 Triage"
+      ],
+      "status": "Busy"
+    },
+    {
+      "id": "emp-4",
+      "name": "Evelyn Shaw",
+      "role": "senior_support",
+      "roleTitle": "Senior Support Specialist",
+      "email": "e.shaw@technova.com",
+      "phone": "+1 (555) 019-9943",
+      "avatar": "person",
+      "activeTicketsCount": 17,
+      "capacityMax": 20,
+      "skills": [
+        "API Gateways",
+        "OAuth2 / Auth0",
+        "Database Deadlocks",
+        "Incident Commander"
+      ],
+      "status": "Busy"
+    },
+    {
+      "id": "emp-5",
+      "name": "Priya Sharma",
+      "role": "development_team",
+      "roleTitle": "Lead Software Engineer",
+      "email": "p.sharma@technova.com",
+      "phone": "+1 (555) 019-7721",
+      "avatar": "person",
+      "activeTicketsCount": 15,
+      "capacityMax": 18,
+      "skills": [
+        "React",
+        "TypeScript",
+        "Node.js Core",
+        "Bug Patching"
+      ],
+      "status": "Busy"
+    },
+    {
+      "id": "emp-6",
+      "name": "Kiran Patel",
+      "role": "development_team",
+      "roleTitle": "Backend Software Engineer",
+      "email": "k.patel@technova.com",
+      "phone": "+1 (555) 019-6610",
+      "avatar": "person",
+      "activeTicketsCount": 13,
+      "capacityMax": 18,
+      "skills": [
+        "Go",
+        "PostgreSQL",
+        "Kafka Pipelines",
+        "Microservices"
+      ],
+      "status": "Available"
+    },
+    {
+      "id": "emp-7",
+      "name": "Marcus Vance",
+      "role": "qa",
+      "roleTitle": "QA & Test Lead",
+      "email": "m.vance@technova.com",
+      "phone": "+1 (555) 019-5509",
+      "avatar": "person",
+      "activeTicketsCount": 12,
+      "capacityMax": 20,
+      "skills": [
+        "Automated Testing",
+        "Regression Verification",
+        "Cypress",
+        "SOC-2 Signoff"
+      ],
+      "status": "Available"
+    },
+    {
+      "id": "emp-8",
+      "name": "Derek Vance",
+      "role": "account_manager",
+      "roleTitle": "Senior Account Manager",
+      "email": "d.vance@technova.com",
+      "phone": "+1 (555) 019-1188",
+      "avatar": "person",
+      "activeTicketsCount": 14,
+      "capacityMax": 25,
+      "skills": [
+        "Enterprise SLA Negotiation",
+        "Client Escapes",
+        "Quarterly Business Review",
+        "Retention"
+      ],
+      "status": "Available"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "TCK-1084",
+      "code": "TCK-1084",
+      "title": "OAuth2 Token Refresh Loop on Multi-tenant Dashboard",
+      "description": "Users authenticating via enterprise SSO encounter an infinite 302 redirect loop when JWT access token expires. The refresh token rotation payload returns HTTP 400 Bad Request due to mismatched audience claim in token introspection endpoint.",
+      "companyId": "comp-1",
+      "companyName": "Apex Financial Services Inc.",
+      "companyCode": "AF",
+      "serviceId": "srv-1",
+      "serviceName": "Custom Web Applications & SaaS",
+      "priority": "P1 Urgent",
+      "status": "In Progress",
+      "channel": "whatsapp",
+      "channelIdentifier": "WhatsApp Dispatch #WA-8841",
+      "clientContact": "Marcus Reed (CFO)",
+      "assignedToId": "emp-4",
+      "assignedToName": "Evelyn Shaw",
+      "assignedToRole": "Senior Support",
+      "currentStageRole": "development_team",
+      "slaDeadline": "34 mins remaining",
+      "slaRisk": "At Risk",
+      "createdAt": "2026-11-03T14:15:00Z",
+      "updatedAt": "2026-11-03T15:20:00Z",
+      "timeAgo": "1h 15m ago",
+      "tags": [
+        "Security",
+        "SSO",
+        "OAuth2",
+        "PCI-DSS"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Production US-East-1 (v4.19.2)",
+      "diagnosticData": {
+        "clusterNode": "k8s-pod-auth-proxy-7f99b-4x8w",
+        "affectedUsers": 482,
+        "errorRate": "14.2% of total auth traffic"
+      },
+      "timeline": [
+        {
+          "id": "tl-1",
+          "author": "Samira Noor",
+          "role": "Support Agent",
+          "action": "Ticket Created via WhatsApp Inbound",
+          "timestamp": "1h 15m ago",
+          "note": "Client CFO Marcus Reed flagged urgent login loop affecting trading floor controllers in Hong Kong branch."
+        },
+        {
+          "id": "tl-2",
+          "author": "Arthur Pendelton",
+          "role": "Operations Manager",
+          "action": "Priority Escalated to P1",
+          "timestamp": "1h 05m ago",
+          "note": "Assigned to Evelyn Shaw (Senior Support). High SLA penalty threshold reached."
+        },
+        {
+          "id": "tl-3",
+          "author": "Evelyn Shaw",
+          "role": "Senior Support",
+          "action": "Root Cause Triaged",
+          "timestamp": "42m ago",
+          "note": "Introspection payload in Auth-Proxy v4.19.2 strips issuer audience param on silent refresh. Handoff to Development Team."
+        },
+        {
+          "id": "tl-4",
+          "author": "Priya Sharma",
+          "role": "Development Team",
+          "action": "Patch Hotfix Prepared",
+          "timestamp": "15m ago",
+          "note": "Hotfix branch fix/auth-token-refresh pushed. Staging deploy running now for QA signoff."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1092",
+      "code": "TCK-1092",
+      "title": "Latency Spike in PCI Ledger Reconciliation Endpoint",
+      "description": "Intermittent 504 gateway timeouts on /v2/settlement/batch sync jobs during peak banking reconciliation hours.",
+      "companyId": "comp-1",
+      "companyName": "Apex Financial Services Inc.",
+      "companyCode": "AF",
+      "serviceId": "srv-1",
+      "serviceName": "Custom Web Applications & SaaS",
+      "priority": "P1 Urgent",
+      "status": "Open",
+      "channel": "email",
+      "channelIdentifier": "Email Dispatch #EM-4091",
+      "clientContact": "Marcus Reed (CFO)",
+      "assignedToId": "emp-4",
+      "assignedToName": "Evelyn Shaw",
+      "assignedToRole": "Senior Support",
+      "currentStageRole": "senior_support",
+      "slaDeadline": "52 mins remaining",
+      "slaRisk": "At Risk",
+      "createdAt": "2026-11-03T15:26:00Z",
+      "updatedAt": "2026-11-03T15:26:00Z",
+      "timeAgo": "12m ago",
+      "tags": [
+        "Banking",
+        "PCI",
+        "Latency",
+        "PostgreSQL"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Production EU-Central-1",
+      "diagnosticData": {
+        "clusterNode": "db-pg-cluster-read-02",
+        "affectedUsers": 120,
+        "errorRate": "8.5%"
+      },
+      "timeline": [
+        {
+          "id": "tl-201",
+          "author": "Samira Noor",
+          "role": "Support Agent",
+          "action": "Created from support email",
+          "timestamp": "12m ago",
+          "note": "Reconciliation job timed out three consecutive times."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1091",
+      "code": "TCK-1091",
+      "title": "Kubernetes Cluster CNI Driver CrashLoopBackOff",
+      "description": "Calico CNI pods repeatedly terminating on worker nodes k8s-w-04 through k8s-w-08 after security group rule update.",
+      "companyId": "comp-2",
+      "companyName": "CloudScale Systems",
+      "companyCode": "CS",
+      "serviceId": "srv-2",
+      "serviceName": "Cloud & Multi-Tenant Infra",
+      "priority": "P1 Urgent",
+      "status": "Escalated",
+      "channel": "phone",
+      "channelIdentifier": "Phone Escalation #PH-1102",
+      "clientContact": "Sarah Jenkins (VP Eng)",
+      "assignedToId": "emp-3",
+      "assignedToName": "Alex Mercer",
+      "assignedToRole": "Senior Support",
+      "currentStageRole": "senior_support",
+      "slaDeadline": "1h 10m remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T15:02:00Z",
+      "updatedAt": "2026-11-03T15:15:00Z",
+      "timeAgo": "36m ago",
+      "tags": [
+        "Kubernetes",
+        "CNI",
+        "Networking",
+        "Infra"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Production Multi-Tenant Cluster 03",
+      "diagnosticData": {
+        "clusterNode": "k8s-w-04..08",
+        "affectedUsers": 310,
+        "errorRate": "Node NotReady"
+      },
+      "timeline": [
+        {
+          "id": "tl-301",
+          "author": "Arthur Pendelton",
+          "role": "Operations Manager",
+          "action": "Emergency Dispatch",
+          "timestamp": "36m ago",
+          "note": "Sarah Jenkins phoned emergency hotline. BGP route packets dropped between worker and master nodes."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1090",
+      "code": "TCK-1090",
+      "title": "Warehouse ERP Barcode Dispatch Matrix Mismatch",
+      "description": "Handheld RF scanners throwing invalid checksum errors when dispatching bulk shipping pallets in Chicago Distribution Center.",
+      "companyId": "comp-4",
+      "companyName": "OmniLogistics Global",
+      "companyCode": "OL",
+      "serviceId": "srv-3",
+      "serviceName": "Business Management & ERP",
+      "priority": "P2 Normal",
+      "status": "Open",
+      "channel": "whatsapp",
+      "channelIdentifier": "WhatsApp Dispatch #WA-8812",
+      "clientContact": "Rajiv Kapoor (Ops Dir)",
+      "assignedToId": "emp-2",
+      "assignedToName": "Samira Noor",
+      "assignedToRole": "Support Agent",
+      "currentStageRole": "support_agent",
+      "slaDeadline": "2h 45m remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T14:48:00Z",
+      "updatedAt": "2026-11-03T14:48:00Z",
+      "timeAgo": "50m ago",
+      "tags": [
+        "ERP",
+        "Barcodes",
+        "Warehouse",
+        "Logistics"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "ERP Chicago Node",
+      "diagnosticData": {
+        "clusterNode": "rf-scanner-gateway-01",
+        "affectedUsers": 45,
+        "errorRate": "5.2%"
+      },
+      "timeline": [
+        {
+          "id": "tl-401",
+          "author": "Samira Noor",
+          "role": "Support Agent",
+          "action": "Intake via WhatsApp",
+          "timestamp": "50m ago",
+          "note": "Rajiv sent video clip of error dialog. Verifying barcode encoding specs."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1089",
+      "code": "TCK-1089",
+      "title": "SSL Expire Alert on Primary Web Portal Ingress",
+      "description": "Wildcard certificate for *.apexfinancial.com will expire in 48 hours; cert-manager ACME challenge failing on DNS propagation.",
+      "companyId": "comp-1",
+      "companyName": "Apex Financial Services Inc.",
+      "companyCode": "AF",
+      "serviceId": "srv-2",
+      "serviceName": "Cloud & Multi-Tenant Infra",
+      "priority": "P1 Urgent",
+      "status": "Open",
+      "channel": "email",
+      "channelIdentifier": "Email Dispatch #EM-4089",
+      "clientContact": "Marcus Reed (CFO)",
+      "assignedToId": "emp-3",
+      "assignedToName": "Alex Mercer",
+      "assignedToRole": "Senior Support",
+      "currentStageRole": "senior_support",
+      "slaDeadline": "3h 10m remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T14:30:00Z",
+      "updatedAt": "2026-11-03T14:30:00Z",
+      "timeAgo": "1h 08m ago",
+      "tags": [
+        "Security",
+        "SSL",
+        "DNS",
+        "CertManager"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Cloud Ingress",
+      "diagnosticData": {
+        "clusterNode": "cert-manager-controller",
+        "affectedUsers": 0,
+        "errorRate": "DNS01 Challenge Timeout"
+      },
+      "timeline": [
+        {
+          "id": "tl-501",
+          "author": "Samira Noor",
+          "role": "Support Agent",
+          "action": "Alert Ingested",
+          "timestamp": "1h 08m ago",
+          "note": "Automated security alert routed to Alex Mercer."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1088",
+      "code": "TCK-1088",
+      "title": "Quarterly SOC-2 Compliance Audit Evidence Export",
+      "description": "Need automated export of all access log audits and credential rotation trails for Q3 compliance external auditors.",
+      "companyId": "comp-3",
+      "companyName": "NexaBio Therapeutics",
+      "companyCode": "NB",
+      "serviceId": "srv-5",
+      "serviceName": "IT Consulting & Security Compliance",
+      "priority": "P3 Low",
+      "status": "In Progress",
+      "channel": "email",
+      "channelIdentifier": "Email Dispatch #EM-4072",
+      "clientContact": "Dr. Aris Thorne",
+      "assignedToId": "emp-7",
+      "assignedToName": "Marcus Vance",
+      "assignedToRole": "QA & Test",
+      "currentStageRole": "qa",
+      "slaDeadline": "2 days remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T13:40:00Z",
+      "updatedAt": "2026-11-03T14:20:00Z",
+      "timeAgo": "1h 58m ago",
+      "tags": [
+        "Compliance",
+        "SOC-2",
+        "Audit",
+        "Export"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Compliance Ledger",
+      "diagnosticData": {
+        "clusterNode": "audit-vault-worker",
+        "affectedUsers": 1,
+        "errorRate": "0%"
+      },
+      "timeline": [
+        {
+          "id": "tl-601",
+          "author": "Marcus Vance",
+          "role": "QA & Test",
+          "action": "Evidence Gathering",
+          "timestamp": "1h 20m ago",
+          "note": "Generating signed cryptographic hash bundle for auditor review."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1087",
+      "code": "TCK-1087",
+      "title": "Gift Card Redemption Coupon Code Cache Desync",
+      "description": "Redis replica caching outdated promotional coupon keys causing rejected redemptions during flash sale checkout.",
+      "companyId": "comp-5",
+      "companyName": "Zenith Retail Corp",
+      "companyCode": "ZR",
+      "serviceId": "srv-1",
+      "serviceName": "Custom Web Applications & SaaS",
+      "priority": "P2 Normal",
+      "status": "In Progress",
+      "channel": "phone",
+      "channelIdentifier": "Phone Escalation #PH-1090",
+      "clientContact": "Elena Rostova (E-Commerce VP)",
+      "assignedToId": "emp-6",
+      "assignedToName": "Kiran Patel",
+      "assignedToRole": "Development Team",
+      "currentStageRole": "development_team",
+      "slaDeadline": "1h 45m remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T13:10:00Z",
+      "updatedAt": "2026-11-03T14:05:00Z",
+      "timeAgo": "2h 28m ago",
+      "tags": [
+        "Redis",
+        "Cache",
+        "E-Commerce",
+        "Checkout"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Zenith Commerce US-West",
+      "diagnosticData": {
+        "clusterNode": "redis-replica-04",
+        "affectedUsers": 89,
+        "errorRate": "3.1%"
+      },
+      "timeline": [
+        {
+          "id": "tl-701",
+          "author": "Kiran Patel",
+          "role": "Development Team",
+          "action": "Cache Invalidation Script",
+          "timestamp": "1h 35m ago",
+          "note": "Flushed stale keys and configured pub-sub key eviction events."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1086",
+      "code": "TCK-1086",
+      "title": "BGP Route Flapping on Primary Uplink Trunk",
+      "description": "Core router reporting intermittent route drops with ISP Tier 1 peering router. Multi-homed fallback enabled.",
+      "companyId": "comp-2",
+      "companyName": "CloudScale Systems",
+      "companyCode": "CS",
+      "serviceId": "srv-2",
+      "serviceName": "Cloud & Multi-Tenant Infra",
+      "priority": "P1 Urgent",
+      "status": "Open",
+      "channel": "phone",
+      "channelIdentifier": "Phone Escalation #PH-1086",
+      "clientContact": "Sarah Jenkins",
+      "assignedToId": "emp-3",
+      "assignedToName": "Alex Mercer",
+      "assignedToRole": "Senior Support",
+      "currentStageRole": "senior_support",
+      "slaDeadline": "40 mins remaining",
+      "slaRisk": "At Risk",
+      "createdAt": "2026-11-03T12:55:00Z",
+      "updatedAt": "2026-11-03T13:00:00Z",
+      "timeAgo": "2h 43m ago",
+      "tags": [
+        "Networking",
+        "BGP",
+        "Infra",
+        "ISP"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Border Gateway Router A1",
+      "diagnosticData": {
+        "clusterNode": "edge-gw-router-01",
+        "affectedUsers": 540,
+        "errorRate": "Packet loss 4.8%"
+      },
+      "timeline": [
+        {
+          "id": "tl-801",
+          "author": "Arthur Pendelton",
+          "role": "Operations Manager",
+          "action": "ISP Ticket Opened",
+          "timestamp": "2h 40m ago",
+          "note": "Peering engineer engaged on conference bridge."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1085",
+      "code": "TCK-1085",
+      "title": "Dark Mode Color Contrast Defect in Admin Settings",
+      "description": "Secondary buttons have low contrast ratio (2.1:1) against surface container in dark mode, failing WCAG AA standard.",
+      "companyId": "comp-6",
+      "companyName": "InnovateCorp Labs",
+      "companyCode": "IC",
+      "serviceId": "srv-1",
+      "serviceName": "Custom Web Applications & SaaS",
+      "priority": "P3 Low",
+      "status": "Open",
+      "channel": "email",
+      "channelIdentifier": "Email Dispatch #EM-3990",
+      "clientContact": "David Chen (Lead Arch)",
+      "assignedToId": "emp-5",
+      "assignedToName": "Priya Sharma",
+      "assignedToRole": "Development Team",
+      "currentStageRole": "development_team",
+      "slaDeadline": "3 days remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T11:20:00Z",
+      "updatedAt": "2026-11-03T11:20:00Z",
+      "timeAgo": "4h 18m ago",
+      "tags": [
+        "UI/UX",
+        "Accessibility",
+        "Tailwind",
+        "CSS"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Web Portal Frontend",
+      "diagnosticData": {
+        "clusterNode": "fe-cdn-dist",
+        "affectedUsers": 0,
+        "errorRate": "WCAG AA Warning"
+      },
+      "timeline": [
+        {
+          "id": "tl-901",
+          "author": "Samira Noor",
+          "role": "Support Agent",
+          "action": "Logged UI feedback",
+          "timestamp": "4h 18m ago",
+          "note": "Queued for sprint styling pass."
+        }
+      ]
+    },
+    {
+      "id": "TCK-1083",
+      "code": "TCK-1083",
+      "title": "SFTP Daily Settlement Archive Encryption Key Rotate",
+      "description": "Scheduled GPG key rotation required for daily financial settlement reports before Friday automated batch run.",
+      "companyId": "comp-1",
+      "companyName": "Apex Financial Services Inc.",
+      "companyCode": "AF",
+      "serviceId": "srv-5",
+      "serviceName": "IT Consulting & Security Compliance",
+      "priority": "P2 Normal",
+      "status": "Open",
+      "channel": "email",
+      "channelIdentifier": "Email Dispatch #EM-3981",
+      "clientContact": "Marcus Reed (CFO)",
+      "assignedToId": "emp-7",
+      "assignedToName": "Marcus Vance",
+      "assignedToRole": "QA & Test",
+      "currentStageRole": "qa",
+      "slaDeadline": "1 day remaining",
+      "slaRisk": "On Target",
+      "createdAt": "2026-11-03T10:15:00Z",
+      "updatedAt": "2026-11-03T10:15:00Z",
+      "timeAgo": "5h 23m ago",
+      "tags": [
+        "Security",
+        "GPG",
+        "SFTP",
+        "Encryption"
+      ],
+      "systemRevision": "SYS_REV: v4.19",
+      "environment": "Settlement Vault",
+      "diagnosticData": {
+        "clusterNode": "sftp-sec-01",
+        "affectedUsers": 0,
+        "errorRate": "0%"
+      },
+      "timeline": [
+        {
+          "id": "tl-1001",
+          "author": "Arthur Pendelton",
+          "role": "Operations Manager",
+          "action": "Assigned to Security QA",
+          "timestamp": "5h 20m ago",
+          "note": "Public key received and checksum verified."
+        }
+      ]
+    }
+  ]
+}
