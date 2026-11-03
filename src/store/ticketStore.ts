@@ -10,16 +10,22 @@ import type {
 } from '../types';
 import { loadInitialState, persistState } from './storage';
 import { createNewTicket, updateTicketStatusInList } from './ticketMutations';
+import { authenticateByEmail, authenticateById, addTimelineNoteToTicket } from './authHelpers';
 
 interface TicketStore {
   data: MockupDatabase;
   activeTab: string;
   selectedTicketId: string | null;
   activeRole: RoleId;
+  currentUser: Employee | null;
+  isAuthenticated: boolean;
   searchQuery: string;
   isCreateModalOpen: boolean;
   isSidebarCollapsed: boolean;
 
+  login: (email: string) => boolean;
+  loginAsEmployee: (employeeId: string) => void;
+  logout: () => void;
   setActiveTab: (tab: string) => void;
   setSelectedTicketId: (id: string | null) => void;
   setActiveRole: (role: RoleId) => void;
@@ -36,15 +42,36 @@ interface TicketStore {
   addEmployee: (employee: Employee) => void;
 }
 
+const initialDb = loadInitialState();
+
 export const useTicketStore = create<TicketStore>((set, get) => ({
-  data: loadInitialState(),
+  data: initialDb,
   activeTab: 'dashboard',
   selectedTicketId: 'TCK-1084',
   activeRole: 'operations_manager',
+  currentUser: initialDb.employees[0],
+  isAuthenticated: true,
   searchQuery: '',
   isCreateModalOpen: false,
   isSidebarCollapsed: false,
 
+  login: (email: string) => {
+    const matched = authenticateByEmail(email, get().data.employees);
+    if (matched) {
+      set({ currentUser: matched, activeRole: matched.role, isAuthenticated: true, activeTab: 'dashboard' });
+      return true;
+    }
+    return false;
+  },
+
+  loginAsEmployee: (employeeId: string) => {
+    const matched = authenticateById(employeeId, get().data.employees);
+    if (matched) {
+      set({ currentUser: matched, activeRole: matched.role, isAuthenticated: true, activeTab: 'dashboard' });
+    }
+  },
+
+  logout: () => set({ currentUser: null, isAuthenticated: false, activeTab: 'dashboard' }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
   setActiveRole: (role) => set({ activeRole: role }),
@@ -61,7 +88,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   updateTicketStatus: (ticketId, status, note) => {
     const state = get();
-    const currentEmp = state.data.employees.find((e) => e.role === state.activeRole) || state.data.employees[0];
+    const currentEmp = state.currentUser || state.data.employees[0];
     const updatedTickets = updateTicketStatusInList(state.data.tickets, ticketId, status, currentEmp, note);
     const updatedData = { ...state.data, tickets: updatedTickets };
     persistState(updatedData);
@@ -70,7 +97,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   assignTicket: (ticketId, employeeId, note) => {
     const state = get();
-    const currentEmp = state.data.employees.find((e) => e.role === state.activeRole) || state.data.employees[0];
+    const currentEmp = state.currentUser || state.data.employees[0];
     const targetEmp = state.data.employees.find((e) => e.id === employeeId);
     if (!targetEmp) return;
 
@@ -107,29 +134,8 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addTicketTimelineNote: (ticketId, note) => {
     const state = get();
-    const currentEmp = state.data.employees.find((e) => e.role === state.activeRole) || state.data.employees[0];
-
-    const updatedTickets = state.data.tickets.map((t) => {
-      if (t.id === ticketId) {
-        return {
-          ...t,
-          timeline: [
-            ...t.timeline,
-            {
-              id: `tl-${Date.now()}`,
-              author: currentEmp.name,
-              role: currentEmp.roleTitle,
-              action: 'Note Added',
-              timestamp: 'Just now',
-              note
-            }
-          ]
-        };
-      }
-      return t;
-    });
-
-    const updatedData = { ...state.data, tickets: updatedTickets };
+    const currentEmp = state.currentUser || state.data.employees[0];
+    const updatedData = addTimelineNoteToTicket(state.data, ticketId, currentEmp, note);
     persistState(updatedData);
     set({ data: updatedData });
   },

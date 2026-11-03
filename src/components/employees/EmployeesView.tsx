@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useTicketStore } from '../../store';
 import { EmployeeTable } from './EmployeeTable';
 import { EmployeeDetailHero } from './EmployeeDetailHero';
+import { filterEmployeesByRole } from '../../utils';
 import type { Employee } from '../../types';
 
 export const EmployeesView: React.FC = () => {
   const { data, activeRole } = useTicketStore();
   const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
 
-  const selectedEmployee = data.employees.find((e) => e.id === activeEmployeeId);
+  const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
+  const selectedEmployee = roleEmployees.find((e) => e.id === activeEmployeeId) || data.employees.find((e) => e.id === activeEmployeeId);
 
   const handleUpdateEmployee = (updates: Partial<Employee>) => {
     if (!activeEmployeeId) return;
@@ -33,7 +35,7 @@ export const EmployeesView: React.FC = () => {
         />
       ) : (
         <EmployeeTable
-          employees={data.employees}
+          employees={roleEmployees}
           activeRoleId={activeRole}
           onViewEmployee={(id) => setActiveEmployeeId(id)}
         />

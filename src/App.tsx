@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTicketStore } from './store';
 import { Layout } from './components/layout';
+import { LoginPage } from './components/auth';
 import { DashboardView } from './components/dashboard';
 import { TicketRegistryView } from './components/tickets';
 import { CompaniesView } from './components/companies';
@@ -10,7 +11,11 @@ import { SettingsView } from './components/settings';
 import { CreateTicketModal } from './components/modals';
 
 export const App: React.FC = () => {
-  const { activeTab } = useTicketStore();
+  const { activeTab, isAuthenticated } = useTicketStore();
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   const renderActiveView = () => {
     switch (activeTab) {

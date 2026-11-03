@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useTicketStore } from '../../store';
 import { CompanyTable } from './CompanyTable';
 import { CompanyDetailHero } from './CompanyDetailHero';
+import { filterCompaniesByRole } from '../../utils';
 import type { Company } from '../../types';
 
 export const CompaniesView: React.FC = () => {
-  const { data } = useTicketStore();
+  const { data, activeRole, currentUser } = useTicketStore();
   const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
 
-  const selectedCompany = data.companies.find((c) => c.id === activeCompanyId);
+  const roleCompanies = filterCompaniesByRole(data.companies, activeRole, currentUser?.name);
+  const selectedCompany = roleCompanies.find((c) => c.id === activeCompanyId) || data.companies.find((c) => c.id === activeCompanyId);
 
   const handleUpdateCompany = (updates: Partial<Company>) => {
     if (!activeCompanyId) return;
@@ -33,7 +35,7 @@ export const CompaniesView: React.FC = () => {
         />
       ) : (
         <CompanyTable
-          companies={data.companies}
+          companies={roleCompanies}
           onViewCompany={(id) => setActiveCompanyId(id)}
         />
       )}

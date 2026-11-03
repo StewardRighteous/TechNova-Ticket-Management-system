@@ -3,33 +3,34 @@ import { useTicketStore } from '../../store';
 import { DashboardHero } from './DashboardHero';
 import { DashboardStatsRow } from './DashboardStatsRow';
 import { DashboardTicketTable } from './DashboardTicketTable';
+import { filterTicketsByRole } from '../../utils';
 
 export const DashboardView: React.FC = () => {
-  const { data, setSelectedTicketId, setActiveTab, setIsCreateModalOpen } = useTicketStore();
+  const { data, activeRole, currentUser, setSelectedTicketId, setActiveTab, setIsCreateModalOpen } = useTicketStore();
 
   const handleSelectTicket = (id: string) => {
     setSelectedTicketId(id);
     setActiveTab('tickets');
   };
 
-  const p1Count = data.tickets.filter((t) => t.priority.includes('P1')).length;
-  const p2Count = data.tickets.filter((t) => t.priority.includes('P2')).length;
-  const p3Count = data.tickets.filter((t) => t.priority.includes('P3')).length;
+  const roleFilteredTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
 
-  const whatsappCount = data.tickets.filter((t) => t.channel === 'whatsapp').length;
-  const emailCount = data.tickets.filter((t) => t.channel === 'email').length;
-  const phoneCount = data.tickets.filter((t) => t.channel === 'phone').length;
+  const p1Count = roleFilteredTickets.filter((t) => t.priority.includes('P1')).length;
+  const p2Count = roleFilteredTickets.filter((t) => t.priority.includes('P2')).length;
+  const p3Count = roleFilteredTickets.filter((t) => t.priority.includes('P3')).length;
+
+  const whatsappCount = roleFilteredTickets.filter((t) => t.channel === 'whatsapp').length;
+  const emailCount = roleFilteredTickets.filter((t) => t.channel === 'email').length;
+  const phoneCount = roleFilteredTickets.filter((t) => t.channel === 'phone').length;
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Hero Banner: Matches other tabs' header format */}
       <DashboardHero
         companyInfo={data.companyInfo}
         onExploreTickets={() => setActiveTab('tickets')}
         onNewTicket={() => setIsCreateModalOpen(true)}
       />
 
-      {/* Structured Stats Grid with refined shadows */}
       <DashboardStatsRow
         p1Count={p1Count}
         p2Count={p2Count}
@@ -37,12 +38,11 @@ export const DashboardView: React.FC = () => {
         whatsappCount={whatsappCount}
         emailCount={emailCount}
         phoneCount={phoneCount}
-        totalTickets={data.tickets.length}
+        totalTickets={roleFilteredTickets.length}
       />
 
-      {/* Minimized & Compact Table matching the standard table format */}
       <DashboardTicketTable
-        tickets={data.tickets}
+        tickets={roleFilteredTickets}
         onSelectTicket={handleSelectTicket}
         onExploreAll={() => setActiveTab('tickets')}
       />

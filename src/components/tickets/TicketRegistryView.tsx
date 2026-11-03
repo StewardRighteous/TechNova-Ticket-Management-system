@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { useTicketStore } from '../../store';
 import { TicketTable } from './TicketTable';
 import { TicketDetailHero } from './TicketDetailHero';
+import { filterTicketsByRole } from '../../utils';
 import type { Ticket } from '../../types';
 
 export const TicketRegistryView: React.FC = () => {
   const {
     data,
+    activeRole,
+    currentUser,
     setSelectedTicketId,
     updateTicketStatus,
     assignTicket,
@@ -15,7 +18,9 @@ export const TicketRegistryView: React.FC = () => {
 
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
 
-  const selectedTicket = data.tickets.find((t) => t.id === activeTicketId);
+  // Role-specific filtered tickets
+  const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
+  const selectedTicket = roleTickets.find((t) => t.id === activeTicketId) || data.tickets.find((t) => t.id === activeTicketId);
 
   const handleUpdateTicketFields = (updates: Partial<Ticket>) => {
     if (!activeTicketId) return;
@@ -43,7 +48,7 @@ export const TicketRegistryView: React.FC = () => {
         />
       ) : (
         <TicketTable
-          tickets={data.tickets}
+          tickets={roleTickets}
           onViewTicket={(id) => {
             setActiveTicketId(id);
             setSelectedTicketId(id);
