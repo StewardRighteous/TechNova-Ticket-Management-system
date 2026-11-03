@@ -1,96 +1,145 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTicketStore } from '../../store';
+import { SidebarAccordionGroup } from './SidebarAccordionGroup';
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, data } = useTicketStore();
-  const ticketCount = data.tickets.length;
-
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'grid_view' },
-    { id: 'tickets', label: 'Tickets', icon: 'confirmation_number', badge: ticketCount },
-    { id: 'companies', label: 'Companies', icon: 'domain', badge: data.companies.length },
-    { id: 'employees', label: 'Employees', icon: 'badge', badge: data.employees.length },
-    { id: 'services', label: 'Services', icon: 'layers', badge: data.services.length }
-  ];
+  const { activeTab, setActiveTab, data, isSidebarCollapsed, toggleSidebarCollapse } = useTicketStore();
+  const [isOperationsOpen, setIsOperationsOpen] = useState(true);
+  const [isClientsOpen, setIsClientsOpen] = useState(true);
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col justify-between select-none">
-      <div className="flex flex-col">
-        {/* Brand header */}
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white shadow-sm">
-            <span className="material-symbols-outlined text-[19px]">confirmation_number</span>
+    <aside
+      className={`fixed left-0 top-0 bottom-0 bg-white border-r border-slate-200 z-50 flex flex-col justify-between transition-all duration-300 select-none ${
+        isSidebarCollapsed ? 'w-20' : 'w-64'
+      }`}
+    >
+      <div className="flex flex-col overflow-y-auto">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm shrink-0">
+              <span className="material-symbols-outlined text-[20px]">confirmation_number</span>
+            </div>
+            {!isSidebarCollapsed && (
+              <div className="flex flex-col truncate">
+                <span className="font-bold text-[15px] tracking-tight text-slate-900 truncate">TechNova</span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider truncate">Solutions Pvt. Ltd</span>
+              </div>
+            )}
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-[15px] tracking-tight leading-tight text-slate-900">TechNova</span>
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Solutions Pvt. Ltd</span>
-          </div>
+          <button
+            onClick={toggleSidebarCollapse}
+            title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              {isSidebarCollapsed ? 'chevron_right' : 'chevron_left'}
+            </span>
+          </button>
         </div>
 
-        {/* Workspace navigation */}
-        <div className="px-4 py-3">
-          <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            Workspace
-          </div>
-        </div>
+        <div className="px-3 py-3 space-y-4">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px] shrink-0">grid_view</span>
+            {!isSidebarCollapsed && <span>Dashboard</span>}
+          </button>
 
-        <nav className="px-3 flex flex-col gap-1">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-indigo-50 text-indigo-700 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`material-symbols-outlined text-[20px] ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                </div>
-                {item.badge !== undefined && (
-                  <span className={`px-2 py-0.5 text-xs rounded-full font-mono ${isActive ? 'bg-indigo-200/60 text-indigo-800' : 'bg-slate-100 text-slate-500'}`}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+          <SidebarAccordionGroup
+            title="Incidents & Team"
+            isOpen={isOperationsOpen}
+            onToggle={() => setIsOperationsOpen(!isOperationsOpen)}
+            isCollapsed={isSidebarCollapsed}
+          >
+            <button
+              onClick={() => setActiveTab('tickets')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'tickets' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined text-[20px] shrink-0">confirmation_number</span>
+                {!isSidebarCollapsed && <span className="truncate">Tickets</span>}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="px-2 py-0.5 text-[11px] rounded-full font-mono bg-indigo-100 text-indigo-800">
+                  {data.tickets.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('employees')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'employees' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined text-[20px] shrink-0">badge</span>
+                {!isSidebarCollapsed && <span className="truncate">Employees</span>}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="px-2 py-0.5 text-[11px] rounded-full font-mono bg-slate-100 text-slate-600">
+                  {data.employees.length}
+                </span>
+              )}
+            </button>
+          </SidebarAccordionGroup>
+
+          <SidebarAccordionGroup
+            title="Accounts & Offerings"
+            isOpen={isClientsOpen}
+            onToggle={() => setIsClientsOpen(!isClientsOpen)}
+            isCollapsed={isSidebarCollapsed}
+          >
+            <button
+              onClick={() => setActiveTab('companies')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'companies' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined text-[20px] shrink-0">domain</span>
+                {!isSidebarCollapsed && <span className="truncate">Companies</span>}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="px-2 py-0.5 text-[11px] rounded-full font-mono bg-slate-100 text-slate-600">
+                  {data.companies.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('services')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'services' ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined text-[20px] shrink-0">layers</span>
+                {!isSidebarCollapsed && <span className="truncate">Services</span>}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="px-2 py-0.5 text-[11px] rounded-full font-mono bg-slate-100 text-slate-600">
+                  {data.services.length}
+                </span>
+              )}
+            </button>
+          </SidebarAccordionGroup>
+        </div>
       </div>
 
-      {/* System info & bottom links */}
-      <div className="flex flex-col gap-2 px-3 pb-5">
-        <div className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-          System
-        </div>
+      <div className="p-3 border-t border-slate-100 space-y-2">
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'settings'
-              ? 'bg-indigo-50 text-indigo-700 font-semibold'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+            activeTab === 'settings' ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <span className="material-symbols-outlined text-[20px] text-slate-400">settings</span>
-          <span>System Settings</span>
+          <span className="material-symbols-outlined text-[20px] shrink-0">settings</span>
+          {!isSidebarCollapsed && <span>Settings</span>}
         </button>
-
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 mt-2">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span className="font-semibold text-slate-700">Dispatcher Status</span>
-            <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Live
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-mono">Build: v4.19-prod</div>
-        </div>
       </div>
     </aside>
   );

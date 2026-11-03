@@ -18,12 +18,14 @@ interface TicketStore {
   activeRole: RoleId;
   searchQuery: string;
   isCreateModalOpen: boolean;
+  isSidebarCollapsed: boolean;
 
   setActiveTab: (tab: string) => void;
   setSelectedTicketId: (id: string | null) => void;
   setActiveRole: (role: RoleId) => void;
   setSearchQuery: (query: string) => void;
   setIsCreateModalOpen: (open: boolean) => void;
+  toggleSidebarCollapse: () => void;
   
   addTicket: (newTicket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'timeAgo' | 'timeline'> & { initialNote?: string }) => void;
   updateTicketStatus: (ticketId: string, status: TicketStatus, note?: string) => void;
@@ -41,12 +43,14 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   activeRole: 'operations_manager',
   searchQuery: '',
   isCreateModalOpen: false,
+  isSidebarCollapsed: false,
 
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
   setActiveRole: (role) => set({ activeRole: role }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setIsCreateModalOpen: (open) => set({ isCreateModalOpen: open }),
+  toggleSidebarCollapse: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
 
   addTicket: (ticketInput) => {
     const state = get();

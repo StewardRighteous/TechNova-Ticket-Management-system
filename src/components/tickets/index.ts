@@ -2,4 +2,8 @@ export * from './TicketListItem';
 export * from './TicketTimeline';
 export * from './TicketActionSidebar';
 export * from './TicketDetailView';
+export * from './TicketBanner';
+export * from './TicketDetailHero';
+export * from './TicketTableFilters';
+export * from './TicketTable';
 export * from './TicketRegistryView';

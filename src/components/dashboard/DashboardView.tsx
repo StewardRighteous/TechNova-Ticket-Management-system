@@ -1,10 +1,11 @@
 import React from 'react';
 import { useTicketStore } from '../../store';
+import { DashboardHero } from './DashboardHero';
 import { DashboardStatsRow } from './DashboardStatsRow';
 import { DashboardTicketTable } from './DashboardTicketTable';
 
 export const DashboardView: React.FC = () => {
-  const { data, setSelectedTicketId, setActiveTab } = useTicketStore();
+  const { data, setSelectedTicketId, setActiveTab, setIsCreateModalOpen } = useTicketStore();
 
   const handleSelectTicket = (id: string) => {
     setSelectedTicketId(id);
@@ -20,50 +21,31 @@ export const DashboardView: React.FC = () => {
   const phoneCount = data.tickets.filter((t) => t.channel === 'phone').length;
 
   return (
-    <div className="flex flex-col w-full">
-      {/* Subheader Control Band */}
-      <div className="px-8 py-4 bg-white border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>
-          <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-            Executive Operations Dispatch
-          </h1>
-          <span className="hidden sm:inline font-mono text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-            {data.companyInfo.version}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-3 py-1 rounded-full font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            SLA Health: {data.companyInfo.slaHealth} on target
-          </span>
-          <button
-            onClick={() => setActiveTab('tickets')}
-            className="h-8 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">tune</span>
-            <span>View All Tickets</span>
-          </button>
-        </div>
-      </div>
+    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* Hero Banner: Matches other tabs' header format */}
+      <DashboardHero
+        companyInfo={data.companyInfo}
+        onExploreTickets={() => setActiveTab('tickets')}
+        onNewTicket={() => setIsCreateModalOpen(true)}
+      />
 
-      {/* Main Dashboard Body */}
-      <div className="p-8 space-y-8">
-        <DashboardStatsRow
-          companyInfo={data.companyInfo}
-          p1Count={p1Count}
-          p2Count={p2Count}
-          p3Count={p3Count}
-          whatsappCount={whatsappCount}
-          emailCount={emailCount}
-          phoneCount={phoneCount}
-        />
+      {/* Structured Stats Grid with refined shadows */}
+      <DashboardStatsRow
+        p1Count={p1Count}
+        p2Count={p2Count}
+        p3Count={p3Count}
+        whatsappCount={whatsappCount}
+        emailCount={emailCount}
+        phoneCount={phoneCount}
+        totalTickets={data.tickets.length}
+      />
 
-        <DashboardTicketTable
-          tickets={data.tickets}
-          onSelectTicket={handleSelectTicket}
-        />
-      </div>
+      {/* Minimized & Compact Table matching the standard table format */}
+      <DashboardTicketTable
+        tickets={data.tickets}
+        onSelectTicket={handleSelectTicket}
+        onExploreAll={() => setActiveTab('tickets')}
+      />
     </div>
   );
 };

@@ -1,45 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTicketStore } from '../../store';
-import { EmployeeCard } from './EmployeeCard';
+import { EmployeeTable } from './EmployeeTable';
+import { EmployeeDetailHero } from './EmployeeDetailHero';
+import type { Employee } from '../../types';
 
 export const EmployeesView: React.FC = () => {
-  const { data, activeRole, searchQuery } = useTicketStore();
+  const { data, activeRole } = useTicketStore();
+  const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
 
-  const filteredEmployees = data.employees.filter((e) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      e.name.toLowerCase().includes(q) ||
-      e.roleTitle.toLowerCase().includes(q) ||
-      e.email.toLowerCase().includes(q)
-    );
-  });
+  const selectedEmployee = data.employees.find((e) => e.id === activeEmployeeId);
+
+  const handleUpdateEmployee = (updates: Partial<Employee>) => {
+    if (!activeEmployeeId) return;
+    const updated = data.employees.map((e) => {
+      if (e.id === activeEmployeeId) {
+        return { ...e, ...updates };
+      }
+      return e;
+    });
+    useTicketStore.setState({
+      data: { ...data, employees: updated }
+    });
+  };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Engineering & Operations Roster</h1>
-          <p className="text-xs text-slate-500">
-            Internal dispatch team covering Support, Senior Support, Dev, QA, and Account Management
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700">
-            {filteredEmployees.length} Active Engineers & Specialists
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {filteredEmployees.map((emp) => (
-          <EmployeeCard
-            key={emp.id}
-            employee={emp}
-            isCurrentRole={emp.role === activeRole}
-          />
-        ))}
-      </div>
+    <div className="p-6 md:p-8 space-y-6">
+      {selectedEmployee ? (
+        <EmployeeDetailHero
+          employee={selectedEmployee}
+          onBack={() => setActiveEmployeeId(null)}
+          onUpdateEmployee={handleUpdateEmployee}
+        />
+      ) : (
+        <EmployeeTable
+          employees={data.employees}
+          activeRoleId={activeRole}
+          onViewEmployee={(id) => setActiveEmployeeId(id)}
+        />
+      )}
     </div>
   );
 };

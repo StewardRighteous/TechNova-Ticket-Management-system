@@ -9,7 +9,8 @@ export const Header: React.FC = () => {
     data,
     searchQuery,
     setSearchQuery,
-    setIsCreateModalOpen
+    setIsCreateModalOpen,
+    isSidebarCollapsed
   } = useTicketStore();
 
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
@@ -17,9 +18,13 @@ export const Header: React.FC = () => {
   const activeEmployee = data.employees.find((e) => e.role === activeRole) || data.employees[0];
 
   return (
-    <header className="fixed top-0 left-64 right-0 h-16 bg-white/95 backdrop-blur border-b border-slate-200 z-40 flex items-center justify-between px-8">
-      {/* Search Input */}
-      <div className="flex items-center gap-4 flex-1 max-w-xl">
+    <header
+      className={`fixed top-0 right-0 h-16 bg-white/95 backdrop-blur border-b border-slate-200 z-40 flex items-center justify-between px-6 transition-all duration-300 ${
+        isSidebarCollapsed ? 'left-20' : 'left-64'
+      }`}
+    >
+      {/* Global Quick Search */}
+      <div className="flex items-center gap-4 flex-1 max-w-lg">
         <div className="relative w-full">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
             search
@@ -28,7 +33,7 @@ export const Header: React.FC = () => {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tickets, companies, employees... (Press '/' to focus)"
+            placeholder="Search across tickets, companies, employees, services..."
             className="w-full pl-9 pr-4 py-2 bg-slate-100 text-slate-800 placeholder:text-slate-400 text-xs rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all border border-transparent focus:border-indigo-500"
           />
         </div>
@@ -39,10 +44,10 @@ export const Header: React.FC = () => {
         {/* Create Ticket CTA */}
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="h-9 px-4 bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+          className="h-9 px-3.5 bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
           type="button"
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <span className="material-symbols-outlined text-[17px]">add</span>
           <span>New Ticket</span>
         </button>
 
