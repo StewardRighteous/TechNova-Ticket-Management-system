@@ -110,9 +110,9 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="flex items-center justify-between p-2">
         <div>
-          <h2 className="text-md font-bold text-slate-900">Ticket details</h2>
+          <h2 className="text-lg font-bold text-slate-900">Ticket details</h2>
         </div>
         {editing ? (
           <div className="flex gap-2">
