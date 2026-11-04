@@ -19,10 +19,13 @@ export const Header: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 right-0 z-40 flex h-16 items-center justify-end border-b border-slate-200 bg-white/95 px-6 backdrop-blur transition-all duration-300 ${
+      className={`fixed top-0 right-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur transition-all duration-300 ${
         isSidebarCollapsed ? "left-15" : "left-64"
       }`}
     >
+      <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
+        TechNova Solutions Pvt. Ltd
+      </h1>
       <div className="flex items-center gap-4">
         <button
           onClick={() => setIsCreateModalOpen(true)}
