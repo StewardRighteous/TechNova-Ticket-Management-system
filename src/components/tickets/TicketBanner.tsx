@@ -46,6 +46,20 @@ export const TicketBanner: React.FC<TicketBannerProps> = ({ ticket }) => {
           </div>
         </div>
       </div>
+
+      {!!ticket.attachments?.length && (
+        <div className="mt-5 border-t border-slate-800 pt-4">
+          <h2 className="mb-2 text-xs font-bold text-slate-300">Attached Images</h2>
+          <div className="flex flex-wrap gap-3">
+            {ticket.attachments.map((image) => (
+              <a key={image.id} href={image.url} target="_blank" rel="noreferrer" className="group">
+                <img src={image.url} alt={image.name} className="h-20 w-20 rounded-lg border border-slate-700 object-cover group-hover:border-indigo-400" />
+                <span className="mt-1 block max-w-20 truncate text-[10px] text-slate-400">{image.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

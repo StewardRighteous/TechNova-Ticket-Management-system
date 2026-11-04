@@ -69,7 +69,7 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-lg">
       <TableHeaderSection
-        title="Active Tickets Queue"
+        title="Active Tickets"
         searchQuery={search}
         onSearchChange={(s) => {
           setSearch(s);

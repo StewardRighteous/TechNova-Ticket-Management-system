@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import type { Ticket, InboundChannel, TicketPriority, TicketStatus } from "../../types";
+import type {
+  Ticket,
+  InboundChannel,
+  TicketPriority,
+  TicketStatus,
+} from "../../types";
 import {
   ChannelBadge,
   PriorityBadge,
@@ -16,7 +21,8 @@ interface TicketTableProps {
 }
 
 type SortField = "code" | "title" | "company" | "priority" | "status" | "time";
-type PriorityFilter = "all" | Extract<TicketPriority, "P1 Urgent" | "P2 Normal" | "P3 Low">;
+type PriorityFilter =
+  "all" | Extract<TicketPriority, "P1 Urgent" | "P2 Normal" | "P3 Low">;
 
 export const TicketTable: React.FC<TicketTableProps> = ({
   tickets,
@@ -78,7 +84,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <TableHeaderSection
         title="All Tickets"
-        badgeText={`${filtered.length} In Queue`}
         searchQuery={search}
         onSearchChange={(s) => {
           setSearch(s);
@@ -125,13 +130,23 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </span>
                 </div>
               </th>
-              <th className="px-4 py-3">Channel</th>
+              <th className="cursor-pointer px-4 py-3">
+                <div className="flex items-center gap-1">
+                  <span>Ticket Details</span>
+                </div>
+              </th>
+              <th className="cursor-pointer px-4 py-3">
+                <div className="flex items-center gap-1">
+                  <span>Priority</span>
+                </div>
+              </th>
+
               <th
                 className="cursor-pointer px-4 py-3"
                 onClick={() => handleSort("company")}
               >
                 <div className="flex items-center gap-1">
-                  <span>Client Company</span>
+                  <span>Company</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70">
                     {sortField === "company"
                       ? sortAsc
@@ -141,17 +156,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </span>
                 </div>
               </th>
-              <th className="cursor-pointer px-4 py-3">
-                <div className="flex items-center gap-1">
-                  <span>Incident Summary</span>
-                </div>
-              </th>
-              <th className="cursor-pointer px-4 py-3">
-                <div className="flex items-center gap-1">
-                  <span>Priority</span>
-                </div>
-              </th>
-              <th className="px-4 py-3">Assignee</th>
+
+              <th className="px-4 py-3">Channel</th>
+
+              <th className="px-4 py-3">Assigned To</th>
               <th className="cursor-pointer px-4 py-3">
                 <div className="flex items-center gap-1">
                   <span>Status</span>
@@ -170,10 +178,19 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 <td className="px-6 py-3.5 font-mono font-bold whitespace-nowrap text-indigo-700">
                   {t.code}
                 </td>
-                <td className="px-4 py-3.5 whitespace-nowrap">
-                  <ChannelBadge channel={t.channel} />
+                <td className="max-w-sm px-5 py-3.5">
+                  <div className="line-clamp-1 font-bold text-slate-900 transition-colors group-hover:text-indigo-600">
+                    {t.title}
+                  </div>
+                  <div className="line-clamp-1 text-[11px] text-slate-500">
+                    {t.description}
+                  </div>
                 </td>
                 <td className="px-4 py-3.5 whitespace-nowrap">
+                  <PriorityBadge priority={t.priority} />
+                </td>
+
+                <td className="px-4 py-3.5 whitespace-break-spaces">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px] text-slate-400">
                       domain
@@ -188,18 +205,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     </div>
                   </div>
                 </td>
-                <td className="max-w-sm px-4 py-3.5">
-                  <div className="line-clamp-1 font-bold text-slate-900 transition-colors group-hover:text-indigo-600">
-                    {t.title}
-                  </div>
-                  <div className="line-clamp-1 text-[11px] text-slate-500">
-                    {t.description}
-                  </div>
-                </td>
+
                 <td className="px-4 py-3.5 whitespace-nowrap">
-                  <PriorityBadge priority={t.priority} />
+                  <ChannelBadge channel={t.channel} />
                 </td>
-                <td className="px-4 py-3.5 whitespace-nowrap">
+
+                <td className="px-4 py-3.5 whitespace-break-spaces">
                   <div className="flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[16px] text-slate-400">
                       badge
