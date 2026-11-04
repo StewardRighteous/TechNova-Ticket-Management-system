@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface TablePaginationProps {
   totalItems: number;
@@ -15,18 +15,18 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [5, 10, 20, 50]
+  pageSizeOptions = [5, 10, 20, 50],
 }) => {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const startEntry = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endEntry = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="px-6 py-4 bg-white border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 select-none">
+    <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-white px-6 py-4 select-none md:flex-row">
       {/* Left: nth entries count */}
-      <div className="text-xs text-slate-500 font-medium">
-        Showing <span className="font-bold text-slate-800">{startEntry}</span> to{' '}
-        <span className="font-bold text-slate-800">{endEntry}</span> out of{' '}
+      <div className="text-xs font-medium text-slate-500">
+        Showing <span className="font-bold text-slate-800">{startEntry}</span>{" "}
+        to <span className="font-bold text-slate-800">{endEntry}</span> out of{" "}
         <span className="font-bold text-slate-800">{totalItems}</span> entries
       </div>
 
@@ -36,20 +36,24 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           title="First Page"
-          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 transition-colors flex items-center justify-center"
+          className="flex items-center justify-center rounded-lg border border-slate-200 p-1.5 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="material-symbols-outlined text-[16px]">first_page</span>
+          <span className="material-symbols-outlined text-[16px]">
+            first_page
+          </span>
         </button>
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           title="Previous Page"
-          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 transition-colors flex items-center justify-center"
+          className="flex items-center justify-center rounded-lg border border-slate-200 p-1.5 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+          <span className="material-symbols-outlined text-[16px]">
+            chevron_left
+          </span>
         </button>
 
-        <span className="px-3 py-1 text-xs font-semibold text-slate-700 bg-slate-100 rounded-md mx-1">
+        <span className="mx-1 rounded-md bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
           Page {currentPage} of {totalPages}
         </span>
 
@@ -57,17 +61,21 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
           title="Next Page"
-          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 transition-colors flex items-center justify-center"
+          className="flex items-center justify-center rounded-lg border border-slate-200 p-1.5 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          <span className="material-symbols-outlined text-[16px]">
+            chevron_right
+          </span>
         </button>
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage >= totalPages}
           title="Last Page"
-          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-600 transition-colors flex items-center justify-center"
+          className="flex items-center justify-center rounded-lg border border-slate-200 p-1.5 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="material-symbols-outlined text-[16px]">last_page</span>
+          <span className="material-symbols-outlined text-[16px]">
+            last_page
+          </span>
         </button>
       </div>
 
@@ -80,7 +88,8 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
             onPageSizeChange(Number(e.target.value));
             onPageChange(1);
           }}
-          className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-semibold text-slate-800 outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+
+          className="cursor-pointer rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {pageSizeOptions.map((opt) => (
             <option key={opt} value={opt}>

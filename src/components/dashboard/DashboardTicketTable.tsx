@@ -123,7 +123,7 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
               >
                 <span>Status</span>
               </th>
-              <th className="px-5 py-2.5 text-right">Action</th>
+              <th className="px-5 py-2.5 text-left">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -165,10 +165,10 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
                     onClick={() => onSelectTicket(t.id)}
                     className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
                   >
-                    <span>View</span>
                     <span className="material-symbols-outlined text-[14px]">
                       visibility
                     </span>
+                    <span>View</span>
                   </button>
                 </td>
               </tr>
