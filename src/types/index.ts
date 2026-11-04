@@ -4,7 +4,8 @@ export type RoleId =
   | 'development_team'
   | 'qa'
   | 'account_manager'
-  | 'operations_manager';
+  | 'operations_manager'
+  | 'management';
 
 export type InboundChannel = 'whatsapp' | 'email' | 'phone';
 
@@ -26,12 +27,40 @@ export interface TicketTimelineItem {
   action: string;
   timestamp: string;
   note: string;
+  fromAssigneeId?: string;
+  toAssigneeId?: string;
+  fromTeamId?: string;
+  toTeamId?: string;
+  escalationReason?: string;
 }
 
 export interface TicketDiagnosticData {
   clusterNode?: string;
   affectedUsers?: number;
   errorRate?: string;
+  browser?: string;
+  operatingSystem?: string;
+  device?: string;
+  errorMessage?: string;
+  errorCode?: string;
+  stepsToReproduce?: string;
+  expectedBehavior?: string;
+  actualBehavior?: string;
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  mimeType: string;
+  size: number;
+}
+
+export interface InternalNote {
+  id: string;
+  authorId: string;
+  body: string;
+  createdAt: string;
 }
 
 export interface Ticket {
@@ -42,8 +71,10 @@ export interface Ticket {
   companyId: string;
   companyName: string;
   companyCode: string;
+  contactId?: string;
   serviceId: string;
   serviceName: string;
+  categoryId?: string;
   priority: TicketPriority;
   status: TicketStatus;
   channel: InboundChannel;
@@ -52,8 +83,10 @@ export interface Ticket {
   assignedToId: string;
   assignedToName: string;
   assignedToRole: string;
+  teamId?: string;
   currentStageRole: RoleId;
   slaDeadline: string;
+  dueAt?: string;
   slaRisk: 'On Target' | 'At Risk' | 'Breached';
   createdAt: string;
   updatedAt: string;
@@ -62,7 +95,19 @@ export interface Ticket {
   systemRevision: string;
   environment: string;
   diagnosticData?: TicketDiagnosticData;
+  attachments?: Attachment[];
+  internalNotes?: InternalNote[];
+  resolutionDetails?: string;
+  closedAt?: string;
   timeline: TicketTimelineItem[];
+}
+
+export interface CustomerContact {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  accountIdentifier?: string;
 }
 
 export interface Company {
@@ -74,6 +119,7 @@ export interface Company {
   contactRole: string;
   contactEmail: string;
   contactPhone: string;
+  contacts?: CustomerContact[];
   preferredChannel: InboundChannel;
   activeContracts: number;
   activeTickets: number;
@@ -91,10 +137,32 @@ export interface Employee {
   email: string;
   phone: string;
   avatar: string;
+  departmentId?: string;
+  teamId?: string;
+  locationId?: string;
+  permissions?: string[];
   activeTicketsCount: number;
   capacityMax: number;
   skills: string[];
   status: 'Available' | 'Busy' | 'Off Shift';
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  departmentId: string;
+  locationId?: string;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+}
+
+export interface Location {
+  id: string;
+  name: string;
+  address?: string;
 }
 
 export interface ServiceLine {
@@ -131,4 +199,7 @@ export interface MockupDatabase {
   companies: Company[];
   employees: Employee[];
   tickets: Ticket[];
+  teams?: Team[];
+  departments?: Department[];
+  locations?: Location[];
 }
