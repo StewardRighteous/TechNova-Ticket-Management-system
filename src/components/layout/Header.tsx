@@ -78,33 +78,7 @@ export const Header: React.FC = () => {
                 </span>
               </div>
 
-              <div className="mt-1 px-3 py-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                Switch Operational Persona
-              </div>
-              {data.employees.map((emp) => {
-                const isSelected = emp.id === activeEmployee.id;
-                return (
-                  <button
-                    key={emp.id}
-                    onClick={() => {
-                      loginAsEmployee(emp.id);
-                      setIsProfileDropdownOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-slate-50 ${
-                      isSelected
-                        ? "bg-indigo-50 font-bold text-indigo-700"
-                        : "text-slate-700"
-                    }`}
-                  >
-                    <span className="text-xs">{emp.name}</span>
-                    <span className="text-[10px] text-slate-400">
-                      {emp.roleTitle.split("&")[0]}
-                    </span>
-                  </button>
-                );
-              })}
-
-              <div className="mt-2 border-t border-slate-100 px-2 pt-2">
+              <div className="border-slate-100 px-2 pt-2">
                 <button
                   onClick={() => {
                     setIsProfileDropdownOpen(false);
