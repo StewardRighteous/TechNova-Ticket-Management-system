@@ -9,7 +9,7 @@ import type {
   TicketStatus
 } from '../types';
 import { loadInitialState, persistState } from './storage';
-import { createNewTicket, updateTicketStatusInList } from './ticketMutations';
+import { createNewTicket, updateTicketFieldsInList, updateTicketStatusInList } from './ticketMutations';
 import { authenticateByEmail, authenticateById, addTimelineNoteToTicket } from './authHelpers';
 
 interface TicketStore {
@@ -35,6 +35,7 @@ interface TicketStore {
   
   addTicket: (newTicket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'timeAgo' | 'timeline'> & { initialNote?: string }) => void;
   updateTicketStatus: (ticketId: string, status: TicketStatus, note?: string) => void;
+  updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
   assignTicket: (ticketId: string, employeeId: string, note?: string) => void;
   addTicketTimelineNote: (ticketId: string, note: string) => void;
   addCompany: (company: Company) => void;
@@ -95,6 +96,15 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     set({ data: updatedData });
   },
 
+  updateTicket: (ticketId, updates) => {
+    const state = get();
+    const currentEmp = state.currentUser || state.data.employees[0];
+    const tickets = updateTicketFieldsInList(state.data.tickets, ticketId, updates, currentEmp);
+    const updatedData = { ...state.data, tickets };
+    persistState(updatedData);
+    set({ data: updatedData });
+  },
+
   assignTicket: (ticketId, employeeId, note) => {
     const state = get();
     const currentEmp = state.currentUser || state.data.employees[0];
@@ -115,11 +125,14 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
             ...t.timeline,
             {
               id: `tl-${Date.now()}`,
+              performedById: currentEmp.id,
               author: currentEmp.name,
               role: currentEmp.roleTitle,
               action: `Reassigned to ${targetEmp.name}`,
               timestamp: 'Just now',
-              note: note || `Transferred responsibility to ${targetEmp.name} (${targetEmp.roleTitle}).`
+              note: note || `Transferred responsibility to ${targetEmp.name} (${targetEmp.roleTitle}).`,
+              fromAssigneeId: t.assignedToId,
+              toAssigneeId: targetEmp.id
             }
           ]
         };

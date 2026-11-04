@@ -3,7 +3,6 @@ import { useTicketStore } from '../../store';
 import { TicketTable } from './TicketTable';
 import { TicketDetailHero } from './TicketDetailHero';
 import { filterTicketsByRole } from '../../utils';
-import type { Ticket } from '../../types';
 
 export const TicketRegistryView: React.FC = () => {
   const {
@@ -12,6 +11,7 @@ export const TicketRegistryView: React.FC = () => {
     currentUser,
     setSelectedTicketId,
     updateTicketStatus,
+    updateTicket,
     assignTicket,
     setIsCreateModalOpen
   } = useTicketStore();
@@ -22,29 +22,18 @@ export const TicketRegistryView: React.FC = () => {
   const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
   const selectedTicket = roleTickets.find((t) => t.id === activeTicketId) || data.tickets.find((t) => t.id === activeTicketId);
 
-  const handleUpdateTicketFields = (updates: Partial<Ticket>) => {
-    if (!activeTicketId) return;
-    const updated = data.tickets.map((t) => {
-      if (t.id === activeTicketId) {
-        return { ...t, ...updates };
-      }
-      return t;
-    });
-    useTicketStore.setState({
-      data: { ...data, tickets: updated }
-    });
-  };
-
   return (
     <div className="p-6 md:p-8 space-y-6">
       {selectedTicket ? (
         <TicketDetailHero
           ticket={selectedTicket}
+          companies={data.companies}
+          services={data.services}
           employees={data.employees}
           onBack={() => setActiveTicketId(null)}
           onStatusChange={(status) => updateTicketStatus(selectedTicket.id, status)}
-          onAssigneeChange={(empId) => assignTicket(selectedTicket.id, empId)}
-          onUpdateTicketFields={handleUpdateTicketFields}
+          onAssigneeChange={(empId, note) => assignTicket(selectedTicket.id, empId, note)}
+          onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
         />
       ) : (
         <TicketTable

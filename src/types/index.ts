@@ -22,6 +22,7 @@ export type TicketStatus =
 
 export interface TicketTimelineItem {
   id: string;
+  performedById?: string;
   author: string;
   role: string;
   action: string;

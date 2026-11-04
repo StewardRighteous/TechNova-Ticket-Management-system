@@ -18,11 +18,22 @@ export function createNewTicket(
     timeline: [
       {
         id: `tl-${Date.now()}`,
+        performedById: currentEmp.id,
         author: currentEmp.name,
         role: currentEmp.roleTitle,
         action: `Ticket Logged via ${ticketInput.channel.toUpperCase()}`,
         timestamp: 'Just now',
         note: ticketInput.initialNote || 'Ticket registered in system.'
+      },
+      {
+        id: `tl-${Date.now()}-assignment`,
+        performedById: currentEmp.id,
+        author: currentEmp.name,
+        role: currentEmp.roleTitle,
+        action: `Assigned to ${ticketInput.assignedToName}`,
+        timestamp: 'Just now',
+        note: 'Initial ticket assignment.',
+        toAssigneeId: ticketInput.assignedToId
       }
     ]
   };
@@ -57,6 +68,7 @@ export function updateTicketStatusInList(
           ...t.timeline,
           {
             id: `tl-${Date.now()}`,
+            performedById: currentEmp.id,
             author: currentEmp.name,
             role: currentEmp.roleTitle,
             action: `Status Changed to ${status}`,
@@ -67,5 +79,35 @@ export function updateTicketStatusInList(
       };
     }
     return t;
+  });
+}
+
+export function updateTicketFieldsInList(
+  tickets: Ticket[],
+  ticketId: string,
+  updates: Partial<Ticket>,
+  currentEmp: Employee
+): Ticket[] {
+  return tickets.map((ticket) => {
+    if (ticket.id !== ticketId) return ticket;
+    const timestamp = new Date().toISOString();
+    return {
+      ...ticket,
+      ...updates,
+      updatedAt: timestamp,
+      timeAgo: 'Just now',
+      timeline: [
+        ...ticket.timeline,
+        {
+          id: `tl-${Date.now()}`,
+          performedById: currentEmp.id,
+          author: currentEmp.name,
+          role: currentEmp.roleTitle,
+          action: 'Ticket details updated',
+          timestamp: 'Just now',
+          note: 'Ticket details were updated.'
+        }
+      ]
+    };
   });
 }
