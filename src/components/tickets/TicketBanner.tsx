@@ -13,7 +13,7 @@ export const TicketBanner: React.FC<TicketBannerProps> = ({
 }) => {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-slate-900 p-6 text-white shadow-lg sm:p-8">
-      <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
+      <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
         <div className="flex-1">
           <h1 className="text-xl leading-snug font-bold tracking-tight text-white sm:text-2xl">
             {ticket.title}
@@ -21,49 +21,6 @@ export const TicketBanner: React.FC<TicketBannerProps> = ({
           <p className="mt-2 max-w-3xl text-xs leading-relaxed text-slate-300 sm:text-sm">
             {ticket.description}
           </p>
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-col justify-start gap-7 md:flex-row md:items-start">
-        <div className="min-w-70 space-y-2 rounded-xl border border-slate-700 bg-slate-800/80 p-4 text-xs">
-          <div className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-            Ticket Details
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Ticket No:</span>
-            <span className="font-bold text-slate-300">{ticket.id}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Channel:</span>
-            <span className="font-bold text-slate-300 capitalize">
-              {ticket.channel}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Priority:</span>
-            <span className="font-bold text-slate-300">{ticket.priority}</span>
-          </div>
-        </div>
-        <div className="min-w-70 space-y-2 rounded-xl border border-slate-700 bg-slate-800/80 p-4 text-xs">
-          <div className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-            Ticket Status
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Client:</span>
-            <span className="font-bold text-white">{ticket.companyName}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Assigned:</span>
-            <span className="font-bold text-indigo-300">
-              {ticket.assignedToName}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Deadline:</span>
-            <span className="font-bold text-amber-400">
-              {ticket.slaDeadline}
-            </span>
-          </div>
         </div>
         <div className="flex min-w-70 items-center gap-3">
           <label className="text-[10px] font-bold tracking-wide text-slate-400 uppercase">
@@ -82,6 +39,47 @@ export const TicketBanner: React.FC<TicketBannerProps> = ({
               <option value="Closed">Closed</option>
             </select>
           </label>
+        </div>
+      </div>
+
+      <div className="mt-4 grid w-full grid-cols-3">
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Ticket No</span>
+          <span className="text-sm font-bold text-slate-200 capitalize">
+            {ticket.id}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Channel</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.channel}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Priority</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.priority}
+          </span>
+        </div>
+      </div>
+      <div className="mt-2 grid w-full grid-cols-3">
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Client</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.companyName}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Assigned</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.assignedToName}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Deadline</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.slaDeadline}
+          </span>
         </div>
       </div>
     </div>
