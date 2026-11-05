@@ -6,7 +6,6 @@ import type {
   TicketStatus,
 } from "../../types";
 import {
-  ChannelBadge,
   PriorityBadge,
   StatusBadge,
   TablePagination,
@@ -38,7 +37,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const [sortField, setSortField] = useState<SortField>("time");
   const [sortAsc, setSortAsc] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) setSortAsc(!sortAsc);
@@ -130,14 +129,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </span>
                 </div>
               </th>
-              <th className="cursor-pointer px-4 py-3">
+              <th className="px-4 py-3">
                 <div className="flex items-center gap-1">
                   <span>Ticket Details</span>
-                </div>
-              </th>
-              <th className="cursor-pointer px-4 py-3">
-                <div className="flex items-center gap-1">
-                  <span>Priority</span>
                 </div>
               </th>
 
@@ -156,11 +150,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </span>
                 </div>
               </th>
-
-              <th className="px-4 py-3">Channel</th>
-
               <th className="px-4 py-3">Assigned To</th>
-              <th className="cursor-pointer px-4 py-3">
+              <th className="px-4 py-3">
+                <div className="flex items-center gap-1">
+                  <span>Priority</span>
+                </div>
+              </th>
+              <th className="px-4 py-3">
                 <div className="flex items-center gap-1">
                   <span>Status</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70"></span>
@@ -175,7 +171,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 key={t.id}
                 className="group transition-colors hover:bg-indigo-50/40"
               >
-                <td className="px-6 py-3.5 font-mono font-bold whitespace-nowrap text-indigo-700">
+                <td className="px-6 py-3.5 font-mono font-bold whitespace-nowrap text-slate-500">
                   {t.code}
                 </td>
                 <td className="max-w-sm px-5 py-3.5">
@@ -185,9 +181,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   <div className="line-clamp-1 text-[11px] text-slate-500">
                     {t.description}
                   </div>
-                </td>
-                <td className="px-4 py-3.5 whitespace-nowrap">
-                  <PriorityBadge priority={t.priority} />
                 </td>
 
                 <td className="px-4 py-3.5 whitespace-break-spaces">
@@ -206,10 +199,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </div>
                 </td>
 
-                <td className="px-4 py-3.5 whitespace-nowrap">
-                  <ChannelBadge channel={t.channel} />
-                </td>
-
                 <td className="px-4 py-3.5 whitespace-break-spaces">
                   <div className="flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[16px] text-slate-400">
@@ -219,12 +208,17 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       <span className="block leading-tight font-semibold text-slate-800">
                         {t.assignedToName}
                       </span>
-                      <span className="text-[10px] font-medium text-indigo-600">
+                      <span className="text-[10px] font-medium text-slate-500">
                         {t.assignedToRole}
                       </span>
                     </div>
                   </div>
                 </td>
+
+                <td className="px-4 py-3.5 whitespace-nowrap">
+                  <PriorityBadge priority={t.priority} />
+                </td>
+
                 <td className="px-4 py-3.5 whitespace-nowrap">
                   <StatusBadge status={t.status} />
                 </td>

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useTicketStore } from '../../store';
-import { TicketTable } from './TicketTable';
-import { TicketDetailHero } from './TicketDetailHero';
-import { filterTicketsByRole } from '../../utils';
+import React, { useState } from "react";
+import { useTicketStore } from "../../store";
+import { TicketTable } from "./TicketTable";
+import { TicketDetailHero } from "./TicketDetailHero";
+import { filterTicketsByRole } from "../../utils";
 
 export const TicketRegistryView: React.FC = () => {
   const {
@@ -13,17 +13,23 @@ export const TicketRegistryView: React.FC = () => {
     updateTicketStatus,
     updateTicket,
     assignTicket,
-    setIsCreateModalOpen
+    setIsCreateModalOpen,
   } = useTicketStore();
 
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
 
   // Role-specific filtered tickets
-  const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
-  const selectedTicket = roleTickets.find((t) => t.id === activeTicketId) || data.tickets.find((t) => t.id === activeTicketId);
+  const roleTickets = filterTicketsByRole(
+    data.tickets,
+    activeRole,
+    currentUser?.id,
+  );
+  const selectedTicket =
+    roleTickets.find((t) => t.id === activeTicketId) ||
+    data.tickets.find((t) => t.id === activeTicketId);
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="space-y-6 p-3">
       {selectedTicket ? (
         <TicketDetailHero
           ticket={selectedTicket}
@@ -31,8 +37,12 @@ export const TicketRegistryView: React.FC = () => {
           services={data.services}
           employees={data.employees}
           onBack={() => setActiveTicketId(null)}
-          onStatusChange={(status) => updateTicketStatus(selectedTicket.id, status)}
-          onAssigneeChange={(empId, note) => assignTicket(selectedTicket.id, empId, note)}
+          onStatusChange={(status) =>
+            updateTicketStatus(selectedTicket.id, status)
+          }
+          onAssigneeChange={(empId, note) =>
+            assignTicket(selectedTicket.id, empId, note)
+          }
           onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
         />
       ) : (
