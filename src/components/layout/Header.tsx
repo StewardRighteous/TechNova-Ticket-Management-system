@@ -8,7 +8,6 @@ export const Header: React.FC = () => {
     data,
     setIsCreateModalOpen,
     isSidebarCollapsed,
-    loginAsEmployee,
     logout,
   } = useTicketStore();
 

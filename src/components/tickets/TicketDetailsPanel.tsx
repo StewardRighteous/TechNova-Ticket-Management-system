@@ -38,6 +38,24 @@ type Draft = Pick<
 const fieldClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500";
 
+const createDraft = (ticket: Ticket): Draft => ({
+  title: ticket.title,
+  description: ticket.description,
+  companyId: ticket.companyId,
+  serviceId: ticket.serviceId,
+  priority: ticket.priority,
+  channel: ticket.channel,
+  clientContact: ticket.clientContact,
+  slaDeadline: ticket.slaDeadline,
+  environment: ticket.environment,
+  systemRevision: ticket.systemRevision,
+  resolutionDetails: ticket.resolutionDetails ?? "",
+  categoryId: ticket.categoryId ?? "",
+  dueAt: ticket.dueAt ?? "",
+  tagsText: ticket.tags.join(", "),
+  diagnosticData: ticket.diagnosticData ?? {},
+});
+
 export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
   ticket,
   companies,
@@ -45,44 +63,12 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
   onSave,
 }) => {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<Draft>(() => ({
-    title: ticket.title,
-    description: ticket.description,
-    companyId: ticket.companyId,
-    serviceId: ticket.serviceId,
-    priority: ticket.priority,
-    channel: ticket.channel,
-    clientContact: ticket.clientContact,
-    slaDeadline: ticket.slaDeadline,
-    environment: ticket.environment,
-    systemRevision: ticket.systemRevision,
-    resolutionDetails: ticket.resolutionDetails ?? "",
-    categoryId: ticket.categoryId ?? "",
-    dueAt: ticket.dueAt ?? "",
-    tagsText: ticket.tags.join(", "),
-    diagnosticData: ticket.diagnosticData ?? {},
-  }));
+  const [draft, setDraft] = useState<Draft>(() => createDraft(ticket));
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));
   const cancel = () => {
-    setDraft({
-      title: ticket.title,
-      description: ticket.description,
-      companyId: ticket.companyId,
-      serviceId: ticket.serviceId,
-      priority: ticket.priority,
-      channel: ticket.channel,
-      clientContact: ticket.clientContact,
-      slaDeadline: ticket.slaDeadline,
-      environment: ticket.environment,
-      systemRevision: ticket.systemRevision,
-      resolutionDetails: ticket.resolutionDetails ?? "",
-      categoryId: ticket.categoryId ?? "",
-      dueAt: ticket.dueAt ?? "",
-      tagsText: ticket.tags.join(", "),
-      diagnosticData: ticket.diagnosticData ?? {},
-    });
+    setDraft(createDraft(ticket));
     setEditing(false);
   };
   const save = () => {

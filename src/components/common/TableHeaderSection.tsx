@@ -40,7 +40,7 @@ export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
         </div>
 
         {/* Embedded Left Search Input */}
-        <div className="relative max-w-xs min-w-[240px]">
+        <div className="relative max-w-xs min-w-60">
           <span className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-400">
             search
           </span>
