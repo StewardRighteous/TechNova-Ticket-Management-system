@@ -182,13 +182,13 @@ export const DashboardView: React.FC = () => {
       tickets.filter((ticket) => isToday(ticket.dueAt)).length,
       "today",
     ],
-    ["Closed tickets", count("status", "Closed"), "task_alt"],
     [
       "Employees present",
       data.employees.filter((employee) => employee.status !== "Off Shift")
         .length,
       "groups",
     ],
+    ["Closed tickets", count("status", "Closed"), "task_alt"],
   ] as const;
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-8">
@@ -224,11 +224,10 @@ export const DashboardView: React.FC = () => {
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <PieChart
-          title="Tickets by channel"
-          items={channels.map((key) => ({
-            label: channelNames[key],
-            value: count("channel", key),
-          }))}
+          title="Tickets by status"
+          items={statuses
+            .map((key) => ({ label: key, value: count("status", key) }))
+            .filter((item) => item.value > 0)}
         />
         <PieChart
           title="Tickets by priority"
@@ -238,10 +237,11 @@ export const DashboardView: React.FC = () => {
           }))}
         />
         <PieChart
-          title="Tickets by status"
-          items={statuses
-            .map((key) => ({ label: key, value: count("status", key) }))
-            .filter((item) => item.value > 0)}
+          title="Tickets by channel"
+          items={channels.map((key) => ({
+            label: channelNames[key],
+            value: count("channel", key),
+          }))}
         />
       </div>
       <div className="grid items-start gap-4 lg:grid-cols-[2fr_1fr]">
@@ -255,16 +255,15 @@ export const DashboardView: React.FC = () => {
           </div>
           <div className="mt-5 space-y-5">
             <FilterGroup
-              title="Channel"
-              items={channels}
-              labels={channelNames}
-              selected={selectedChannels}
-              counts={(value) => count("channel", value)}
+              title="Status"
+              items={statuses}
+              selected={selectedStatuses}
+              counts={(value) => count("status", value)}
               onToggle={(value) =>
                 toggle(
-                  value as InboundChannel,
-                  selectedChannels,
-                  setSelectedChannels,
+                  value as TicketStatus,
+                  selectedStatuses,
+                  setSelectedStatuses,
                 )
               }
             />
@@ -281,19 +280,20 @@ export const DashboardView: React.FC = () => {
                 )
               }
             />
-            <FilterGroup
-              title="Status"
-              items={statuses}
-              selected={selectedStatuses}
-              counts={(value) => count("status", value)}
+            {/* <FilterGroup
+              title="Channel"
+              items={channels}
+              labels={channelNames}
+              selected={selectedChannels}
+              counts={(value) => count("channel", value)}
               onToggle={(value) =>
                 toggle(
-                  value as TicketStatus,
-                  selectedStatuses,
-                  setSelectedStatuses,
+                  value as InboundChannel,
+                  selectedChannels,
+                  setSelectedChannels,
                 )
               }
-            />
+            /> */}
           </div>
           <button
             onClick={resetFilters}

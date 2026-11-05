@@ -41,6 +41,26 @@ export const TicketBanner: React.FC<TicketBannerProps> = ({
           </label>
         </div>
       </div>
+      <div className="mt-2 grid w-full grid-cols-3">
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Client</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.companyName}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Assigned To</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.assignedToName}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-slate-400">Deadline</span>
+          <span className="text-sm font-bold text-slate-300 capitalize">
+            {ticket.slaDeadline}
+          </span>
+        </div>
+      </div>
 
       <div className="mt-4 grid w-full grid-cols-3">
         <div className="flex flex-col">
@@ -58,27 +78,7 @@ export const TicketBanner: React.FC<TicketBannerProps> = ({
         <div className="flex flex-col">
           <span className="text-xs text-slate-400">Priority</span>
           <span className="text-sm font-bold text-slate-300 capitalize">
-            {ticket.priority}
-          </span>
-        </div>
-      </div>
-      <div className="mt-2 grid w-full grid-cols-3">
-        <div className="flex flex-col">
-          <span className="text-xs text-slate-400">Client</span>
-          <span className="text-sm font-bold text-slate-300 capitalize">
-            {ticket.companyName}
-          </span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xs text-slate-400">Assigned</span>
-          <span className="text-sm font-bold text-slate-300 capitalize">
-            {ticket.assignedToName}
-          </span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xs text-slate-400">Deadline</span>
-          <span className="text-sm font-bold text-slate-300 capitalize">
-            {ticket.slaDeadline}
+            {ticket.priority.slice(2)}
           </span>
         </div>
       </div>
