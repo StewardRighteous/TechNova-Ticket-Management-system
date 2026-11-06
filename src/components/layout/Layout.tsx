@@ -15,7 +15,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Sidebar />
       <div
         className={`transition-all duration-300 ${
-          isSidebarCollapsed ? "pl-20" : "pl-64"
+          isSidebarCollapsed ? "pl-17" : "pl-64"
         }`}
       >
         <Header />

@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import type {
   MockupDatabase,
   Ticket,
@@ -6,11 +6,19 @@ import type {
   Employee,
   ServiceLine,
   RoleId,
-  TicketStatus
-} from '../types';
-import { loadInitialState, persistState } from './storage';
-import { createNewTicket, updateTicketFieldsInList, updateTicketStatusInList } from './ticketMutations';
-import { authenticateByEmail, authenticateById, addTimelineNoteToTicket } from './authHelpers';
+  TicketStatus,
+} from "../types";
+import { loadInitialState, persistState } from "./storage";
+import {
+  createNewTicket,
+  updateTicketFieldsInList,
+  updateTicketStatusInList,
+} from "./ticketMutations";
+import {
+  authenticateByEmail,
+  authenticateById,
+  addTimelineNoteToTicket,
+} from "./authHelpers";
 
 interface TicketStore {
   data: MockupDatabase;
@@ -32,9 +40,18 @@ interface TicketStore {
   setSearchQuery: (query: string) => void;
   setIsCreateModalOpen: (open: boolean) => void;
   toggleSidebarCollapse: () => void;
-  
-  addTicket: (newTicket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'timeAgo' | 'timeline'> & { initialNote?: string }) => void;
-  updateTicketStatus: (ticketId: string, status: TicketStatus, note?: string) => void;
+
+  addTicket: (
+    newTicket: Omit<
+      Ticket,
+      "id" | "createdAt" | "updatedAt" | "timeAgo" | "timeline"
+    > & { initialNote?: string },
+  ) => void;
+  updateTicketStatus: (
+    ticketId: string,
+    status: TicketStatus,
+    note?: string,
+  ) => void;
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
   assignTicket: (ticketId: string, employeeId: string, note?: string) => void;
   addTicketTimelineNote: (ticketId: string, note: string) => void;
@@ -47,19 +64,24 @@ const initialDb = loadInitialState();
 
 export const useTicketStore = create<TicketStore>((set, get) => ({
   data: initialDb,
-  activeTab: 'dashboard',
-  selectedTicketId: 'TCK-1084',
-  activeRole: 'operations_manager',
+  activeTab: "dashboard",
+  selectedTicketId: "TCK-1084",
+  activeRole: "operations_manager",
   currentUser: initialDb.employees[0],
   isAuthenticated: true,
-  searchQuery: '',
+  searchQuery: "",
   isCreateModalOpen: false,
   isSidebarCollapsed: false,
 
   login: (email: string) => {
     const matched = authenticateByEmail(email, get().data.employees);
     if (matched) {
-      set({ currentUser: matched, activeRole: matched.role, isAuthenticated: true, activeTab: 'dashboard' });
+      set({
+        currentUser: matched,
+        activeRole: matched.role,
+        isAuthenticated: true,
+        activeTab: "dashboard",
+      });
       return true;
     }
     return false;
@@ -68,21 +90,32 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   loginAsEmployee: (employeeId: string) => {
     const matched = authenticateById(employeeId, get().data.employees);
     if (matched) {
-      set({ currentUser: matched, activeRole: matched.role, isAuthenticated: true, activeTab: 'dashboard' });
+      set({
+        currentUser: matched,
+        activeRole: matched.role,
+        isAuthenticated: true,
+        activeTab: "dashboard",
+      });
     }
   },
 
-  logout: () => set({ currentUser: null, isAuthenticated: false, activeTab: 'dashboard' }),
+  logout: () =>
+    set({ currentUser: null, isAuthenticated: false, activeTab: "dashboard" }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
   setActiveRole: (role) => set({ activeRole: role }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setIsCreateModalOpen: (open) => set({ isCreateModalOpen: open }),
-  toggleSidebarCollapse: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  toggleSidebarCollapse: () =>
+    set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
 
   addTicket: (ticketInput) => {
     const state = get();
-    const { newTicket, updatedData } = createNewTicket(ticketInput, state.activeRole, state.data);
+    const { newTicket, updatedData } = createNewTicket(
+      ticketInput,
+      state.activeRole,
+      state.data,
+    );
     persistState(updatedData);
     set({ data: updatedData, selectedTicketId: newTicket.id });
   },
@@ -90,7 +123,13 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   updateTicketStatus: (ticketId, status, note) => {
     const state = get();
     const currentEmp = state.currentUser || state.data.employees[0];
-    const updatedTickets = updateTicketStatusInList(state.data.tickets, ticketId, status, currentEmp, note);
+    const updatedTickets = updateTicketStatusInList(
+      state.data.tickets,
+      ticketId,
+      status,
+      currentEmp,
+      note,
+    );
     const updatedData = { ...state.data, tickets: updatedTickets };
     persistState(updatedData);
     set({ data: updatedData });
@@ -99,7 +138,12 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   updateTicket: (ticketId, updates) => {
     const state = get();
     const currentEmp = state.currentUser || state.data.employees[0];
-    const tickets = updateTicketFieldsInList(state.data.tickets, ticketId, updates, currentEmp);
+    const tickets = updateTicketFieldsInList(
+      state.data.tickets,
+      ticketId,
+      updates,
+      currentEmp,
+    );
     const updatedData = { ...state.data, tickets };
     persistState(updatedData);
     set({ data: updatedData });
@@ -120,7 +164,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
           assignedToRole: targetEmp.roleTitle,
           currentStageRole: targetEmp.role,
           updatedAt: new Date().toISOString(),
-          timeAgo: 'Just now',
+          timeAgo: "Just now",
           timeline: [
             ...t.timeline,
             {
@@ -129,12 +173,14 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
               author: currentEmp.name,
               role: currentEmp.roleTitle,
               action: `Reassigned to ${targetEmp.name}`,
-              timestamp: 'Just now',
-              note: note || `Transferred responsibility to ${targetEmp.name} (${targetEmp.roleTitle}).`,
+              timestamp: "Just now",
+              note:
+                note ||
+                `Transferred responsibility to ${targetEmp.name} (${targetEmp.roleTitle}).`,
               fromAssigneeId: t.assignedToId,
-              toAssigneeId: targetEmp.id
-            }
-          ]
+              toAssigneeId: targetEmp.id,
+            },
+          ],
         };
       }
       return t;
@@ -148,29 +194,43 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   addTicketTimelineNote: (ticketId, note) => {
     const state = get();
     const currentEmp = state.currentUser || state.data.employees[0];
-    const updatedData = addTimelineNoteToTicket(state.data, ticketId, currentEmp, note);
+    const updatedData = addTimelineNoteToTicket(
+      state.data,
+      ticketId,
+      currentEmp,
+      note,
+    );
     persistState(updatedData);
     set({ data: updatedData });
   },
 
   addCompany: (company) => {
     const state = get();
-    const updatedData = { ...state.data, companies: [...state.data.companies, company] };
+    const updatedData = {
+      ...state.data,
+      companies: [...state.data.companies, company],
+    };
     persistState(updatedData);
     set({ data: updatedData });
   },
 
   addService: (service) => {
     const state = get();
-    const updatedData = { ...state.data, services: [...state.data.services, service] };
+    const updatedData = {
+      ...state.data,
+      services: [...state.data.services, service],
+    };
     persistState(updatedData);
     set({ data: updatedData });
   },
 
   addEmployee: (employee) => {
     const state = get();
-    const updatedData = { ...state.data, employees: [...state.data.employees, employee] };
+    const updatedData = {
+      ...state.data,
+      employees: [...state.data.employees, employee],
+    };
     persistState(updatedData);
     set({ data: updatedData });
-  }
+  },
 }));

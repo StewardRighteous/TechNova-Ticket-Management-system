@@ -192,6 +192,16 @@ export interface CompanyInfo {
   avgPerAgent: number;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+  ticketId?: string;
+  icon: string;
+}
+
 export interface MockupDatabase {
   companyInfo: CompanyInfo;
   roles: { id: RoleId; name: string; description: string }[];
@@ -200,6 +210,7 @@ export interface MockupDatabase {
   companies: Company[];
   employees: Employee[];
   tickets: Ticket[];
+  notifications: Notification[];
   teams?: Team[];
   departments?: Department[];
   locations?: Location[];

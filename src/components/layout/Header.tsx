@@ -13,6 +13,7 @@ export const Header: React.FC = () => {
   } = useTicketStore();
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const currentRoleInfo =
     data.roles.find((r) => r.id === activeRole) || data.roles[0];
   const activeEmployee = currentUser || data.employees[0];
@@ -37,6 +38,54 @@ export const Header: React.FC = () => {
         </button>
 
         <div className="h-6 w-px bg-slate-200"></div>
+
+        {activeTab !== "dashboard" && (
+          <div className="relative">
+            <button
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className="relative flex size-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              title="Notifications"
+              type="button"
+            >
+              <span className="material-symbols-outlined">notifications</span>
+              {data.notifications.some(
+                (notification) => !notification.read,
+              ) && (
+                <span className="absolute top-1 right-1 size-2 rounded-full bg-indigo-500 ring-2 ring-white" />
+              )}
+            </button>
+            {isNotificationsOpen && (
+              <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-100 bg-white py-2 shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2">
+                  <span className="text-sm font-bold text-slate-900">
+                    Notifications
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {data.notifications.length} recent
+                  </span>
+                </div>
+                {data.notifications.slice(0, 5).map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="flex gap-3 px-4 py-3 hover:bg-slate-50"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-indigo-500">
+                      {notification.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800">
+                        {notification.title}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {notification.message}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="relative">
           <button
