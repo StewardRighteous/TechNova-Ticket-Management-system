@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import type { Ticket } from "../../../types";
 import { createDraft } from "./draft";
 import { TicketDetailsEditForm } from "./TicketDetailsEditForm";
-import { TicketDetailsReadOnly } from "./TicketDetailsReadOnly";
-import type { Draft, TicketDetailsPanelProps } from "./types";
+import { ConfirmationDialog } from "./shared";
+
+import type { Draft, TicketDetailsPanelProps, TicketDetailsTab } from "./types";
 export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
   ticket,
   companies,
@@ -12,6 +13,10 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
 }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => createDraft(ticket));
+  const [confirmation, setConfirmation] = useState<"save" | "cancel" | null>(
+    null,
+  );
+  const [activeTab, setActiveTab] = useState<TicketDetailsTab>("overview");
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));
   const cancel = () => {
@@ -42,33 +47,61 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
     setEditing(false);
   };
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between p-2">
-        <h2 className="text-lg font-bold text-slate-900">Ticket details</h2>
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-2 flex items-center justify-between">
+        <div
+          className="flex flex-wrap gap-2 border-b border-slate-100"
+          role="tablist"
+          aria-label="Ticket detail tabs"
+        >
+          {(
+            [
+              ["overview", "Overview"],
+              ["routing", "Routing"],
+              ["context", "Context"],
+              ["diagnostics", "Diagnostics"],
+              ["reproduction", "Reproduction"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={activeTab === key}
+              onClick={() => setActiveTab(key)}
+              className={`rounded-lg px-3 py-2 text-xs font-semibold ${activeTab === key ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         {editing ? (
           <div className="flex gap-2">
             <button
-              onClick={cancel}
+              onClick={() => setConfirmation("cancel")}
               className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"
             >
               Cancel
             </button>
             <button
-              onClick={save}
+              onClick={() => setConfirmation("save")}
               className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
             >
-              Save changes
+              Save
             </button>
           </div>
         ) : (
           <button
-            onClick={() => setEditing(true)}
+            onClick={() => {
+              setDraft(createDraft(ticket));
+              setEditing(true);
+            }}
             className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700"
           >
-            Edit details
+            Edit {activeTab}
           </button>
         )}
       </div>
+
       {editing ? (
         <TicketDetailsEditForm
           draft={draft}
@@ -76,9 +109,30 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
           companies={companies}
           services={services}
           set={set}
+          activeTab={activeTab}
+          readonly={false}
         />
       ) : (
-        <TicketDetailsReadOnly ticket={ticket} />
+        <TicketDetailsEditForm
+          draft={draft}
+          ticket={ticket}
+          companies={companies}
+          services={services}
+          set={set}
+          activeTab={activeTab}
+          readonly={true}
+        />
+      )}
+      {confirmation && (
+        <ConfirmationDialog
+          action={confirmation}
+          onConfirm={() => {
+            if (confirmation === "save") save();
+            else cancel();
+            setConfirmation(null);
+          }}
+          onClose={() => setConfirmation(null)}
+        />
       )}
     </section>
   );

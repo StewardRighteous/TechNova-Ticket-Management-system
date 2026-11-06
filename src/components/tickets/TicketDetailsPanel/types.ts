@@ -10,6 +10,8 @@ export interface TicketDetailsPanelProps {
   services: ServiceLine[];
   onSave: (updates: Partial<Ticket>) => void;
 }
+export type TicketDetailsTab =
+  "overview" | "routing" | "context" | "diagnostics" | "reproduction";
 export type Draft = Pick<
   Ticket,
   | "title"
