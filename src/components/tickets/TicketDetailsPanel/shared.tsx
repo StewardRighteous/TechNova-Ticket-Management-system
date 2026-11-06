@@ -69,12 +69,14 @@ export const Select: React.FC<{
   set: (value: string) => void;
 }> = ({ label, value, options, set, readonly }) => {
   if (readonly === true) {
+    const displayValue = options.find(([key]) => key === value)?.[1] ?? value;
+
     return (
       <label className="text-xs font-semibold text-slate-600">
         {label}
         <input
           className={`${readOnlyFieldClass} mt-1 capitalize`}
-          value={value}
+          value={displayValue}
           readOnly
         />
       </label>
@@ -150,7 +152,7 @@ export const ConfirmationDialog: React.FC<{
           </button>
           <button
             onClick={onConfirm}
-            className={`rounded-lg px-4 py-2 text-xs font-semibold text-white ${isSave ? "bg-indigo-600" : "bg-rose-600"}`}
+            className={`rounded-lg px-4 py-2 text-xs font-semibold text-white ${isSave ? "bg-indigo-600" : "bg-red-600"}`}
           >
             {isSave ? "Save changes" : "Discard changes"}
           </button>

@@ -11,7 +11,7 @@ export interface TicketDetailsPanelProps {
   onSave: (updates: Partial<Ticket>) => void;
 }
 export type TicketDetailsTab =
-  "overview" | "routing" | "context" | "diagnostics" | "reproduction";
+  "overview" | "context" | "client" | "diagnostics" | "reproduction";
 export type Draft = Pick<
   Ticket,
   | "title"

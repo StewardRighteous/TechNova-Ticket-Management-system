@@ -1,9 +1,8 @@
 import React from "react";
-import type { Ticket, TicketStatus } from "../../types";
+import type { Ticket } from "../../types";
 
 interface TicketBannerProps {
   ticket: Ticket;
-  onStatusChange: (status: TicketStatus) => void;
 }
 
 export const TicketBanner: React.FC<TicketBannerProps> = ({ ticket }) => {

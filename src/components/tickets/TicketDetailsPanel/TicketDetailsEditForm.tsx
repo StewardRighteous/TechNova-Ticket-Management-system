@@ -97,18 +97,39 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
           />
         </>
       )}
-      {activeTab === "routing" && (
+      {activeTab === "context" && (
         <>
+          <Input
+            label="Title"
+            value={draft.title}
+            set={(v) => set("title", v)}
+
+            readonly={readonly}
+          />
+          <TextArea
+            label="Description"
+            value={draft.description}
+            set={(v) => set("description", v)}
+            wide
+            readonly={readonly}
+          />
           <Select
-            label="Channel"
-            value={draft.channel}
-            options={[
-              ["email", "Email"],
-              ["phone", "Phone"],
-              ["portal", "Portal"],
-              ["chat", "Chat"],
-            ]}
-            set={(v) => set("channel", v as Draft["channel"])}
+            label="Service line"
+            value={draft.serviceId}
+            options={services.map((item) => [item.id, item.name])}
+            set={(v) => set("serviceId", v)}
+            readonly={readonly}
+          />
+          <Input
+            label="Due date"
+            value={draft.dueAt}
+            set={(v) => set("dueAt", v)}
+            readonly={readonly}
+          />
+          <Input
+            label="SLA target"
+            value={draft.slaDeadline}
+            set={(v) => set("slaDeadline", v)}
             readonly={readonly}
           />
           <Select
@@ -124,58 +145,22 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             readonly={readonly}
           />
           <Select
-            label="Service line"
-            value={draft.serviceId}
-            options={services.map((item) => [item.id, item.name])}
-            set={(v) => set("serviceId", v)}
+            label="Channel"
+            value={draft.channel}
+            options={[
+              ["email", "Email"],
+              ["phone", "Phone"],
+              ["portal", "Portal"],
+              ["chat", "Chat"],
+            ]}
+            set={(v) => set("channel", v as Draft["channel"])}
             readonly={readonly}
           />
-          <Input
-            label="SLA target"
-            value={draft.slaDeadline}
-            set={(v) => set("slaDeadline", v)}
-            readonly={readonly}
-          />
-          <Input
-            label="Due date"
-            value={draft.dueAt}
-            set={(v) => set("dueAt", v)}
-            readonly={readonly}
-          />
-          <Input
-            label="Category"
-            value={draft.categoryId}
-            set={(v) => set("categoryId", v)}
-            readonly={readonly}
-          />
+
           <Input
             label="Tags"
             value={draft.tagsText}
             set={(v) => set("tagsText", v)}
-            readonly={readonly}
-          />
-          <Select
-            label="Client company"
-            value={draft.companyId}
-            options={companies.map((item) => [item.id, item.name])}
-            set={(v) => set("companyId", v)}
-            readonly={readonly}
-          />
-        </>
-      )}
-      {activeTab === "context" && (
-        <>
-          <TextArea
-            label="Description"
-            value={draft.description}
-            set={(v) => set("description", v)}
-            wide
-            readonly={readonly}
-          />
-          <Input
-            label="Client contact"
-            value={draft.clientContact}
-            set={(v) => set("clientContact", v)}
             readonly={readonly}
           />
           <Input
@@ -184,18 +169,43 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             set={(v) => set("environment", v)}
             readonly={readonly}
           />
-          <Input
-            label="System revision"
-            value={draft.systemRevision}
-            set={(v) => set("systemRevision", v)}
-            readonly={readonly}
-          />
+
           <TextArea
             label="Resolution details"
             value={draft.resolutionDetails}
             set={(v) => set("resolutionDetails", v)}
             wide
             readonly={readonly}
+          />
+        </>
+      )}
+      {activeTab === "client" && (
+        <>
+          <Read label="Client Id" value={draft.companyId} />
+          <Select
+            label="Client company"
+            value={draft.companyId}
+            options={companies.map((item) => [item.id, item.name])}
+            set={(v) => set("companyId", v)}
+            readonly={readonly}
+          />
+          <Input
+            label="Client contact"
+            value={draft.clientContact}
+            set={(v) => set("clientContact", v)}
+            readonly={readonly}
+          />
+          <Select
+            label="Service line"
+            value={draft.serviceId}
+            options={services.map((item) => [item.id, item.name])}
+            set={(v) => set("serviceId", v)}
+            readonly={readonly}
+          />
+          <Read label="Assigned to" value={`${ticket.assignedToName} `} />
+          <Read
+            label="Assigned Person Role"
+            value={`${ticket.assignedToRole} `}
           />
         </>
       )}

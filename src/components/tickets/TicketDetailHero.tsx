@@ -54,7 +54,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
           {ticket.code}
         </span>
       </nav>
-      <TicketBanner ticket={ticket} onStatusChange={onStatusChange} />
+      <TicketBanner ticket={ticket} />
 
       <div
         className="flex gap-2 border-b border-slate-200"
@@ -86,6 +86,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
         />
       ) : (
         <TicketAssignmentProgress
+          onStatusChange={onStatusChange}
           ticket={ticket}
           employees={employees}
           onAssigneeChange={onAssigneeChange}

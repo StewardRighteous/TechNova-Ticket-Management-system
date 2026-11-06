@@ -57,8 +57,8 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
           {(
             [
               ["overview", "Overview"],
-              ["routing", "Routing"],
               ["context", "Context"],
+              ["client", "Client"],
               ["diagnostics", "Diagnostics"],
               ["reproduction", "Reproduction"],
             ] as const
