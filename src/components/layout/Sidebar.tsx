@@ -30,7 +30,7 @@ export const Sidebar: React.FC = () => {
         isSidebarCollapsed ? "w-17" : "w-64"
       }`}
     >
-      <div className="flex flex-col overflow-y-auto">
+      <div className="flex scrollbar-none flex-col overflow-y-auto">
         <div
           className="flex h-16 items-center justify-between border-b border-slate-100 px-4"
           onClick={toggleSidebarCollapse}
