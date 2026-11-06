@@ -4,6 +4,7 @@ import { useTicketStore } from "../../store";
 export const Header: React.FC = () => {
   const {
     activeRole,
+    activeTab,
     currentUser,
     data,
     setIsCreateModalOpen,
@@ -22,8 +23,8 @@ export const Header: React.FC = () => {
         isSidebarCollapsed ? "left-15" : "left-64"
       }`}
     >
-      <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">
-        TechNova Solutions Pvt. Ltd
+      <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">
+        {activeTab}
       </h1>
       <div className="flex items-center gap-4">
         <button
