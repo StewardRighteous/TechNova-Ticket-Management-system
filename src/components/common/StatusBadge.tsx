@@ -26,7 +26,14 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
       colorStyles = "text-purple-800 border";
       dotColor = "bg-purple-500";
       break;
+    case "Under Review":
+      colorStyles = "text-cyan-800 border";
+      dotColor = "bg-cyan-800";
+      break;
     case "Resolved":
+      colorStyles = "text-orange-800 border";
+      dotColor = "bg-orange-800";
+      break;
     case "Closed":
       colorStyles = "text-emerald-800 border";
       dotColor = "bg-emerald-600";
@@ -35,7 +42,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full ${colorStyles} px-2 py-0.5 text-xs font-semibold`}
+      className={`inline-flex items-center gap-1.5 rounded-full ${colorStyles} text- px-2 py-0.5 text-xs font-semibold`}
     >
       {/* <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`}></span> */}
       {status}

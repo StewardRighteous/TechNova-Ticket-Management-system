@@ -29,7 +29,7 @@ export const TicketRegistryView: React.FC = () => {
     data.tickets.find((t) => t.id === activeTicketId);
 
   return (
-    <div className="space-y-6 p-3">
+    <div className="space-y-6 p-2">
       {selectedTicket ? (
         <TicketDetailHero
           ticket={selectedTicket}

@@ -24,12 +24,11 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   return (
     <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-white px-6 py-4 select-none md:flex-row">
       {/* Left: nth entries count */}
-      <div className="text-xs font-medium text-slate-500">
-        Showing <span className="font-bold text-slate-800">{startEntry}</span>{" "}
-        to <span className="font-bold text-slate-800">{endEntry}</span> out of{" "}
+      <div className="flex gap-1 text-xs font-medium text-slate-500">
+        Showing <span className="font-bold text-slate-800">{startEntry}</span>
+        to <span className="font-bold text-slate-800">{endEntry}</span> out of
         <span className="font-bold text-slate-800">{totalItems}</span> entries
       </div>
-
       {/* Center: Pagination controls */}
       <div className="flex items-center gap-1">
         <button
@@ -78,25 +77,33 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           </span>
         </button>
       </div>
-
       {/* Right: Stepper / Page Size Selector */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <span>Rows per page:</span>
-        <select
-          value={pageSize}
-          onChange={(e) => {
-            onPageSizeChange(Number(e.target.value));
-            onPageChange(1);
-          }}
-
-          className="cursor-pointer rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {pageSizeOptions.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
+      <div className="flex w-60 items-center gap-2">
+        <div className="text-[11px] tracking-wider text-slate-400 capitalize">
+          Rows per page
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          {pageSizeOptions.map((opt) => {
+            const isSelected = pageSize === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => {
+                  onPageSizeChange(opt);
+                  onPageChange(1);
+                }}
+                className={`flex size-9 items-center justify-center rounded-xl text-xs font-semibold transition ${
+                  isSelected
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "border border-slate-100 bg-slate-100 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
