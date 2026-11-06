@@ -36,16 +36,24 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
   const [activeTab, setActiveTab] = useState<DetailTab>("details");
 
   return (
-    <div className="space-y-5">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+    <div className="space-y-2">
+      <nav
+        aria-label="Breadcrumb"
+        className="ml-2 flex items-center gap-2 text-xs"
       >
-        <span className="material-symbols-outlined text-[16px]">
-          arrow_back
+        <button
+          onClick={onBack}
+          className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+        >
+          Tickets
+        </button>
+        <span className="material-symbols-outlined text-[15px] text-slate-400">
+          chevron_right
         </span>
-        Back to Ticket Table
-      </button>
+        <span className="font-mono font-semibold text-slate-500">
+          {ticket.code}
+        </span>
+      </nav>
       <TicketBanner ticket={ticket} onStatusChange={onStatusChange} />
 
       <div
