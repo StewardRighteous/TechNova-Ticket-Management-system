@@ -15,9 +15,6 @@ export const Sidebar: React.FC = () => {
     logout,
   } = useTicketStore();
 
-  const [isOperationsOpen, setIsOperationsOpen] = useState(true);
-  const [isClientsOpen, setIsClientsOpen] = useState(true);
-
   const permissions = ROLE_PERMISSIONS[activeRole];
   const roleTickets = filterTicketsByRole(
     data.tickets,
@@ -34,9 +31,12 @@ export const Sidebar: React.FC = () => {
       }`}
     >
       <div className="flex flex-col overflow-y-auto">
-        <div className="flex h-16 items-center justify-between border-b border-slate-100 px-4">
+        <div
+          className="flex h-16 items-center justify-between border-b border-slate-100 px-4"
+          onClick={toggleSidebarCollapse}
+        >
           <div className="flex items-center gap-3 overflow-hidden">
-            <button onClick={toggleSidebarCollapse}>
+            <button>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-700 text-white shadow-sm">
                 <span className="material-symbols-outlined text-[20px]">
                   confirmation_number
@@ -54,20 +54,9 @@ export const Sidebar: React.FC = () => {
               </div>
             )}
           </div>
-          {!isSidebarCollapsed && (
-            <button
-              onClick={toggleSidebarCollapse}
-              title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                {"chevron_left"}
-              </span>
-            </button>
-          )}
         </div>
 
-        <div className="space-y-4 px-3 py-3">
+        <div className="space-y-1 px-3 py-3">
           {/* Dashboard Tab */}
           <button
             onClick={() => setActiveTab("dashboard")}
@@ -83,157 +72,124 @@ export const Sidebar: React.FC = () => {
             {!isSidebarCollapsed && <span>Dashboard</span>}
           </button>
 
-          {/* Group 1: Incidents & Team */}
-          {(isTabAllowed("tickets") || isTabAllowed("employees")) && (
-            <SidebarAccordionGroup
-              title="Incidents & Team"
-              isOpen={isOperationsOpen}
-              onToggle={() => setIsOperationsOpen(!isOperationsOpen)}
-              isCollapsed={isSidebarCollapsed}
+          {isTabAllowed("tickets") && (
+            <button
+              onClick={() => setActiveTab("tickets")}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                activeTab === "tickets"
+                  ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
             >
-              {isTabAllowed("tickets") && (
-                <button
-                  onClick={() => setActiveTab("tickets")}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                    activeTab === "tickets"
-                      ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <span className="material-symbols-outlined shrink-0 text-[20px]">
-                      confirmation_number
-                    </span>
-                    {!isSidebarCollapsed && (
-                      <span className="truncate">Tickets</span>
-                    )}
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 font-mono text-[11px] text-indigo-800">
-                      {roleTickets.length}
-                    </span>
-                  )}
-                </button>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                  confirmation_number
+                </span>
+                {!isSidebarCollapsed && (
+                  <span className="truncate">Tickets</span>
+                )}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 font-mono text-[11px] text-indigo-800">
+                  {roleTickets.length}
+                </span>
               )}
-
-              {isTabAllowed("employees") && (
-                <button
-                  onClick={() => setActiveTab("employees")}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                    activeTab === "employees"
-                      ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <span className="material-symbols-outlined shrink-0 text-[20px]">
-                      badge
-                    </span>
-                    {!isSidebarCollapsed && (
-                      <span className="truncate">Employees</span>
-                    )}
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
-                      {data.employees.length}
-                    </span>
-                  )}
-                </button>
-              )}
-            </SidebarAccordionGroup>
+            </button>
           )}
 
-          {/* Group 2: Accounts & Offerings */}
-          {(isTabAllowed("companies") || isTabAllowed("services")) && (
-            <SidebarAccordionGroup
-              title="Accounts & Offerings"
-              isOpen={isClientsOpen}
-              onToggle={() => setIsClientsOpen(!isClientsOpen)}
-              isCollapsed={isSidebarCollapsed}
+          {isTabAllowed("employees") && (
+            <button
+              onClick={() => setActiveTab("employees")}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                activeTab === "employees"
+                  ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
             >
-              {isTabAllowed("companies") && (
-                <button
-                  onClick={() => setActiveTab("companies")}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                    activeTab === "companies"
-                      ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <span className="material-symbols-outlined shrink-0 text-[20px]">
-                      domain
-                    </span>
-                    {!isSidebarCollapsed && (
-                      <span className="truncate">Companies</span>
-                    )}
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
-                      {data.companies.length}
-                    </span>
-                  )}
-                </button>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                  badge
+                </span>
+                {!isSidebarCollapsed && (
+                  <span className="truncate">Employees</span>
+                )}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
+                  {data.employees.length}
+                </span>
               )}
+            </button>
+          )}
 
-              {isTabAllowed("services") && (
-                <button
-                  onClick={() => setActiveTab("services")}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                    activeTab === "services"
-                      ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <span className="material-symbols-outlined shrink-0 text-[20px]">
-                      layers
-                    </span>
-                    {!isSidebarCollapsed && (
-                      <span className="truncate">Services</span>
-                    )}
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
-                      {data.services.length}
-                    </span>
-                  )}
-                </button>
+          {isTabAllowed("companies") && (
+            <button
+              onClick={() => setActiveTab("companies")}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                activeTab === "companies"
+                  ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                  domain
+                </span>
+                {!isSidebarCollapsed && (
+                  <span className="truncate">Companies</span>
+                )}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
+                  {data.companies.length}
+                </span>
               )}
-            </SidebarAccordionGroup>
+            </button>
+          )}
+
+          {isTabAllowed("services") && (
+            <button
+              onClick={() => setActiveTab("services")}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                activeTab === "services"
+                  ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                  layers
+                </span>
+                {!isSidebarCollapsed && (
+                  <span className="truncate">Services</span>
+                )}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
+                  {data.services.length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {isTabAllowed("settings") && (
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                activeTab === "settings"
+                  ? "bg-indigo-50 font-bold text-indigo-700"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <span className="material-symbols-outlined shrink-0 text-[20px]">
+                settings
+              </span>
+              {!isSidebarCollapsed && <span>Settings</span>}
+            </button>
           )}
         </div>
       </div>
-
-      {/* Footer System Info & Sign Out */}
-      <div className="space-y-2 border-t border-slate-100 p-3">
-        {isTabAllowed("settings") && (
-          <button
-            onClick={() => setActiveTab("settings")}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-              activeTab === "settings"
-                ? "bg-indigo-50 font-bold text-indigo-700"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <span className="material-symbols-outlined shrink-0 text-[20px]">
-              settings
-            </span>
-            {!isSidebarCollapsed && <span>Settings</span>}
-          </button>
-        )}
-
-        <button
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
-          title="Sign Out"
-        >
-          <span className="material-symbols-outlined shrink-0 text-[20px]">
-            logout
-          </span>
-          {!isSidebarCollapsed && <span>Sign Out</span>}
-        </button>
-      </div>
+      <div className="flex-1" onClick={toggleSidebarCollapse}></div>
     </aside>
   );
 };
