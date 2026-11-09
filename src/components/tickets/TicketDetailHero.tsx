@@ -9,6 +9,7 @@ import type {
 import { TicketBanner } from "./TicketBanner";
 import { TicketAssignmentProgress } from "./TicketAssignmentProgress";
 import { TicketDetailsPanel } from "./TicketDetailsPanel";
+import { Breadcrumb } from "../common";
 
 interface TicketDetailHeroProps {
   ticket: Ticket;
@@ -37,23 +38,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
 
   return (
     <div className="space-y-2">
-      <nav
-        aria-label="Breadcrumb"
-        className="ml-2 flex items-center gap-2 text-xs"
-      >
-        <button
-          onClick={onBack}
-          className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
-        >
-          Tickets
-        </button>
-        <span className="material-symbols-outlined text-[15px] text-slate-400">
-          chevron_right
-        </span>
-        <span className="font-mono font-semibold text-slate-500">
-          {ticket.code}
-        </span>
-      </nav>
+      <Breadcrumb section="Tickets" current={ticket.code} onBack={onBack} />
       <TicketBanner ticket={ticket} />
 
       <div
