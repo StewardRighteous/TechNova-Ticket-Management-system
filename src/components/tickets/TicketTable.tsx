@@ -89,6 +89,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           setPage(1);
         }}
         searchPlaceholder="Filter by ID, issue, client..."
+        onClick={onCreateNew}
       >
         <TicketTableFilters
           channelFilter={channelFilter}

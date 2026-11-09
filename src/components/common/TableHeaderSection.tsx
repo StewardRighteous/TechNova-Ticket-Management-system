@@ -7,7 +7,8 @@ interface TableHeaderSectionProps {
   searchQuery: string;
   onSearchChange: (val: string) => void;
   searchPlaceholder?: string;
-  children?: React.ReactNode; // segmented controls/filters on the right
+  children?: React.ReactNode;
+  onClick?: () => void; // segmented controls/filters on the right
 }
 
 export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
@@ -17,6 +18,7 @@ export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
   searchQuery,
   onSearchChange,
   searchPlaceholder = "Search records...",
+  onClick,
   children,
 }) => {
   return (
@@ -60,6 +62,13 @@ export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
           {children}
         </div>
       )}
+
+      <button
+        onClick={onClick}
+        className="flex items-center gap-1 rounded-lg bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
+      >
+        <span className="material-symbols-outlined text-[16px]">add</span> New
+      </button>
     </div>
   );
 };
