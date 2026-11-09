@@ -1,83 +1,175 @@
-import React from 'react';
-import { useTicketStore } from '../../store';
+import React, { useState } from "react";
+
+interface ToggleProps {
+  checked: boolean;
+  label: string;
+  onChange: () => void;
+}
+
+const Toggle: React.FC<ToggleProps> = ({ checked, label, onChange }) => (
+  <button
+    aria-label={label}
+    aria-pressed={checked}
+    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none ${checked ? "bg-indigo-600" : "bg-slate-300"}`}
+    onClick={onChange}
+    type="button"
+  >
+    <span
+      className={`inline-block size-4 rounded-full bg-white shadow-sm transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`}
+    />
+  </button>
+);
+
+interface SettingRowProps {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}
+
+const SettingRow: React.FC<SettingRowProps> = ({
+  title,
+  description,
+  children,
+}) => (
+  <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="max-w-2xl">
+      <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+      <p className="mt-1 text-sm leading-5 text-slate-500">{description}</p>
+    </div>
+    <div className="flex shrink-0 items-center sm:pl-8">{children}</div>
+  </div>
+);
 
 export const SettingsView: React.FC = () => {
-  const { data } = useTicketStore();
+  const [settings, setSettings] = useState({
+    emailNotifications: true,
+    browserNotifications: false,
+    compactMode: false,
+    defaultView: "all",
+    refreshInterval: "5",
+    language: "english",
+  });
+
+  const toggle = (
+    key: "emailNotifications" | "browserNotifications" | "compactMode",
+  ) => setSettings((current) => ({ ...current, [key]: !current[key] }));
+
+  const updateSelect = (
+    key: "defaultView" | "refreshInterval" | "language",
+    value: string,
+  ) => setSettings((current) => ({ ...current, [key]: value }));
+
+  const selectClass =
+    "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
 
   return (
-    <div className="p-8 space-y-6 max-w-4xl">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">System Configurations & SLA Rules</h1>
-        <p className="text-xs text-slate-500">
-          Global dispatch parameters for TechNova Solutions Pvt. Ltd
-        </p>
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
-        <div>
-          <h2 className="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100">
-            Omnichannel Routing Engine
+    <div className="space-y-6 p-6 sm:p-8">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3">
+          <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase">
+            Notifications
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50">
-              <div className="flex items-center gap-2 font-bold text-emerald-800">
-                <span className="material-symbols-outlined text-[18px]">chat</span> WhatsApp Gateway
-              </div>
-              <p className="mt-1 text-slate-600">Webhook connected to TechNova WhatsApp Business API</p>
-              <div className="mt-2 text-[10px] text-emerald-700 font-mono font-semibold">Status: Active (Latency 45ms)</div>
-            </div>
-
-            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50">
-              <div className="flex items-center gap-2 font-bold text-blue-800">
-                <span className="material-symbols-outlined text-[18px]">mail</span> Support Email Ingress
-              </div>
-              <p className="mt-1 text-slate-600">IMAP/SMTP parsing for support@technova.com</p>
-              <div className="mt-2 text-[10px] text-blue-700 font-mono font-semibold">Status: Polling every 60s</div>
-            </div>
-
-            <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/50">
-              <div className="flex items-center gap-2 font-bold text-purple-800">
-                <span className="material-symbols-outlined text-[18px]">call</span> Phone Hotline IVR
-              </div>
-              <p className="mt-1 text-slate-600">Twilio SIP trunk routing to tier-1 dispatch roster</p>
-              <div className="mt-2 text-[10px] text-purple-700 font-mono font-semibold">Status: 24/7 Hotline Live</div>
-            </div>
-          </div>
         </div>
+        <div className="divide-y divide-slate-100">
+          <SettingRow
+            title="Email notifications"
+            description="Receive updates when tickets are assigned to you or change status."
+          >
+            <Toggle
+              checked={settings.emailNotifications}
+              label="Toggle email notifications"
+              onChange={() => toggle("emailNotifications")}
+            />
+          </SettingRow>
+          <SettingRow
+            title="Browser notifications"
+            description="Show an in-app alert for urgent tickets and new mentions."
+          >
+            <Toggle
+              checked={settings.browserNotifications}
+              label="Toggle browser notifications"
+              onChange={() => toggle("browserNotifications")}
+            />
+          </SettingRow>
+        </div>
+      </section>
 
-        <div>
-          <h2 className="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100">
-            SLA Escalation Matrix
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3">
+          <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase">
+            Ticket workspace
           </h2>
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div>
-                <span className="font-bold text-red-600">P1 Urgent (Critical Outage)</span>
-                <p className="text-slate-500 text-[11px]">Auto-escalates to Senior Support after 15m without triage</p>
-              </div>
-              <span className="font-mono font-bold text-slate-800">Response: 15m • Resolution: 4h</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div>
-                <span className="font-bold text-blue-600">P2 Normal (Major Defect)</span>
-                <p className="text-slate-500 text-[11px]">Routes to Lead Software Engineer / QA</p>
-              </div>
-              <span className="font-mono font-bold text-slate-800">Response: 1h • Resolution: 24h</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div>
-                <span className="font-bold text-slate-600">P3 Low (Minor Inquiry)</span>
-                <p className="text-slate-500 text-[11px]">Handled by Support Agents during scheduled shift</p>
-              </div>
-              <span className="font-mono font-bold text-slate-800">Response: 4h • Resolution: 72h</span>
-            </div>
-          </div>
         </div>
+        <div className="divide-y divide-slate-100">
+          <SettingRow
+            title="Default ticket view"
+            description="Choose which ticket set opens first when you visit the ticket registry."
+          >
+            <select
+              aria-label="Default ticket view"
+              className={selectClass}
+              onChange={(event) =>
+                updateSelect("defaultView", event.target.value)
+              }
+              value={settings.defaultView}
+            >
+              <option value="all">All tickets</option>
+              <option value="mine">My tickets</option>
+              <option value="urgent">Urgent tickets</option>
+            </select>
+          </SettingRow>
+          <SettingRow
+            title="Refresh interval"
+            description="Control how often the ticket list checks for new activity."
+          >
+            <select
+              aria-label="Refresh interval"
+              className={selectClass}
+              onChange={(event) =>
+                updateSelect("refreshInterval", event.target.value)
+              }
+              value={settings.refreshInterval}
+            >
+              <option value="1">Every minute</option>
+              <option value="5">Every 5 minutes</option>
+              <option value="15">Every 15 minutes</option>
+              <option value="manual">Manual only</option>
+            </select>
+          </SettingRow>
+          <SettingRow
+            title="Compact layout"
+            description="Use a denser layout to fit more ticket information on screen."
+          >
+            <Toggle
+              checked={settings.compactMode}
+              label="Toggle compact layout"
+              onChange={() => toggle("compactMode")}
+            />
+          </SettingRow>
+        </div>
+      </section>
 
-        <div className="pt-2 text-xs text-slate-400 font-mono">
-          System Revision: {data.companyInfo.version} • Workspace: {data.companyInfo.name}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3">
+          <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase">
+            Regional
+          </h2>
         </div>
-      </div>
+        <SettingRow
+          title="Language"
+          description="Set the language used for labels and navigation in the workspace."
+        >
+          <select
+            aria-label="Language"
+            className={selectClass}
+            onChange={(event) => updateSelect("language", event.target.value)}
+            value={settings.language}
+          >
+            <option value="english">English (US)</option>
+            <option value="english-uk">English (UK)</option>
+          </select>
+        </SettingRow>
+      </section>
     </div>
   );
 };
