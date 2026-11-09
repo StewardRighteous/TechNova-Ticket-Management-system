@@ -1,7 +1,12 @@
 import React from "react";
 import { useTicketStore } from "../../store";
 import type { InboundChannel, Notification } from "../../types";
-import { filterTicketsByRole } from "../../utils";
+import {
+  filterCompaniesByRole,
+  filterEmployeesByRole,
+  filterServicesByRole,
+  filterTicketsByRole,
+} from "../../utils";
 
 const channels: InboundChannel[] = ["whatsapp", "email", "phone"];
 const priorities = ["P1 Urgent", "P2 Normal", "P3 Low", "P4 Trivial"];
@@ -71,6 +76,13 @@ const relativeTime = (value: string) => {
   const hours = Math.round(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   return `${Math.round(hours / 24)}d ago`;
+};
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 21) return "Good evening";
+  return "Good night";
 };
 type Item = { label: string; value: number };
 
@@ -187,26 +199,82 @@ export const DashboardView: React.FC = () => {
     ],
     ["Closed tickets", count("status", "Closed"), "task_alt"],
   ] as const;
+  const entityCards = [
+    ["Tickets", tickets.length, "confirmation_number", "tickets"],
+    [
+      "Companies",
+      filterCompaniesByRole(data.companies, activeRole, currentUser?.name)
+        .length,
+      "business",
+      "companies",
+    ],
+    [
+      "Employees",
+      filterEmployeesByRole(data.employees, activeRole).length,
+      "groups",
+      "employees",
+    ],
+    [
+      "Services",
+      filterServicesByRole(data.services, activeRole).length,
+      "design_services",
+      "services",
+    ],
+  ] as const;
   return (
     <div className="max-w-8xl space-y-5 p-5">
-      <div className="grid grid-flow-col-dense gap-4">
-        {cards.map(([label, value, icon]) => (
-          <div
+      <section className="grid gap-6 rounded-2xl bg-slate-900 p-5 text-white shadow-sm lg:grid-cols-[minmax(180px,1fr)_minmax(0,3fr)] lg:items-center">
+        <div>
+          <p className="text-sm font-medium text-slate-300">{getGreeting()},</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">
+            {currentUser?.name || "there"}
+          </h1>
+          <p className="mt-2 text-xs text-slate-400">
+            Here&apos;s what&apos;s happening with your support desk today.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {cards.map(([label, value, icon]) => (
+            <div
+              key={label}
+              className="rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-slate-300">
+                  {label}
+                </span>
+                <span className="material-symbols-outlined text-[18px] text-slate-300">
+                  {icon}
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {entityCards.map(([label, value, icon, tab]) => (
+          <button
             key={label}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-slate-500">
                 {label}
               </span>
-              <span className="material-symbols-outlined text-[20px] text-slate-500">
+              <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-2 text-[20px] text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
                 {icon}
               </span>
             </div>
             <p className="mt-4 text-3xl font-bold text-slate-950">{value}</p>
-          </div>
+            <p className="mt-1 text-xs font-medium text-slate-400">
+              View {label.toLowerCase()}
+            </p>
+          </button>
         ))}
-      </div>
+      </section>
       <div className="grid grid-cols-3 gap-4">
         <PieChart
           title="Tickets by status"
