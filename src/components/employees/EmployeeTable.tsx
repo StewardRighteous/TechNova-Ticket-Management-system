@@ -62,7 +62,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <TableHeaderSection
-        title="Employees List"
+        title="All Employees"
         searchQuery={search}
         onSearchChange={(s) => {
           setSearch(s);
@@ -102,12 +102,12 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         </select>
       </TableHeaderSection>
 
-      <div className="overflow-x-auto">
+      <div className="space-x-1 overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
           <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
             <tr>
               <th
-                className="flex cursor-pointer items-center gap-1 px-6 py-3"
+                className="flex cursor-pointer items-center gap-1 overflow-hidden px-4 py-3"
                 onClick={() => handleSort("name")}
               >
                 <span>Staff Member</span>
@@ -120,13 +120,16 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                 </span>
               </th>
               <th className="px-4 py-3">
-                <span>Role & Title</span>
+                <span> Staff Role </span>
               </th>
-              <th className="px-4 py-3">Direct Email</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">
+                <span>Phone</span>
+              </th>
               <th className="px-4 py-3">
                 <span>Status</span>
               </th>
-              <th className="px-6 py-3 text-left">Action</th>
+              <th className="px-4 py-3 text-left">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -138,7 +141,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                   key={emp.id}
                   className="group transition-colors hover:bg-indigo-50/40"
                 >
-                  <td className="px-6 py-3.5 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white shadow-sm">
                         <span className="material-symbols-outlined text-[17px]">
@@ -156,44 +159,55 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                             </span>
                           )}
                         </div>
-                        <span className="font-mono text-[11px] text-slate-400">
-                          {emp.phone}
-                        </span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap">
-                    <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                  <td className="px-4 py-3 whitespace-break-spaces">
+                    <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-800">
+                      <span className="material-symbols-outlined text-[15px] text-slate-400">
+                        badge
+                      </span>
                       {emp.roleTitle}
                     </span>
                   </td>
-                  <td className="px-4 py-3.5 font-mono text-[11px] whitespace-nowrap text-slate-600">
-                    {emp.email}
+
+                  <td className="px-4 py-3 text-[11px] whitespace-nowrap text-slate-800">
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[15px] text-slate-400">
+                        email
+                      </span>
+                      {emp.email}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-[11px] whitespace-nowrap text-slate-800">
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[15px] text-slate-400">
+                        phone
+                      </span>
+                      {emp.phone}
+                    </div>
                   </td>
 
-                  <td className="px-4 py-3.5 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
                         emp.status === "Available"
-                          ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                          : "border border-amber-200 bg-amber-50 text-amber-700"
+                          ? "border text-emerald-800"
+                          : "border text-amber-800"
                       }`}
                     >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${emp.status === "Available" ? "bg-emerald-500" : "bg-amber-500"}`}
-                      ></span>
                       {emp.status}
                     </span>
                   </td>
-                  <td className="px-6 py-3.5 text-right whitespace-nowrap">
+                  <td className="px-4 py-3 text-left whitespace-nowrap">
                     <button
                       onClick={() => onViewEmployee(emp.id)}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
                     >
-                      <span>View</span>
                       <span className="material-symbols-outlined text-[15px]">
                         visibility
                       </span>
+                      <span>View</span>
                     </button>
                   </td>
                 </tr>

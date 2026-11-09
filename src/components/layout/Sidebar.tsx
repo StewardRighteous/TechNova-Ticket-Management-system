@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { useTicketStore } from "../../store";
-import { SidebarAccordionGroup } from "./SidebarAccordionGroup";
 import { ROLE_PERMISSIONS, filterTicketsByRole } from "../../utils";
 
 export const Sidebar: React.FC = () => {
@@ -12,7 +11,6 @@ export const Sidebar: React.FC = () => {
     currentUser,
     isSidebarCollapsed,
     toggleSidebarCollapse,
-    logout,
   } = useTicketStore();
 
   const permissions = ROLE_PERMISSIONS[activeRole];
@@ -90,33 +88,8 @@ export const Sidebar: React.FC = () => {
                 )}
               </div>
               {!isSidebarCollapsed && (
-                <span className="rounded-full bg-indigo-100 px-2 py-0.5 font-mono text-[11px] text-indigo-800">
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] text-indigo-800">
                   {roleTickets.length}
-                </span>
-              )}
-            </button>
-          )}
-
-          {isTabAllowed("employees") && (
-            <button
-              onClick={() => setActiveTab("employees")}
-              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                activeTab === "employees"
-                  ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              <div className="flex items-center gap-3 overflow-hidden">
-                <span className="material-symbols-outlined shrink-0 text-[20px]">
-                  badge
-                </span>
-                {!isSidebarCollapsed && (
-                  <span className="truncate">Employees</span>
-                )}
-              </div>
-              {!isSidebarCollapsed && (
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
-                  {data.employees.length}
                 </span>
               )}
             </button>
@@ -139,11 +112,6 @@ export const Sidebar: React.FC = () => {
                   <span className="truncate">Companies</span>
                 )}
               </div>
-              {!isSidebarCollapsed && (
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
-                  {data.companies.length}
-                </span>
-              )}
             </button>
           )}
 
@@ -164,11 +132,26 @@ export const Sidebar: React.FC = () => {
                   <span className="truncate">Services</span>
                 )}
               </div>
-              {!isSidebarCollapsed && (
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-600">
-                  {data.services.length}
+            </button>
+          )}
+
+          {isTabAllowed("employees") && (
+            <button
+              onClick={() => setActiveTab("employees")}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                activeTab === "employees"
+                  ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                  badge
                 </span>
-              )}
+                {!isSidebarCollapsed && (
+                  <span className="truncate">Employees</span>
+                )}
+              </div>
             </button>
           )}
 

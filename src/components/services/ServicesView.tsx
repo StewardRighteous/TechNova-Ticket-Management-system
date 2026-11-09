@@ -2,35 +2,27 @@ import React, { useState } from 'react';
 import { useTicketStore } from '../../store';
 import { ServiceTable } from './ServiceTable';
 import { ServiceDetailHero } from './ServiceDetailHero';
-import type { ServiceLine } from '../../types';
+import { Breadcrumb } from '../common';
 
 export const ServicesView: React.FC = () => {
-  const { data } = useTicketStore();
+  const { data, updateService } = useTicketStore();
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
 
   const selectedService = data.services.find((s) => s.id === activeServiceId);
 
-  const handleUpdateService = (updates: Partial<ServiceLine>) => {
-    if (!activeServiceId) return;
-    const updated = data.services.map((s) => {
-      if (s.id === activeServiceId) {
-        return { ...s, ...updates };
-      }
-      return s;
-    });
-    useTicketStore.setState({
-      data: { ...data, services: updated }
-    });
-  };
+  const handleUpdateService = (updates: Partial<import('../../types').ServiceLine>) => { if (activeServiceId) updateService(activeServiceId, updates); };
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="space-y-4 p-2">
       {selectedService ? (
-        <ServiceDetailHero
+        <>
+          <Breadcrumb section="Services" current={selectedService.name} onBack={() => setActiveServiceId(null)} />
+          <ServiceDetailHero
           service={selectedService}
           onBack={() => setActiveServiceId(null)}
           onUpdateService={handleUpdateService}
-        />
+          />
+        </>
       ) : (
         <ServiceTable
           services={data.services}

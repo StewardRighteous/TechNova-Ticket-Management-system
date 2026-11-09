@@ -58,6 +58,9 @@ interface TicketStore {
   addCompany: (company: Company) => void;
   addService: (service: ServiceLine) => void;
   addEmployee: (employee: Employee) => void;
+  updateEmployee: (id: string, updates: Partial<Employee>) => void;
+  updateCompany: (id: string, updates: Partial<Company>) => void;
+  updateService: (id: string, updates: Partial<ServiceLine>) => void;
 }
 
 const initialDb = loadInitialState();
@@ -229,6 +232,39 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     const updatedData = {
       ...state.data,
       employees: [...state.data.employees, employee],
+    };
+    persistState(updatedData);
+    set({ data: updatedData });
+  },
+  updateEmployee: (id, updates) => {
+    const state = get();
+    const updatedData = {
+      ...state.data,
+      employees: state.data.employees.map((item) =>
+        item.id === id ? { ...item, ...updates } : item,
+      ),
+    };
+    persistState(updatedData);
+    set({ data: updatedData });
+  },
+  updateCompany: (id, updates) => {
+    const state = get();
+    const updatedData = {
+      ...state.data,
+      companies: state.data.companies.map((item) =>
+        item.id === id ? { ...item, ...updates } : item,
+      ),
+    };
+    persistState(updatedData);
+    set({ data: updatedData });
+  },
+  updateService: (id, updates) => {
+    const state = get();
+    const updatedData = {
+      ...state.data,
+      services: state.data.services.map((item) =>
+        item.id === id ? { ...item, ...updates } : item,
+      ),
     };
     persistState(updatedData);
     set({ data: updatedData });

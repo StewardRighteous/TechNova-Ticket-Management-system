@@ -1,38 +1,40 @@
-import React, { useState } from 'react';
-import { useTicketStore } from '../../store';
-import { EmployeeTable } from './EmployeeTable';
-import { EmployeeDetailHero } from './EmployeeDetailHero';
-import { filterEmployeesByRole } from '../../utils';
-import type { Employee } from '../../types';
+import React, { useState } from "react";
+import { useTicketStore } from "../../store";
+import { EmployeeTable } from "./EmployeeTable";
+import { EmployeeDetailHero } from "./EmployeeDetailHero";
+import { filterEmployeesByRole } from "../../utils";
+import { Breadcrumb } from "../common";
 
 export const EmployeesView: React.FC = () => {
-  const { data, activeRole } = useTicketStore();
+  const { data, activeRole, updateEmployee } = useTicketStore();
   const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
 
   const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
-  const selectedEmployee = roleEmployees.find((e) => e.id === activeEmployeeId) || data.employees.find((e) => e.id === activeEmployeeId);
+  const selectedEmployee =
+    roleEmployees.find((e) => e.id === activeEmployeeId) ||
+    data.employees.find((e) => e.id === activeEmployeeId);
 
-  const handleUpdateEmployee = (updates: Partial<Employee>) => {
-    if (!activeEmployeeId) return;
-    const updated = data.employees.map((e) => {
-      if (e.id === activeEmployeeId) {
-        return { ...e, ...updates };
-      }
-      return e;
-    });
-    useTicketStore.setState({
-      data: { ...data, employees: updated }
-    });
+  const handleUpdateEmployee = (
+    updates: Partial<import("../../types").Employee>,
+  ) => {
+    if (activeEmployeeId) updateEmployee(activeEmployeeId, updates);
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="space-y-4 p-2">
       {selectedEmployee ? (
-        <EmployeeDetailHero
-          employee={selectedEmployee}
-          onBack={() => setActiveEmployeeId(null)}
-          onUpdateEmployee={handleUpdateEmployee}
-        />
+        <>
+          <Breadcrumb
+            section="Employees"
+            current={selectedEmployee.name}
+            onBack={() => setActiveEmployeeId(null)}
+          />
+          <EmployeeDetailHero
+            employee={selectedEmployee}
+            onBack={() => setActiveEmployeeId(null)}
+            onUpdateEmployee={handleUpdateEmployee}
+          />
+        </>
       ) : (
         <EmployeeTable
           employees={roleEmployees}

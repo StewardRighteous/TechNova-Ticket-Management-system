@@ -43,6 +43,12 @@ export const ROLE_PERMISSIONS: Record<RoleId, RolePermissions> = {
     canManageTeam: false,
     canConfigureSettings: false,
     canCreateTicket: true
+  },
+  management: {
+    allowedTabs: ['dashboard', 'tickets', 'companies', 'employees', 'services', 'settings'],
+    canManageTeam: true,
+    canConfigureSettings: true,
+    canCreateTicket: true
   }
 };
 
