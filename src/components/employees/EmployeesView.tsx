@@ -31,6 +31,7 @@ export const EmployeesView: React.FC = () => {
           />
           <EmployeeDetailHero
             employee={selectedEmployee}
+            tickets={data.tickets}
             onBack={() => setActiveEmployeeId(null)}
             onUpdateEmployee={handleUpdateEmployee}
           />
