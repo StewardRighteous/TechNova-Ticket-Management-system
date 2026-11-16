@@ -11,11 +11,11 @@ A table-first Ticket Registry and intelligent ticket intake workflow:
 02: Minimal Enterprise Design System & Shared Navigation Controls
 
 **Status:**
-ready-for-agent
+closed
 
-- [ ] Ticket table displays tickets with ID, title, company, contact, priority, channel, department, and subtle SLA indicator.
-- [ ] Table filtering works seamlessly via search and combobox dropdowns.
-- [ ] Numbered pagination works with 10/25/50 page sizes.
-- [ ] Create Ticket Modal provides 2-step flow with intake channel selection and dynamic category inputs.
-- [ ] Submitting a ticket saves it to the store and shows a toast.
+- [x] Ticket table displays tickets with ID, title, company, contact, priority, channel, department, and subtle SLA indicator.
+- [x] Table filtering works seamlessly via search and combobox dropdowns.
+- [x] Numbered pagination works with 10/25/50 page sizes.
+- [x] Create Ticket Modal provides 2-step flow with intake channel selection and dynamic category inputs.
+- [x] Submitting a ticket saves it to the store and shows a toast.
 

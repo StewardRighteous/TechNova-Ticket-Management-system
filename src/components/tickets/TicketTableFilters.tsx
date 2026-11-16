@@ -1,18 +1,47 @@
-import React from "react";
+import React, { useState } from "react";
 import type { InboundChannel, TicketPriority, TicketStatus } from "../../types";
+import { ComboboxFilter } from "../common/ComboboxFilter";
 
-type PriorityFilter =
-  "all" | Extract<TicketPriority, "P1 Urgent" | "P2 Normal" | "P3 Low">;
-
-interface TicketTableFiltersProps {
-  channelFilter: "all" | InboundChannel;
-  setChannelFilter: (c: "all" | InboundChannel) => void;
-  priorityFilter: PriorityFilter;
-  setPriorityFilter: (p: PriorityFilter) => void;
-  statusFilter: "all" | TicketStatus;
-  setStatusFilter: (status: "all" | TicketStatus) => void;
-  onCreateNew: () => void;
+export interface TicketDepartmentOption {
+  id: string;
+  name: string;
 }
+
+export interface TicketTableFiltersProps {
+  channelFilter: string[];
+  setChannelFilter: (channels: string[]) => void;
+  priorityFilter: string[];
+  setPriorityFilter: (priorities: string[]) => void;
+  statusFilter: string[];
+  setStatusFilter: (statuses: string[]) => void;
+  departmentFilter: string[];
+  setDepartmentFilter: (departments: string[]) => void;
+  departmentOptions: TicketDepartmentOption[];
+  onClearAll?: () => void;
+}
+
+const statusOptions = [
+  { value: "Open", label: "Open" },
+  { value: "In Progress", label: "In Progress" },
+  { value: "Escalated", label: "Escalated" },
+  { value: "Under Review", label: "Under Review" },
+  { value: "Pending QA", label: "Pending QA" },
+  { value: "Resolved", label: "Resolved" },
+  { value: "Closed", label: "Closed" },
+];
+
+const priorityOptions = [
+  { value: "P1 Urgent", label: "P1 Urgent" },
+  { value: "P2 Normal", label: "P2 Normal" },
+  { value: "P3 Low", label: "P3 Low" },
+  { value: "P4 Trivial", label: "P4 Trivial" },
+];
+
+const channelOptions = [
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Phone" },
+];
 
 export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
   channelFilter,
@@ -21,51 +50,70 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
   setPriorityFilter,
   statusFilter,
   setStatusFilter,
+  departmentFilter,
+  setDepartmentFilter,
+  departmentOptions,
+  onClearAll,
 }) => {
+  const deptComboboxOptions = departmentOptions.map((d) => ({
+    value: d.id,
+    label: d.name,
+  }));
+
+  const hasActiveFilters =
+    channelFilter.length > 0 ||
+    priorityFilter.length > 0 ||
+    statusFilter.length > 0 ||
+    departmentFilter.length > 0;
+
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
-      <select
-        value={priorityFilter}
-        onChange={(e) => setPriorityFilter(e.target.value as PriorityFilter)}
-        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none"
-      >
-        <option value="all">All Priorities</option>
-        <option value="P1 Urgent">P1 Urgent</option>
-        <option value="P2 Normal">P2 Normal</option>
-        <option value="P3 Low">P3 Low</option>
-      </select>
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Status Combobox Filter */}
+      <ComboboxFilter
+        label="Status"
+        options={statusOptions}
+        selectedValues={statusFilter}
+        onChange={setStatusFilter}
+        placeholder="Search status..."
+      />
 
-      <select
-        value={statusFilter}
-        onChange={(e) =>
-          setStatusFilter(e.target.value as "all" | TicketStatus)
-        }
-        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none"
-        aria-label="Filter by status"
-      >
-        <option value="all">All Statuses</option>
-        <option value="Open">Open</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Escalated">Escalated</option>
-        <option value="Under Review">Under Review</option>
-        <option value="Pending QA">Pending QA</option>
-        <option value="Resolved">Resolved</option>
-        <option value="Closed">Closed</option>
-      </select>
+      {/* Priority Combobox Filter */}
+      <ComboboxFilter
+        label="Priority"
+        options={priorityOptions}
+        selectedValues={priorityFilter}
+        onChange={setPriorityFilter}
+        placeholder="Search priority..."
+      />
 
-      <select
-        value={channelFilter}
-        onChange={(e) =>
-          setChannelFilter(e.target.value as "all" | InboundChannel)
-        }
-        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none"
-        aria-label="Filter by channel"
-      >
-        <option value="all">All Channels</option>
-        <option value="whatsapp">WhatsApp</option>
-        <option value="email">Email</option>
-        <option value="phone">Phone</option>
-      </select>
+      {/* Channel Combobox Filter */}
+      <ComboboxFilter
+        label="Channel"
+        options={channelOptions}
+        selectedValues={channelFilter}
+        onChange={setChannelFilter}
+        placeholder="Search channel..."
+      />
+
+      {/* Department Combobox Filter */}
+      <ComboboxFilter
+        label="Department"
+        options={deptComboboxOptions}
+        selectedValues={departmentFilter}
+        onChange={setDepartmentFilter}
+        placeholder="Search department..."
+      />
+
+      {hasActiveFilters && onClearAll && (
+        <button
+          type="button"
+          onClick={onClearAll}
+          className="flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+        >
+          <span className="material-symbols-outlined text-[14px]">filter_alt_off</span>
+          <span>Reset</span>
+        </button>
+      )}
     </div>
   );
 };

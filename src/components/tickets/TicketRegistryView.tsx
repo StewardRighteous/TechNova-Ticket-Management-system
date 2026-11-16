@@ -48,6 +48,8 @@ export const TicketRegistryView: React.FC = () => {
       ) : (
         <TicketTable
           tickets={roleTickets}
+          teams={data.teams}
+          departments={data.departments}
           onViewTicket={(id) => {
             setActiveTicketId(id);
             setSelectedTicketId(id);
