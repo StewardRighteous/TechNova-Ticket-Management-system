@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTicketStore } from "../../store";
+import type { RoleId } from "../../types";
 
 export const Header: React.FC = () => {
   const {
@@ -9,6 +10,9 @@ export const Header: React.FC = () => {
     data,
     setIsCreateModalOpen,
     isSidebarCollapsed,
+    setActivePersona,
+    resetDemoData,
+    addToast,
     logout,
   } = useTicketStore();
 
@@ -17,6 +21,18 @@ export const Header: React.FC = () => {
   const currentRoleInfo =
     data.roles.find((r) => r.id === activeRole) || data.roles[0];
   const activeEmployee = currentUser || data.employees[0];
+
+  const handleResetDemoData = () => {
+    resetDemoData();
+    addToast("Demo data successfully restored to seed state.", "success");
+    setIsProfileDropdownOpen(false);
+  };
+
+  const personas: { id: RoleId; label: string }[] = [
+    { id: "support_agent", label: "Support Agent" },
+    { id: "development_team", label: "Dev Lead" },
+    { id: "operations_manager", label: "Operations Manager" },
+  ];
 
   return (
     <header
@@ -28,6 +44,47 @@ export const Header: React.FC = () => {
         {activeTab}
       </h1>
       <div className="flex items-center gap-4">
+        {/* Persona Switcher Dropdown */}
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-2.5 py-1">
+          <span className="material-symbols-outlined text-[16px] text-slate-400">
+            switch_account
+          </span>
+          <label htmlFor="persona-switcher" className="sr-only">
+            Active Persona
+          </label>
+          <select
+            id="persona-switcher"
+            aria-label="Active Persona"
+            value={activeRole}
+            onChange={(e) => {
+              const role = e.target.value as RoleId;
+              setActivePersona(role);
+              const label = personas.find((p) => p.id === role)?.label || role;
+              addToast(`Switched persona to ${label}`, "info");
+            }}
+            className="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"
+          >
+            {personas.map((persona) => (
+              <option key={persona.id} value={persona.id}>
+                {persona.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Reset Demo Data Action */}
+        <button
+          onClick={handleResetDemoData}
+          className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+          title="Reset Demo Data"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[16px] text-slate-500">
+            restart_alt
+          </span>
+          <span className="hidden sm:inline">Reset Demo</span>
+        </button>
+
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-slate-800"

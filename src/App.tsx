@@ -9,6 +9,7 @@ import { EmployeesView } from "./components/employees";
 import { ServicesView } from "./components/services";
 import { SettingsView } from "./components/settings";
 import { CreateTicketModal } from "./components/modals";
+import { ToastNotificationContainer } from "./components/common";
 
 export const App: React.FC = () => {
   const { activeTab, isAuthenticated } = useTicketStore();
@@ -40,6 +41,7 @@ export const App: React.FC = () => {
     <Layout>
       {renderActiveView()}
       <CreateTicketModal />
+      <ToastNotificationContainer />
     </Layout>
   );
 };

@@ -22,3 +22,9 @@ export function persistState(state: MockupDatabase): void {
     // ignore
   }
 }
+
+export function resetStoredState(): MockupDatabase {
+  const pristine = JSON.parse(JSON.stringify(initialData)) as MockupDatabase;
+  persistState(pristine);
+  return pristine;
+}

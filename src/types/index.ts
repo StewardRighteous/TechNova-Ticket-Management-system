@@ -202,6 +202,15 @@ export interface Notification {
   icon: string;
 }
 
+export type ToastType = 'info' | 'success' | 'warning' | 'error';
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type?: ToastType;
+  duration?: number;
+}
+
 export interface MockupDatabase {
   companyInfo: CompanyInfo;
   roles: { id: RoleId; name: string; description: string }[];

@@ -21,7 +21,6 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
   setPriorityFilter,
   statusFilter,
   setStatusFilter,
-  onCreateNew,
 }) => {
   return (
     <div className="flex flex-wrap items-center gap-2.5">

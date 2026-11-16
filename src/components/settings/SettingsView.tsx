@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTicketStore } from "../../store";
 
 interface ToggleProps {
   checked: boolean;
@@ -41,6 +42,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
 );
 
 export const SettingsView: React.FC = () => {
+  const { resetDemoData, addToast } = useTicketStore();
   const [settings, setSettings] = useState({
     emailNotifications: true,
     browserNotifications: false,
@@ -169,6 +171,32 @@ export const SettingsView: React.FC = () => {
             <option value="english-uk">English (UK)</option>
           </select>
         </SettingRow>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-sm">
+        <div className="border-b border-rose-100 bg-rose-50/70 px-5 py-3">
+          <h2 className="text-xs font-bold tracking-wider text-rose-700 uppercase">
+            Client Presentation Demo Controls
+          </h2>
+        </div>
+        <div className="divide-y divide-rose-100">
+          <SettingRow
+            title="Reset Demo Data"
+            description="Restore all tickets, companies, employees, and services back to pristine mockup seed data."
+          >
+            <button
+              type="button"
+              onClick={() => {
+                resetDemoData();
+                addToast("All demo data has been reset to pristine seed records.", "success");
+              }}
+              className="flex items-center gap-2 rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+            >
+              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+              <span>Reset to Seed Data</span>
+            </button>
+          </SettingRow>
+        </div>
       </section>
     </div>
   );

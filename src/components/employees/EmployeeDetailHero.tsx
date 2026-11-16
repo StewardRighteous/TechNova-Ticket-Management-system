@@ -42,7 +42,7 @@ const textValue = (value: unknown) =>
 
 export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
   employee,
-  tickets,
+  tickets: _tickets,
   onUpdateEmployee,
 }) => {
   const [draft, setDraft] = useState<Employee>(employee);
@@ -52,10 +52,6 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
     null,
   );
   useEffect(() => setDraft(employee), [employee]);
-  const assigned = tickets.filter(
-    (ticket) => ticket.assignedToId === employee.id,
-  );
-  const closed = assigned.filter((ticket) => ticket.status === "Closed").length;
   const updateField = (key: keyof Employee, value: string) =>
     setDraft((current) => ({
       ...current,

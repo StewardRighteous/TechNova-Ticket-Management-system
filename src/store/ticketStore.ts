@@ -7,8 +7,10 @@ import type {
   ServiceLine,
   RoleId,
   TicketStatus,
+  ToastMessage,
+  ToastType,
 } from "../types";
-import { loadInitialState, persistState } from "./storage";
+import { loadInitialState, persistState, resetStoredState } from "./storage";
 import {
   createNewTicket,
   updateTicketFieldsInList,
@@ -30,6 +32,7 @@ interface TicketStore {
   searchQuery: string;
   isCreateModalOpen: boolean;
   isSidebarCollapsed: boolean;
+  toasts: ToastMessage[];
 
   login: (email: string) => boolean;
   loginAsEmployee: (employeeId: string) => void;
@@ -37,9 +40,14 @@ interface TicketStore {
   setActiveTab: (tab: string) => void;
   setSelectedTicketId: (id: string | null) => void;
   setActiveRole: (role: RoleId) => void;
+  setActivePersona: (role: RoleId) => void;
   setSearchQuery: (query: string) => void;
   setIsCreateModalOpen: (open: boolean) => void;
   toggleSidebarCollapse: () => void;
+  resetDemoData: () => void;
+
+  addToast: (message: string, type?: ToastType, duration?: number) => void;
+  removeToast: (id: string) => void;
 
   addTicket: (
     newTicket: Omit<
@@ -75,6 +83,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   searchQuery: "",
   isCreateModalOpen: false,
   isSidebarCollapsed: false,
+  toasts: [],
 
   login: (email: string) => {
     const matched = authenticateByEmail(email, get().data.employees);
@@ -106,7 +115,45 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     set({ currentUser: null, isAuthenticated: false, activeTab: "dashboard" }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
-  setActiveRole: (role) => set({ activeRole: role }),
+  setActiveRole: (role) => {
+    const matchedEmployee =
+      get().data.employees.find((e) => e.role === role) ||
+      get().data.employees[0];
+    set({ activeRole: role, currentUser: matchedEmployee });
+  },
+  setActivePersona: (role) => {
+    const matchedEmployee =
+      get().data.employees.find((e) => e.role === role) ||
+      get().data.employees[0];
+    set({
+      activeRole: role,
+      currentUser: matchedEmployee,
+      isAuthenticated: true,
+    });
+  },
+  resetDemoData: () => {
+    const pristine = resetStoredState();
+    const defaultEmployee = pristine.employees[0];
+    set({
+      data: pristine,
+      currentUser: defaultEmployee,
+      activeRole: defaultEmployee?.role || "operations_manager",
+      selectedTicketId: pristine.tickets[0]?.id || null,
+      searchQuery: "",
+    });
+  },
+  addToast: (message, type = "info", duration = 4000) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const newToast: ToastMessage = { id, message, type, duration };
+    set((state) => ({ toasts: [...state.toasts, newToast] }));
+    if (duration > 0) {
+      setTimeout(() => {
+        get().removeToast(id);
+      }, duration);
+    }
+  },
+  removeToast: (id) =>
+    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setIsCreateModalOpen: (open) => set({ isCreateModalOpen: open }),
   toggleSidebarCollapse: () =>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Company } from "../../types";
-import { ChannelBadge, TablePagination, TableHeaderSection } from "../common";
+import { TablePagination, TableHeaderSection } from "../common";
 
 interface CompanyTableProps {
   companies: Company[];
