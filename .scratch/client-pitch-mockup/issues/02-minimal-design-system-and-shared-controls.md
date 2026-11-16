@@ -11,11 +11,11 @@ A unified minimal enterprise styling layer (slate `#0F172A`, neutral borders, lo
 01: Core Domain Store, Local Persistence & Demo Reset Engine
 
 **Status:**
-ready-for-agent
+ready-for-review
 
-- [ ] Global styling uses a minimal, high-contrast, low-saturation enterprise color palette.
-- [ ] `<NumericPagination />` renders numbered page buttons, supports windowing, allows changing page size, and calculates correct record slices.
-- [ ] `<ComboboxFilter />` allows selecting and clearing filter values with compact UI badges.
-- [ ] Top bar header displays active persona selector and one-click demo data reset action with confirmation toast.
-- [ ] Toast notification container renders toasts with clean animations and auto-dismiss.
+- [x] Global styling uses a minimal, high-contrast, low-saturation enterprise color palette.
+- [x] `<NumericPagination />` renders numbered page buttons, supports windowing, allows changing page size, and calculates correct record slices.
+- [x] `<ComboboxFilter />` allows selecting and clearing filter values with compact UI badges.
+- [x] Top bar header displays active persona selector and one-click demo data reset action with confirmation toast.
+- [x] Toast notification container renders toasts with clean animations and auto-dismiss.
 
