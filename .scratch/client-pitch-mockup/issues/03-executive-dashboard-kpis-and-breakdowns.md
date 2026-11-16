@@ -10,9 +10,9 @@ An executive-level operational dashboard demonstrating TechNova's service metric
 02: Minimal Enterprise Design System & Shared Navigation Controls
 
 **Status:**
-ready-for-agent
+closed
 
-- [ ] Executive KPI ribbon displays live computed counts for active, overdue, SLA-at-risk tickets, and resolution metrics.
-- [ ] Volume breakdown cards accurately reflect distribution across intake channels and departments.
-- [ ] High-attention table renders critical tickets with subtle SLA tags and opens the ticket detail view on row click.
+- [x] Executive KPI ribbon displays live computed counts for active, overdue, SLA-at-risk tickets, and resolution metrics.
+- [x] Volume breakdown cards accurately reflect distribution across intake channels and departments.
+- [x] High-attention table renders critical tickets with subtle SLA tags and opens the ticket detail view on row click.
 

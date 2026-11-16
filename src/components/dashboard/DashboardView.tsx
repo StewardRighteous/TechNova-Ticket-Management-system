@@ -1,65 +1,17 @@
 import React from "react";
 import { useTicketStore } from "../../store";
-import type { InboundChannel, Notification } from "../../types";
+import type { Notification } from "../../types";
 import {
   filterCompaniesByRole,
   filterEmployeesByRole,
   filterServicesByRole,
   filterTicketsByRole,
 } from "../../utils";
+import { ExecutiveKpiRibbon } from "./ExecutiveKpiRibbon";
+import { VolumeBreakdownCards } from "./VolumeBreakdownCards";
+import { HighAttentionTicketsTable } from "./HighAttentionTicketsTable";
+import { computeExecutiveMetrics } from "./dashboardMetrics";
 
-const channels: InboundChannel[] = ["whatsapp", "email", "phone"];
-const priorities = ["P1 Urgent", "P2 Normal", "P3 Low", "P4 Trivial"];
-const statuses = [
-  "Open",
-  "In Progress",
-  "Escalated",
-  "Under Review",
-  "Pending QA",
-  "Resolved",
-  "Closed",
-];
-const channelNames: Record<InboundChannel, string> = {
-  whatsapp: "WhatsApp",
-  email: "Email",
-  phone: "Phone",
-};
-const colors = [
-  "#243b64",
-  "#54749f",
-  "#8ca5c3",
-  "#c7d4e2",
-  "#64748b",
-  "#334155",
-  "#94a3b8",
-];
-
-const labelColors: Record<string, string> = {
-  // Statuses
-  Open: "#3b82f6",
-  "In Progress": "#f59e0b",
-  Escalated: "#ef4444",
-  "Under Review": "#8b5cf6",
-  "Pending QA": "#06b6d4",
-  Resolved: "#10b981",
-  Closed: "#64748b",
-
-  // Priorities
-  "P1 Urgent": "#ef4444",
-  "P2 Normal": "#f59e0b",
-  "P3 Low": "#3b82f6",
-  "P4 Trivial": "#94a3b8",
-
-  // Channels
-  WhatsApp: "#10b981",
-  Email: "#3b82f6",
-  Phone: "#8b5cf6",
-};
-
-const isToday = (value?: string) =>
-  !!value &&
-  !Number.isNaN(Date.parse(value)) &&
-  new Date(value).toDateString() === new Date().toDateString();
 const displayDate = (value: string) =>
   new Intl.DateTimeFormat("en", {
     day: "numeric",
@@ -67,6 +19,7 @@ const displayDate = (value: string) =>
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+
 const relativeTime = (value: string) => {
   const minutes = Math.max(
     1,
@@ -77,6 +30,7 @@ const relativeTime = (value: string) => {
   if (hours < 24) return `${hours}h ago`;
   return `${Math.round(hours / 24)}d ago`;
 };
+
 const getGreeting = () => {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -84,127 +38,33 @@ const getGreeting = () => {
   if (hour < 21) return "Good evening";
   return "Good night";
 };
-type Item = { label: string; value: number };
-
-const PieChart: React.FC<{ title: string; items: Item[] }> = ({
-  title,
-  items,
-}) => {
-  const total = items.reduce((sum, item) => sum + item.value, 0);
-  const stops = items.reduce<string[]>((segments, item, index) => {
-    const start = segments.length
-      ? (Number(segments.at(-1)?.split(" ")[2]?.replace("%", "")) *
-          (total || 1)) /
-        100
-      : 0;
-    const end = start + item.value;
-    const itemColor = labelColors[item.label] || colors[index % colors.length];
-    segments.push(
-      `${itemColor} ${total ? (start / total) * 100 : 0}% ${(end / (total || 1)) * 100}%`,
-    );
-    return segments;
-  }, []);
-
-  return (
-    <section className="flex flex-col justify-start rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:shadow-md">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
-      </div>
-
-      <div className="flex flex-col items-center justify-center gap-6 pt-2">
-        {/* Modern Donut Chart */}
-        <div
-          className="relative size-36 shrink-0 rounded-full shadow-inner"
-          style={{ background: `conic-gradient(${stops.join(", ")})` }}
-        >
-          <div className="absolute inset-3.5 flex flex-col items-center justify-center rounded-full bg-white shadow-xs">
-            <span className="text-2xl font-bold tracking-tight text-slate-900">
-              {total}
-            </span>
-            <span className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
-              Tickets
-            </span>
-          </div>
-        </div>
-
-        {/* Clean Modern Legend Grid */}
-        <div
-          className={`grid w-full gap-2 ${items.length > 4 ? "grid-cols-3" : "grid-cols-2"}`}
-        >
-          {items.map((item, index) => {
-            const itemColor =
-              labelColors[item.label] || colors[index % colors.length];
-            const percentage =
-              total > 0 ? Math.round((item.value / total) * 100) : 0;
-
-            return (
-              <div
-                key={item.label}
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2 transition hover:bg-slate-100/80"
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <span
-                    className="size-2.5 shrink-0 rounded-full shadow-xs"
-                    style={{ backgroundColor: itemColor }}
-                  />
-                  <span className="truncate text-xs font-medium text-slate-700">
-                    {item.label}
-                  </span>
-                </div>
-                {items.length <= 4 && (
-                  <div className="flex items-center gap-1.5 pl-2">
-                    <span className="text-[10px] text-slate-400">
-                      ({percentage}%)
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-};
 
 export const DashboardView: React.FC = () => {
   const { data, activeRole, currentUser, setSelectedTicketId, setActiveTab } =
     useTicketStore();
+
   const tickets = filterTicketsByRole(
     data.tickets,
     activeRole,
     currentUser?.id,
   );
-  const count = (key: "channel" | "priority" | "status", value: string) =>
-    tickets.filter((ticket) => ticket[key] === value).length;
+
+  const metrics = computeExecutiveMetrics(tickets);
+
   const recent = [...tickets]
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
-    .slice(0, 7);
+    .slice(0, 5);
+
   const openTicket = (id: string) => {
     setSelectedTicketId(id);
     setActiveTab("tickets");
   };
-  const cards = [
-    ["Total tickets", tickets.length, "confirmation_number"],
-    [
-      "Due today",
-      tickets.filter((ticket) => isToday(ticket.dueAt)).length,
-      "today",
-    ],
-    [
-      "Employees present",
-      data.employees.filter((employee) => employee.status !== "Off Shift")
-        .length,
-      "groups",
-    ],
-    ["Closed tickets", count("status", "Closed"), "task_alt"],
-  ] as const;
+
   const entityCards = [
     ["Tickets", tickets.length, "confirmation_number", "tickets"],
     [
       "Companies",
-      filterCompaniesByRole(data.companies, activeRole, currentUser?.name)
-        .length,
+      filterCompaniesByRole(data.companies, activeRole, currentUser?.name).length,
       "business",
       "companies",
     ],
@@ -221,83 +81,91 @@ export const DashboardView: React.FC = () => {
       "services",
     ],
   ] as const;
+
   return (
-    <div className="max-w-8xl space-y-5 p-5">
-      <section className="grid gap-6 rounded-2xl bg-slate-900 p-5 text-white shadow-sm lg:grid-cols-[minmax(180px,1fr)_minmax(0,3fr)] lg:items-center">
-        <div>
-          <p className="text-sm font-medium text-slate-300">{getGreeting()},</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight">
-            {currentUser?.name || "there"}
-          </h1>
-          <p className="mt-2 text-xs text-slate-400">
-            Here&apos;s what&apos;s happening with your support desk today.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {cards.map(([label, value, icon]) => (
-            <div
-              key={label}
-              className="rounded-xl border border-white/10 bg-white/10 p-3 backdrop-blur-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-slate-300">
-                  {label}
-                </span>
-                <span className="material-symbols-outlined text-[18px] text-slate-300">
-                  {icon}
-                </span>
-              </div>
-              <p className="mt-2 text-2xl font-bold text-white">{value}</p>
+    <div className="max-w-8xl space-y-6 p-6">
+      {/* Executive Welcome Hero */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-md">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 ring-1 ring-indigo-500/30 ring-inset">
+                Executive Command Center
+              </span>
+              <span className="text-xs text-slate-400">Live operational telemetry</span>
             </div>
-          ))}
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+              {getGreeting()}, {currentUser?.name || "Executive Leader"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-300">
+              Operational overview of active service contracts, SLA compliance, and cross-department workloads.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setActiveTab("tickets")}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-white/20 hover:shadow-xs"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                table_view
+              </span>
+              <span>All Tickets</span>
+            </button>
+          </div>
         </div>
       </section>
+
+      {/* 1. Executive KPI Ribbon */}
+      <ExecutiveKpiRibbon
+        totalActive={metrics.totalActive}
+        overdueCount={metrics.overdueCount}
+        slaAtRiskOrBreachedCount={metrics.slaAtRiskOrBreachedCount}
+        formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
+      />
+
+      {/* Quick Navigation Cards */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {entityCards.map(([label, value, icon, tab]) => (
           <button
             key={label}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+            className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-500">
+              <span className="text-xs font-bold tracking-wider text-slate-500 uppercase">
                 {label}
               </span>
               <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-2 text-[20px] text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
                 {icon}
               </span>
             </div>
-            <p className="mt-4 text-3xl font-bold text-slate-950">{value}</p>
+            <p className="mt-3 text-3xl font-extrabold text-slate-900">{value}</p>
             <p className="mt-1 text-xs font-medium text-slate-400">
-              View {label.toLowerCase()}
+              Browse {label.toLowerCase()}
             </p>
           </button>
         ))}
       </section>
-      <div className="grid grid-cols-3 gap-4">
-        <PieChart
-          title="Tickets by status"
-          items={statuses
-            .map((key) => ({ label: key, value: count("status", key) }))
-            .filter((item) => item.value > 0)}
-        />
-        <PieChart
-          title="Tickets by priority"
-          items={priorities.map((key) => ({
-            label: key,
-            value: count("priority", key),
-          }))}
-        />
-        <PieChart
-          title="Tickets by channel"
-          items={channels.map((key) => ({
-            label: channelNames[key],
-            value: count("channel", key),
-          }))}
-        />
-      </div>
-      <div className="grid items-start gap-4 lg:grid-cols-[2fr_1fr]">
+
+      {/* 2. Interactive Volume Breakdown Cards */}
+      <VolumeBreakdownCards
+        tickets={tickets}
+        teams={data.teams}
+        departments={data.departments}
+      />
+
+      {/* 3. High-Attention Actionable Ticket Table */}
+      <HighAttentionTicketsTable
+        tickets={tickets}
+        onSelectTicket={openTicket}
+        onExploreAll={() => setActiveTab("tickets")}
+      />
+
+      {/* Bottom Section: Recent Activity & Notifications */}
+      <div className="grid items-start gap-6 lg:grid-cols-[2fr_1fr]">
         <RecentTickets tickets={recent} onOpen={openTicket} />
         <NotificationsCard
           notifications={data.notifications}
@@ -307,28 +175,35 @@ export const DashboardView: React.FC = () => {
     </div>
   );
 };
+
 const RecentTickets: React.FC<{
   tickets: ReturnType<typeof filterTicketsByRole>;
   onOpen: (id: string) => void;
 }> = ({ tickets, onOpen }) => (
-  <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <div className="border-b border-slate-200 p-5">
-      <h2 className="text-lg font-bold text-slate-950">Recent tickets</h2>
+  <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+    <div className="border-b border-slate-100 p-5">
+      <div className="flex items-center gap-2">
+        <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-1.5 text-[18px] text-indigo-600">
+          update
+        </span>
+        <h2 className="text-base font-bold text-slate-900">Recently Updated Tickets</h2>
+      </div>
     </div>
     <div className="divide-y divide-slate-100">
       {tickets.map((ticket) => (
         <button
           key={ticket.id}
+          type="button"
           onClick={() => onOpen(ticket.id)}
-          className="grid w-full grid-cols-1 gap-3 px-5 py-4 text-left transition hover:bg-slate-50 md:grid-cols-[60px_2fr_100px_1fr] md:items-center"
+          className="grid w-full grid-cols-1 gap-2 px-5 py-3.5 text-left transition hover:bg-slate-50 md:grid-cols-[80px_2fr_110px_1fr] md:items-center"
         >
-          <span className="font-mono text-xs font-bold text-slate-700">
+          <span className="font-mono text-xs font-bold text-indigo-700">
             {ticket.code}
           </span>
-          <span className="truncate text-sm font-semibold text-slate-900">
+          <span className="truncate text-xs font-semibold text-slate-900">
             {ticket.title}
           </span>
-          <span className="text-xs text-slate-500">
+          <span className="text-[11px] text-slate-500">
             {displayDate(ticket.updatedAt)}
           </span>
           <span className="truncate text-xs text-slate-600">
@@ -337,8 +212,8 @@ const RecentTickets: React.FC<{
         </button>
       ))}
       {!tickets.length && (
-        <p className="p-8 text-center text-sm text-slate-500">
-          No tickets match these filters.
+        <p className="p-8 text-center text-xs text-slate-500">
+          No tickets available.
         </p>
       )}
     </div>
@@ -349,10 +224,15 @@ const NotificationsCard: React.FC<{
   notifications: Notification[];
   onOpen: (id: string) => void;
 }> = ({ notifications, onOpen }) => (
-  <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <div className="flex items-center justify-between border-b border-slate-200 p-5">
-      <h2 className="text-lg font-bold text-slate-950">Notifications</h2>
-      <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700">
+  <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+    <div className="flex items-center justify-between border-b border-slate-100 p-5">
+      <div className="flex items-center gap-2">
+        <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-1.5 text-[18px] text-indigo-600">
+          notifications
+        </span>
+        <h2 className="text-base font-bold text-slate-900">Notifications</h2>
+      </div>
+      <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
         {notifications.filter((notification) => !notification.read).length} new
       </span>
     </div>
@@ -360,9 +240,10 @@ const NotificationsCard: React.FC<{
       {notifications.slice(0, 5).map((notification) => (
         <button
           key={notification.id}
+          type="button"
           onClick={() => notification.ticketId && onOpen(notification.ticketId)}
           disabled={!notification.ticketId}
-          className="flex w-full gap-3 px-5 py-4 text-left transition hover:bg-slate-50 disabled:cursor-default"
+          className="flex w-full gap-3 px-5 py-3.5 text-left transition hover:bg-slate-50 disabled:cursor-default"
         >
           <span className="material-symbols-outlined mt-0.5 text-[18px] text-indigo-500">
             {notification.icon}
@@ -376,7 +257,7 @@ const NotificationsCard: React.FC<{
                 <span className="mt-1 size-1.5 shrink-0 rounded-full bg-indigo-500" />
               )}
             </span>
-            <span className="mt-1 block text-xs leading-5 text-slate-500">
+            <span className="mt-1 block text-xs text-slate-500 line-clamp-2">
               {notification.message}
             </span>
             <span className="mt-1 block text-[10px] font-medium text-slate-400">
@@ -386,7 +267,7 @@ const NotificationsCard: React.FC<{
         </button>
       ))}
       {!notifications.length && (
-        <p className="p-8 text-center text-sm text-slate-500">
+        <p className="p-8 text-center text-xs text-slate-500">
           No notifications.
         </p>
       )}
