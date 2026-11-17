@@ -20,10 +20,10 @@ export const SidebarAccordionGroup: React.FC<SidebarAccordionGroupProps> = ({
       {!isCollapsed ? (
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-700 transition-colors"
+          className="flex w-full items-center justify-between px-3 py-1.5 text-xs font-bold tracking-wider text-slate-300 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none"
         >
           <span>{title}</span>
-          <span className="material-symbols-outlined text-[16px]">
+          <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
             {isOpen ? 'expand_less' : 'expand_more'}
           </span>
         </button>

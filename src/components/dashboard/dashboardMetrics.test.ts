@@ -4,6 +4,8 @@ import {
   computeChannelBreakdown,
   computeDepartmentBreakdown,
   getHighAttentionTickets,
+  getOverdueTickets,
+  getSlaRiskTickets,
 } from "./dashboardMetrics";
 import type { Ticket, Team, Department } from "../../types/barrel";
 
@@ -153,6 +155,8 @@ describe("Executive Dashboard Metrics & Breakdowns", () => {
 
     // Active tickets: not Resolved and not Closed -> t1 and t2 (2 tickets)
     expect(metrics.totalActive).toBe(2);
+    expect(metrics.totalTickets).toBe(4);
+    expect(metrics.highAttentionCount).toBe(2);
 
     // Overdue tickets: active tickets where dueAt < refNow -> t1, t2 (2 tickets)
     expect(metrics.overdueCount).toBe(2);
@@ -163,6 +167,53 @@ describe("Executive Dashboard Metrics & Breakdowns", () => {
     // Average resolution time: t3 resolved in 3h (180 min), t4 closed in 5h (300 min). Avg = 4h (240 min)
     expect(metrics.avgResolutionTimeHours).toBe(4);
     expect(metrics.formattedAvgResolutionTime).toBe("4.0h");
+  });
+
+  it("uses matching active, overdue, SLA-risk, and high-attention scopes with a fixed reference time", () => {
+    const referenceNow = new Date("2026-11-02T00:00:00Z");
+    const urgentOnTarget: Ticket = {
+      ...mockTickets[0],
+      id: "t5",
+      code: "TCK-105",
+      title: "Urgent but on target",
+      priority: "P1 Urgent",
+      status: "Open",
+      dueAt: "2026-11-02T01:00:00Z",
+      slaRisk: "On Target",
+    };
+    const missingDeadline: Ticket = {
+      ...mockTickets[1],
+      id: "t6",
+      code: "TCK-106",
+      title: "No SLA deadline",
+      priority: "P2 Normal",
+      dueAt: undefined,
+      slaRisk: "On Target",
+    };
+    const tickets = [...mockTickets, urgentOnTarget, missingDeadline];
+    const metrics = computeExecutiveMetrics(tickets, referenceNow);
+
+    expect(metrics.totalActive).toBe(4);
+    expect(metrics.totalTickets).toBe(6);
+    expect(metrics.highAttentionCount).toBe(3);
+    expect(metrics.overdueCount).toBe(2);
+    expect(metrics.slaAtRiskOrBreachedCount).toBe(2);
+    expect(getOverdueTickets(tickets, referenceNow).map((ticket) => ticket.id)).toEqual(["t1", "t2"]);
+    expect(getSlaRiskTickets(tickets).map((ticket) => ticket.id)).toEqual(["t1", "t2"]);
+    expect(getHighAttentionTickets(tickets).map((ticket) => ticket.id)).toEqual(["t2", "t1", "t5"]);
+  });
+
+  it("returns calm, explicit values for an empty dashboard and excludes tickets with no valid deadline", () => {
+    expect(computeExecutiveMetrics([], new Date("2026-11-02T00:00:00Z"))).toMatchObject({
+      totalActive: 0,
+      totalTickets: 0,
+      overdueCount: 0,
+      slaAtRiskOrBreachedCount: 0,
+      highAttentionCount: 0,
+      formattedAvgResolutionTime: "N/A",
+    });
+    const missingDeadline = { ...mockTickets[0], dueAt: undefined };
+    expect(getOverdueTickets([missingDeadline], new Date("2026-11-02T00:00:00Z"))).toEqual([]);
   });
 
   it("computes volume breakdown by intake channel correctly", () => {

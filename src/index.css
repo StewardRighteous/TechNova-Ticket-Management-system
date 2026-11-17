@@ -2,6 +2,18 @@
 
 @layer base {
   :root {
+    --color-text-primary: #0b1c30;
+    --color-text-secondary: #475569;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f1f5f9;
+    --color-accent: #4b41e1;
+    --color-focus: #4b41e1;
+    --color-status-open: #92400e;
+    --color-status-progress: #3730a3;
+    --color-status-escalated: #9f1239;
+    --color-status-review: #155e75;
+    --color-status-resolved: #9a3412;
+    --color-status-closed: #166534;
     --surface-container-low: #eff4ff;
     --on-tertiary-fixed-variant: #930013;
     --on-error-container: #93000a;
@@ -49,6 +61,11 @@
     --on-primary-fixed: #131b2e;
     --error: #ba1a1a;
     --outline: #76777d;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
   }
 
   body {

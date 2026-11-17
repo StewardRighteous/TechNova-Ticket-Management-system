@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Header } from "./index";
 import { ToastNotificationContainer } from "../../ToastNotificationContainer/index";
 import { useTicketStore } from "../../../../store/barrel";
+import { MemoryRouter } from "react-router-dom";
 
 describe("Header & Persona Switcher Integration", () => {
   beforeEach(() => {
@@ -10,42 +11,42 @@ describe("Header & Persona Switcher Integration", () => {
     useTicketStore.getState().resetDemoData();
   });
 
-  it("renders persona switcher and switches roles with toast feedback", () => {
+  it("shows the active persona in the profile and switches roles through store state", () => {
     render(
-      <>
+      <MemoryRouter><>
         <Header />
         <ToastNotificationContainer />
-      </>
+      </></MemoryRouter>
     );
 
-    const select = screen.getByLabelText("Active Persona") as HTMLSelectElement;
-    expect(select.value).toBe("operations_manager");
-
-    fireEvent.change(select, { target: { value: "support_agent" } });
+    expect(screen.getByText("Operations Manager")).toBeInTheDocument();
+    act(() => useTicketStore.getState().setActivePersona("support_agent"));
 
     expect(useTicketStore.getState().activeRole).toBe("support_agent");
-    expect(screen.getByText("Switched persona to Support Agent")).toBeInTheDocument();
+    expect(screen.getByText("Samira Noor")).toBeInTheDocument();
   });
 
-  it("triggers reset demo data and displays confirmation toast", () => {
-    // Mutate a ticket first
-    const firstTicket = useTicketStore.getState().data.tickets[0];
-    useTicketStore.getState().updateTicket(firstTicket.id, { title: "Custom Mutated Title" });
-    expect(useTicketStore.getState().data.tickets[0].title).toBe("Custom Mutated Title");
-
+  it("does not expose demo reset in the global header", () => {
     render(
-      <>
+      <MemoryRouter><>
         <Header />
         <ToastNotificationContainer />
-      </>
+      </></MemoryRouter>
     );
 
-    const resetButton = screen.getByTitle("Reset Demo Data");
-    fireEvent.click(resetButton);
+    expect(screen.queryByTitle("Reset Demo Data")).not.toBeInTheDocument();
+  });
 
-    expect(useTicketStore.getState().data.tickets[0].title).not.toBe("Custom Mutated Title");
-    expect(
-      screen.getByText("Demo data successfully restored to seed state.")
-    ).toBeInTheDocument();
+  it("makes persona switching discoverable in the profile menu", () => {
+    render(
+      <MemoryRouter><Header /></MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "User profile" }));
+    fireEvent.click(screen.getByRole("button", { name: "Switch demo persona" }));
+    fireEvent.click(screen.getByRole("button", { name: /Samira Noor.*Support Agent/ }));
+
+    expect(useTicketStore.getState().currentUser?.name).toBe("Samira Noor");
+    expect(sessionStorage.getItem("technova_demo_persona")).toBe(useTicketStore.getState().currentUser?.id);
   });
 });

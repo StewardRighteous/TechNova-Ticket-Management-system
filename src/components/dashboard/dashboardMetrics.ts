@@ -1,9 +1,11 @@
 import type { Ticket, Team, Department, InboundChannel } from "../../types/barrel";
 
 export interface ExecutiveMetrics {
+  totalTickets: number;
   totalActive: number;
   overdueCount: number;
   slaAtRiskOrBreachedCount: number;
+  highAttentionCount: number;
   avgResolutionTimeHours: number;
   formattedAvgResolutionTime: string;
 }
@@ -28,33 +30,28 @@ export const isTicketActive = (ticket: Ticket): boolean => {
   return !INACTIVE_STATUSES.has(ticket.status);
 };
 
+export const isTicketSlaAtRisk = (ticket: Ticket): boolean =>
+  isTicketActive(ticket) && (ticket.slaRisk === "Breached" || ticket.slaRisk === "At Risk");
+
+export const getOverdueTickets = (tickets: Ticket[], referenceNow: Date = new Date()): Ticket[] => {
+  const nowMs = referenceNow.getTime();
+  return tickets.filter((ticket) => {
+    if (!isTicketActive(ticket) || !ticket.dueAt) return false;
+    const dueMs = Date.parse(ticket.dueAt);
+    return !Number.isNaN(dueMs) && dueMs < nowMs;
+  });
+};
+
+export const getSlaRiskTickets = (tickets: Ticket[]): Ticket[] =>
+  tickets.filter(isTicketSlaAtRisk);
+
 export const computeExecutiveMetrics = (
   tickets: Ticket[],
   referenceNow: Date = new Date(),
 ): ExecutiveMetrics => {
-  let totalActive = 0;
-  let overdueCount = 0;
-  let slaAtRiskOrBreachedCount = 0;
-
-  const nowMs = referenceNow.getTime();
-
-  for (const ticket of tickets) {
-    const active = isTicketActive(ticket);
-    if (active) {
-      totalActive++;
-
-      if (ticket.dueAt) {
-        const dueMs = Date.parse(ticket.dueAt);
-        if (!Number.isNaN(dueMs) && dueMs < nowMs) {
-          overdueCount++;
-        }
-      }
-
-      if (ticket.slaRisk === "Breached" || ticket.slaRisk === "At Risk") {
-        slaAtRiskOrBreachedCount++;
-      }
-    }
-  }
+  const totalActive = tickets.filter(isTicketActive).length;
+  const overdueCount = getOverdueTickets(tickets, referenceNow).length;
+  const slaAtRiskOrBreachedCount = getSlaRiskTickets(tickets).length;
 
   // Compute average resolution time for resolved / closed tickets
   let totalResolutionTimeMs = 0;
@@ -63,7 +60,7 @@ export const computeExecutiveMetrics = (
   for (const ticket of tickets) {
     if (INACTIVE_STATUSES.has(ticket.status)) {
       const createdMs = Date.parse(ticket.createdAt);
-      const endMs = ticket.closedAt
+      const endMs = ticket.status === "Closed" && ticket.closedAt
         ? Date.parse(ticket.closedAt)
         : Date.parse(ticket.updatedAt);
 
@@ -84,9 +81,11 @@ export const computeExecutiveMetrics = (
     resolvedTicketCount > 0 ? `${roundedHours.toFixed(1)}h` : "N/A";
 
   return {
+    totalTickets: tickets.length,
     totalActive,
     overdueCount,
     slaAtRiskOrBreachedCount,
+    highAttentionCount: getHighAttentionTickets(tickets).length,
     avgResolutionTimeHours: roundedHours,
     formattedAvgResolutionTime,
   };
@@ -166,7 +165,7 @@ export const computeDepartmentBreakdown = (
 };
 
 export const getHighAttentionTickets = (tickets: Ticket[]): Ticket[] => {
-  // Actionable tickets: active tickets that are either P1 Urgent or SLA At Risk / Breached
+  // High attention includes SLA-risk tickets plus urgent/high-priority tickets.
   return tickets
     .filter((ticket) => {
       const active = isTicketActive(ticket);
@@ -174,8 +173,7 @@ export const getHighAttentionTickets = (tickets: Ticket[]): Ticket[] => {
         ticket.priority === "P1 Urgent" ||
         ticket.priority.toLowerCase().includes("urgent") ||
         ticket.priority.toLowerCase().includes("high");
-      const isSlaRisk =
-        ticket.slaRisk === "Breached" || ticket.slaRisk === "At Risk";
+      const isSlaRisk = isTicketSlaAtRisk(ticket);
 
       return active && (isCritical || isSlaRisk);
     })

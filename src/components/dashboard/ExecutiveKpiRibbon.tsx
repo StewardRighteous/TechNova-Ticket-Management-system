@@ -39,7 +39,7 @@ export const ExecutiveKpiRibbon: React.FC<ExecutiveKpiRibbonProps> = ({
           </p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
             <span className="size-1.5 rounded-full bg-indigo-500" />
-            <span>In flight & unresolved</span>
+            <span>Unresolved tickets in active statuses</span>
           </div>
         </div>
       </button>
@@ -60,24 +60,24 @@ export const ExecutiveKpiRibbon: React.FC<ExecutiveKpiRibbonProps> = ({
           </p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
             <span className="size-1.5 rounded-full bg-amber-400" />
-            <span>Past target SLA date</span>
+            <span>Active tickets past due date</span>
           </div>
         </div>
       </button>
 
-      {/* SLA Breached / At Risk count - highlighted in crimson */}
+      {/* SLA risk receives one clear accent within the shared KPI card style. */}
       <button
         type="button"
         onClick={onSlaRiskClick}
         data-testid="sla-risk-kpi"
-        className="flex w-full flex-col justify-between rounded-2xl border-2 border-rose-500 border-t-4 border-t-rose-600 bg-gradient-to-br from-rose-50/80 via-white to-red-50/50 p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:shadow-md focus:ring-2 focus:ring-rose-300 focus:outline-none"
+        className="flex w-full flex-col justify-between rounded-xl border border-rose-500 border-t-4 border-t-rose-600 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:shadow-md focus:ring-2 focus:ring-rose-300 focus:outline-none"
         aria-label="View high-attention and critical incidents"
       >
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold tracking-wider text-rose-700 uppercase">
             SLA Breached / At Risk
           </span>
-          <span className="material-symbols-outlined rounded-lg bg-rose-100 p-2 text-[20px] text-rose-600">
+          <span aria-hidden="true" className="material-symbols-outlined rounded-lg bg-rose-50 p-2 text-[20px] text-rose-700">
             warning
           </span>
         </div>
@@ -86,15 +86,10 @@ export const ExecutiveKpiRibbon: React.FC<ExecutiveKpiRibbonProps> = ({
             <p className="text-3xl font-extrabold tracking-tight text-rose-700">
               {slaAtRiskOrBreachedCount}
             </p>
-            {slaAtRiskOrBreachedCount > 0 && (
-              <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 uppercase">
-                Attention
-              </span>
-            )}
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-rose-600/90">
-            <span className="size-1.5 animate-pulse rounded-full bg-rose-500" />
-            <span>Requires executive escalation</span>
+            <span className="size-1.5 rounded-full bg-rose-600" />
+            <span>Active requests with SLA risk</span>
           </div>
         </div>
       </button>
@@ -115,7 +110,7 @@ export const ExecutiveKpiRibbon: React.FC<ExecutiveKpiRibbonProps> = ({
           </p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
             <span className="size-1.5 rounded-full bg-emerald-500" />
-            <span>Mean duration to resolve</span>
+            <span>Resolution time for resolved and closed</span>
           </div>
         </div>
       </button>

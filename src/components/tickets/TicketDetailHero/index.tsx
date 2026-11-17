@@ -12,6 +12,7 @@ import { TabbedTimeline } from "../TabbedTimeline";
 import { OwnershipCard } from "../OwnershipCard";
 import { useTicketStore } from "../../../store/barrel";
 import { TicketDetailsPanel } from "../TicketDetailsPanel/barrel";
+import { canChangeTicketStatus } from "../../../utils/rolePermissions";
 
 interface TicketDetailHeroProps {
   ticket: Ticket;
@@ -58,9 +59,9 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
     <div className="space-y-4">
       <HeroBanner
         ticket={ticket}
-        onEscalate={handleEscalate}
-        onRequestQa={handleRequestQa}
-        onResolve={handleResolve}
+        onEscalate={canChangeTicketStatus(activeRole, "Escalated") ? handleEscalate : undefined}
+        onRequestQa={canChangeTicketStatus(activeRole, "Pending QA") ? handleRequestQa : undefined}
+        onResolve={canChangeTicketStatus(activeRole, "Resolved") ? handleResolve : undefined}
       />
 
       {/* 2-column workspace */}
@@ -99,7 +100,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
               Workflow Actions
             </h4>
 
-        {activeRole !== "development_team" && activeRole !== "qa" && <WorkflowButton
+        {canChangeTicketStatus(activeRole, "Escalated") && <WorkflowButton
               icon="trending_up"
               label="Escalate to Senior Support / Dev"
               description="Route this ticket to L2/L3 for deeper investigation"
@@ -111,7 +112,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
               }
         />}
 
-            <WorkflowButton
+            {canChangeTicketStatus(activeRole, "Pending QA") && <WorkflowButton
               icon="fact_check"
               label="Request QA Review"
               description="Submit for QA testing and verification"
@@ -121,9 +122,9 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
                 ticket.status === "Resolved" ||
                 ticket.status === "Closed"
               }
-            />
+            />}
 
-            <WorkflowButton
+            {canChangeTicketStatus(activeRole, "Resolved") && <WorkflowButton
               icon="check_circle"
               label="Mark Resolved"
               description="Close the investigation and mark complete"
@@ -131,10 +132,10 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
               disabled={
                 ticket.status === "Resolved" || ticket.status === "Closed"
               }
-            />
+            />}
 
             {/* Reassignment */}
-            {activeRole !== "development_team" && activeRole !== "qa" && <div className="border-t border-slate-100 pt-3">
+            {(activeRole === "operations_manager" || activeRole === "management") && <div className="border-t border-slate-100 pt-3">
               <label className="mb-1 block text-xs font-semibold text-slate-700">
                 Reassign Ticket
               </label>

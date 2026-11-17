@@ -52,10 +52,10 @@ export const TicketRegistryView: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
+    data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id),
   );
   const selectedTicket =
-    roleTickets.find((t) => t.id === ticketId) ||
-    data.tickets.find((t) => t.id === ticketId);
+    roleTickets.find((t) => t.id === ticketId);
 
   const handleViewTicket = useCallback(
     (id: string) => {
@@ -85,10 +85,16 @@ export const TicketRegistryView: React.FC = () => {
 
   return (
     <div className="space-y-6 p-2">
-      {selectedTicket ? (
+      {ticketId && !selectedTicket ? (
+        <section role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <h1 className="text-lg font-semibold text-slate-900">Ticket unavailable</h1>
+          <p className="mt-2 text-sm text-slate-700">This ticket may not exist or may not be available to your role.</p>
+          <button type="button" onClick={() => navigate("/tickets")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to tickets</button>
+        </section>
+      ) : selectedTicket ? (
         <TicketDetailHero
           ticket={selectedTicket}
-          employees={data.employees}
+          employees={activeRole === "operations_manager" || activeRole === "management" ? data.employees : data.employees.filter((employee) => employee.id === selectedTicket.assignedToId)}
           companies={data.companies}
           services={data.services}
           onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}

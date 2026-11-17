@@ -45,16 +45,20 @@ export const RecentTickets: React.FC<{
 export const NotificationsCard: React.FC<{
   notifications: Notification[];
   onOpen: (id: string) => void;
-}> = ({ notifications, onOpen }) => (
+  onViewAll: () => void;
+}> = ({ notifications, onOpen, onViewAll }) => (
   <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
     <div className="flex items-center justify-between border-b border-slate-100 p-4">
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-1.5 text-[18px] text-indigo-600">notifications</span>
         <h2 className="text-base font-bold text-slate-900">Notifications</h2>
       </div>
-      <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
-        {notifications.filter((notification) => !notification.read).length} new
-      </span>
+      <div className="flex items-center gap-3">
+        <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+          {notifications.filter((notification) => !notification.read).length} new
+        </span>
+        <button type="button" onClick={onViewAll} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">View all</button>
+      </div>
     </div>
     <div className="divide-y divide-slate-100">
       {notifications.slice(0, 5).map((notification) => (

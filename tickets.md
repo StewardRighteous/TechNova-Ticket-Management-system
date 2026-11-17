@@ -4,73 +4,24 @@ Browser review of the local mockup on 17 November 2026. One reviewer explored as
 
 | Ready | Blocked by dependencies | In progress | Done |
 | --- | --- | --- | --- |
-| TN-01, TN-02, TN-04, TN-05, TN-07, TN-09 | TN-03, TN-08, TN-10–TN-24 | — | — |
+| TN-15, TN-03, TN-08, TN-11, TN-12 | TN-13, TN-14, TN-16–TN-25 | — | TN-01, TN-02, TN-04, TN-05, TN-07, TN-09, TN-10 |
 
 Pull a blocked card into Ready when all IDs on its **Depends on** line are Done. This desktop-only board has 24 tickets. P0 covers wrong-customer context, role boundaries, and accidental data loss. P1 covers core workflows and usability barriers. P2 covers supporting workflow quality. Within Ready, pull the highest-priority available card first.
 
 ## Ready
 
-### TN-01 · Reconcile ticket company and service references
+### TN-15 · Keep the selected company, contact, service, and assignee in sync
 
-**P0** · Depends on none · Ticket data, registry, detail, related lists
+**P0** · Depends on TN-01, TN-02 · New Ticket, customer and ownership fields
 
-**Reproduce.** As Operations Manager, open `TCK-1172`. The registry and Ownership say Northstar Cloud Networks, while Ticket Details → Overview says CloudScale Systems. The first-time reviewer found the same pattern on `TCK-1101` as a Support Agent. In the seed data, 75 of 100 company ID/name pairs and 18 of 100 service ID/name pairs disagree with the corresponding directory record.
+**Reproduce.** As Samira, open New Ticket and search `CloudScale`. The Company control displays CloudScale while Customer contact still shows the initial Apex contact. In the browser review, the submitted sample ticket appeared under Apex Financial’s Active Tickets. An unmatched query leaves an empty Company selector and a stale contact, with no explanation. The intake also starts at P1 Urgent with the first company, service, and owner selected.
 
-**Implement.** Reconcile the seed IDs and labels against the intended companies and services. Check existing browser-stored demo records and repair mismatches through a migration that preserves user edits and leaves ambiguous matches visible for correction. Resolve display names from the same validated IDs in the registry, detail, and related lists. Keep saved display snapshots only where a deliberate historical fallback is needed.
+**Implement.** Use an explicit company or contact result selection and store the chosen IDs. Refresh dependent contact/service choices after company changes and validate eligibility at submission. Show zero-result guidance in the picker. Start high-impact fields unselected or with documented safe defaults. Provide short priority guidance and show the chosen assignee before continuing.
 
-**Accept when** both example tickets show one company and service across all surfaces, including the company/service related-ticket lists, and changing a valid relationship updates every surface after reload. Test missing IDs and a previously saved mismatched record.
+**Accept when** selecting an Apex contact and then CloudScale clears the old contact. Searching by an alternate contact brings up the correct company and contact, an unmatched search cannot save a stale record, and the wizard never silently submits the first customer, owner, or P1 by default.
 
-### TN-02 · Apply the same role rules to actions, links, and record URLs
 
-**P0** · Depends on none · App routes, header, dashboard, directories, ticket and notification entry points
-
-**Reproduce.** Open the demo as Samira (Support Agent). Dashboard offers Companies, Services, and Employees while the sidebar offers Dashboard and Tickets. Clicking Companies returns to Dashboard without an explanation. Her registry returns no result for `TCK-1084`, yet a notification opens that ticket with edit and workflow controls. Source review found global record fallbacks and create links that can appear for roles denied by the route.
-
-**Implement.** Use a single capability and record-visibility policy for dashboard tiles, create/edit buttons, detail routes, related links, and store mutations. Decide explicitly which roles can see and modify scoped records. Remove unconditional record fallbacks and show an access message with a permitted recovery action when someone opens a denied URL. Keep the policy within the mockup’s local role model.
-
-**Accept when** Operations Manager, Support Agent, Account Manager, and QA or Development see only available destinations and actions. For each restricted case test both the visible navigation and a pasted URL, including a ticket linked from a notification and an out-of-scope company detail. Denied mutations leave the record unchanged.
-
-### TN-04 · Protect the demo reset and move it out of daily navigation
-
-**P0** · Depends on none · Header, Settings, demo store
-
-**Reproduce.** Reset Demo sits beside everyday actions in the header and is repeated in Settings. Source review shows both triggers reset immediately, and the store also changes the active persona to the seed manager.
-
-**Implement.** Give authorized demo operators a single Settings entry. Explain which local changes will be wiped, require an explicit reset confirmation, and make Cancel the initial focus. Preserve the active persona if it exists in seed data. If the active persona came from a user-created record, return to the demo chooser with an explanation.
-
-**Accept when** the header offers no reset, Escape and Cancel preserve demo records and persona, and a deliberate reset restores exactly the intended data. Verify focus restoration and a result message in a disposable fixture. Cover an allowed seed persona and a removed persona.
-
-### TN-05 · Standardize typography, spacing, colors, and control states
-
-**P1** · Depends on none · Shared CSS, buttons, badges, tables, forms, icons
-
-**Reproduce.** In the desktop shell, inactive slate labels and icons are hard to see on navy. The client measured roughly 2.4:1 for the inactive Companies label at 12 pixels. Small pale uppercase labels recur in cards, tables, and details. The accessibility tree includes icon ligatures such as `grid_view` and `confirmation_number` in control names. The primary ticket action changes from indigo “Add Ticket” to navy “New Ticket.”
-
-**Implement.** Define shared text, surface, accent, focus, and semantic status styles and a consistent spacing scale. Use indigo for the primary action, neutral styling for secondary actions, and explicit text for risk or status. Increase readability of recurring metadata. Hide decorative icons from accessible names and name icon-only controls. Cover sidebar navigation, header controls, badges, table controls, and inputs first.
-
-**Accept when** navigation and normal-sized text reach 4.5:1 contrast, control boundaries where needed and focus indicators reach 3:1 against adjacent colors, and status remains understandable in grayscale. Primary actions look consistent, and keyboard navigation announces human-readable names with visible focus.
-
-### TN-07 · Make the demo entry, persona choice, and sign-out understandable
-
-**P1** · Depends on none · Login page, profile menu, session state
-
-**Reproduce.** A fresh visit opens the workspace as Arthur. The first-time reviewer found the persona chooser only after Profile → Sign Out, where the demo screen presents prefilled manager-looking sign-in fields. The profile tooltip advertises a role switcher but the menu offers only Sign Out.
-
-**Implement.** Make the demo entry explicit. Present selectable sample personas with full names, clear role names, and short capability descriptions. Offer a labeled persona-switch action and remember the explicitly chosen persona in the tab/session. Present the email-only demo behavior honestly and remove the password-looking control if using the current mock flow.
-
-**Accept when** a fresh visit offers a clear next step, switching from Arthur to Samira is discoverable from the profile, refreshing retains the chosen role, and signing out followed by a refresh returns to the chooser. A user with a permitted deep link reaches that record after selecting a persona.
-
-### TN-09 · Make dashboard ticket and SLA totals explainable
-
-**P1** · Depends on none · Dashboard metrics and incident table
-
-**Reproduce.** Operations Manager sees 72 Active Tickets and a separate Tickets total of 100 labeled “Active service requests.” The SLA card shows 22 while the critical incidents table contains 23. The two SLA counts currently use different inclusion rules.
-
-**Implement.** Define total, active, overdue, SLA risk, and high-attention in one metrics module. Label the 100-card total correctly. Show the incidents table’s broader scope explicitly if it includes critical-priority records outside SLA risk. Use the same reference time across summaries and filtered views, and clarify which resolved/closed records contribute to average resolution.
-
-**Accept when** deterministic fixtures cover active, resolved, closed, overdue, at-risk, breached, and urgent-on-target tickets. Every dashboard card and table names its actual scope, and matching views report matching counts. Include empty data and a record missing a valid deadline.
-
-## Blocked by dependencies
+—
 
 ### TN-03 · Make ticket transitions and reassignment reflect actual routing
 
@@ -92,23 +43,13 @@ Pull a blocked card into Ready when all IDs on its **Depends on** line are Done.
 
 **Accept when** `/notifications` identifies itself, record and create screens have usable parent navigation, and a missing ID or path explains the outcome and offers a working recovery link. Verify direct navigation, browser Back, and keyboard focus.
 
-### TN-09 · Put daily triage ahead of decorative dashboard content
-
-**P1** · Depends on TN-05, TN-10 · Dashboard and incident preview
-
-**Reproduce.** The desktop dashboard starts with a large welcome banner, then two similarly prominent card bands and breakdowns before the critical incidents. Multiple All Tickets links compete with the primary task. The red SLA card combines a heavy frame, gradient, icon, pill, and pulse.
-
-**Implement.** Give each dashboard section a clear purpose. Compact the greeting and place actionable SLA information and the critical queue ahead of directory shortcuts and breakdowns. Keep one prominent create entry where authorized and one clear registry link. Use quieter cards, aligned gutters, readable chart labels, and one consistent treatment for critical emphasis.
-
-**Accept when** at 1280×720 the viewer can identify the highest-priority issue and its action without passing decorative content, and at the same reading order holds. Labels and values remain legible, and zero counts have a calm, informative state.
-
 ### TN-11 · Show and preserve the dashboard’s ticket scope on drill-down
 
-**P1** · Depends on TN-02, TN-10 · Dashboard KPIs and registry scope
+**P1** · Depends on TN-02, TN-09, TN-10 · Dashboard KPIs and registry scope
 
 **Reproduce.** Click Active Tickets. The result is `/tickets` titled “All Tickets,” with no selected Status values, although the set is scoped. The SLA risk card scrolls to the broader high-attention table, where the generic “View All Tickets” loses the condition.
 
-**Implement.** Represent the metric scope with a stable query value and a visible removable label such as “Active.” Use shared predicates and naming from TN-10. Provide an equivalent scoped route from Overdue, SLA Risk, and Average Resolution samples, with a clear link from the high-attention preview that matches its scope. Keep the scope combinable with ordinary filters.
+**Implement.** Represent the metric scope with a stable query value and a visible removable label such as “Active.” Use shared predicates and naming from TN-09 and TN-10. Provide an equivalent scoped route from Overdue, SLA Risk, and Average Resolution samples, with a clear link from the high-attention preview that matches its scope. Keep the scope combinable with ordinary filters.
 
 **Accept when** the initial count and criteria agree with the clicked card, refreshing or sharing the link restores the scope, and removing it returns to the role’s full queue. Verify risk versus critical priority, a zero-result scope, and a restricted persona.
 
@@ -121,6 +62,15 @@ Pull a blocked card into Ready when all IDs on its **Depends on** line are Done.
 **Implement.** Prioritize the ticket title and ID, status/priority, client, and ownership when assigning column widths. Let titles wrap to a practical number of lines and give a readable way to reveal long text. Make the title or ID a real link with a distinct name. Consolidate the header “New Ticket” and table “New” into one visible registry entry for authorized roles. On narrow screens, present the same key fields in a compact record layout or a clearly signposted contained table.
 
 **Accept when** two tickets with the same prefix and different tenant suffixes are identifiable at 1265 pixels, and ticket title, status, and opening action are available at 390 pixels. The row link works with Enter and standard link behavior, and repeated generic controls leave no ambiguous tab stops.
+
+
+—
+
+## In progress
+
+—
+
+## Blocked by dependencies
 
 ### TN-13 · Make filters, sorting, and empty results easy to understand
 
@@ -141,16 +91,6 @@ Pull a blocked card into Ready when all IDs on its **Depends on** line are Done.
 **Implement.** Restore the source list’s search, filters, scope, sort, page size, page, scroll, and originating link focus through the URL and history state as appropriate. Distinguish a return to the prior view from a direct arrival at the registry. Clamp page and focus when the original record moved or no longer matches.
 
 **Accept when** ascending and descending sorts, a filter, and page 2 survive both Browser Back and the registry breadcrumb. The originating ticket regains focus when present. A direct detail URL still has a reasonable return destination and closing a ticket from the active queue gives a sensible fallback position.
-
-### TN-15 · Keep the selected company, contact, service, and assignee in sync
-
-**P0** · Depends on TN-01, TN-02 · New Ticket, customer and ownership fields
-
-**Reproduce.** As Samira, open New Ticket and search `CloudScale`. The Company control displays CloudScale while Customer contact still shows the initial Apex contact. In the browser review, the submitted sample ticket appeared under Apex Financial’s Active Tickets. An unmatched query leaves an empty Company selector and a stale contact, with no explanation. The intake also starts at P1 Urgent with the first company, service, and owner selected.
-
-**Implement.** Use an explicit company or contact result selection and store the chosen IDs. Refresh dependent contact/service choices after company changes and validate eligibility at submission. Show zero-result guidance in the picker. Start high-impact fields unselected or with documented safe defaults. Provide short priority guidance and show the chosen assignee before continuing.
-
-**Accept when** selecting an Apex contact and then CloudScale clears the old contact. Searching by an alternate contact brings up the correct company and contact, an unmatched search cannot save a stale record, and the wizard never silently submits the first customer, owner, or P1 by default.
 
 ### TN-16 · Make the intake wizard recoverable and explain its requirements
 
@@ -252,6 +192,94 @@ Pull a blocked card into Ready when all IDs on its **Depends on** line are Done.
 
 **Accept when** changing the default view and density has a visible effect, persists across navigation and reload, and stays isolated when switching personas. Each remaining setting states the effect users can verify. A notification control accurately describes where alerts appear.
 
+## Done
+
+### TN-01 · Reconcile ticket company and service references
+
+**P0** · Depends on none · Ticket data, registry, detail, related lists · **Done**
+
+**Completed.** On load, ticket company and service labels are reconciled from valid directory IDs for both pristine seed data and existing browser storage. New tickets require valid company and service IDs and save the directory labels. Editing a ticket relationship validates the chosen ID and refreshes its display name and company code. Missing IDs are left intact with the stored label, preserving ambiguous records for manual correction.
+
+**Verification.** `npm run build` passes. The implementation is at `src/store/storage.ts` and `src/store/ticketStore.ts`.
+
+---
+
+### TN-02 · Apply the same role rules to actions, links, and record URLs
+
+**P0** · Depends on none · App routes, header, dashboard, directories, ticket and notification entry points · **Done**
+
+**Completed.** Record detail lookups no longer fall back to unscoped data. Ticket, company, and employee URLs show an unavailable message with a return path when a record is missing or outside the active role’s scope. Section routes explain denied access. Dashboard destination cards and create controls follow role permissions; notifications are limited to tickets the current role can access. Ticket status transitions, assignment, note, directory create/update mutations, and edits to ticket relationships enforce the same role/record policy in the store. Related ticket lists use role-scoped tickets.
+
+**Verification.** `npm run build` passes. The implementation is in `src/utils/rolePermissions.ts`, `src/App.tsx`, role-aware views, and `src/store/ticketStore.ts`.
+
+---
+
+### TN-04 · Protect the demo reset and move it out of daily navigation
+
+**P0** · Depends on none · Header, Settings, demo store · **Done**
+
+**Reproduce.** Reset Demo sits beside everyday actions in the header and is repeated in Settings. Source review shows both triggers reset immediately, and the store also changes the active persona to the seed manager.
+
+**Implement.** Give authorized demo operators a single Settings entry. Explain which local changes will be wiped, require an explicit reset confirmation, and make Cancel the initial focus. Preserve the active persona if it exists in seed data. If the active persona came from a user-created record, return to the demo chooser with an explanation.
+
+**Completed.** Removed reset from the global header and kept one entry in Settings. It describes the local data that will be replaced, then requires explicit confirmation in a dialog whose initial focus is Cancel. Escape, backdrop click, and Cancel dismiss without changing records; focus returns to the reset trigger. Confirming restores seed data, preserves the active employee when present, and returns to the default persona with an explanatory warning if the current persona was removed.
+
+**Verification.** Focused reset and store tests pass, along with the production build. See `src/components/settings/SettingsView.tsx`, `src/store/ticketStore.ts`, and their tests.
+
+### TN-05 · Standardize typography, spacing, colors, and control states
+
+**P1** · Depends on none · Shared CSS, buttons, badges, tables, forms, icons · **Done**
+
+**Reproduce.** In the desktop shell, inactive slate labels and icons are hard to see on navy. The client measured roughly 2.4:1 for the inactive Companies label at 12 pixels. Small pale uppercase labels recur in cards, tables, and details. The accessibility tree includes icon ligatures such as `grid_view` and `confirmation_number` in control names. The primary ticket action changes from indigo “Add Ticket” to navy “New Ticket.”
+
+**Implement.** Define shared text, surface, accent, focus, and semantic status styles and a consistent spacing scale. Use indigo for the primary action, neutral styling for secondary actions, and explicit text for risk or status. Increase readability of recurring metadata. Hide decorative icons from accessible names and name icon-only controls. Cover sidebar navigation, header controls, badges, table controls, and inputs first.
+
+**Completed.** Added shared text, surface, accent, focus, and semantic status tokens and a global visible keyboard focus style. Sidebar inactive labels now use readable light text on navy; accordion headings and page-level metadata are larger and darker. Primary ticket actions use indigo, table create actions use the same treatment, and secondary controls remain neutral. Status and priority badges have readable fills, explicit borders, and text labels for grayscale use. Decorative symbols are hidden from screen-reader names, icon-only controls have explicit labels, and sidebar navigation exposes current-page state.
+
+**Verification.** Focused UI and store tests pass, along with the production build. Review covers the sidebar, header controls, badges, table controls, and shared inputs. See `src/index.css` and the shared components under `src/components/common/`.
+
+### TN-07 · Make the demo entry, persona choice, and sign-out understandable
+
+**P1** · Depends on none · Login page, profile menu, session state · **Done**
+
+**Reproduce.** A fresh visit opens the workspace as Arthur. The first-time reviewer found the persona chooser only after Profile → Sign Out, where the demo screen presents prefilled manager-looking sign-in fields. The profile tooltip advertises a role switcher but the menu offers only Sign Out.
+
+**Implement.** Make the demo entry explicit. Present selectable sample personas with full names, clear role names, and short capability descriptions. Offer a labeled persona-switch action and remember the explicitly chosen persona in the tab/session. Present the email-only demo behavior honestly and remove the password-looking control if using the current mock flow.
+
+**Accept when** a fresh visit offers a clear next step, switching from Arthur to Samira is discoverable from the profile, refreshing retains the chosen role, and signing out followed by a refresh returns to the chooser. A user with a permitted deep link reaches that record after selecting a persona.
+
+**Completed.** Fresh sessions now open on a clear demo entry with full-name persona choices, role names, and capability descriptions. The email-only lookup explains that it is a local demo and has no password field. The profile menu exposes “Switch demo persona.” An explicitly selected employee ID is stored in `sessionStorage` and restores both the employee and role after reload; sign-out clears it, so the next load returns to the chooser. The original route remains available after choosing a persona, including permitted deep links.
+
+**Verification.** `npm run build` and the focused auth, store, dashboard, and header tests pass. See `src/components/auth/`, `src/components/common/layout/Header/`, `src/store/ticketStore.ts`, and `src/store/storage.ts`.
+
+### TN-09 · Make dashboard ticket and SLA totals explainable
+
+**P1** · Depends on none · Dashboard metrics and incident table · **Done**
+
+**Reproduce.** Operations Manager sees 72 Active Tickets and a separate Tickets total of 100 labeled “Active service requests.” The SLA card shows 22 while the critical incidents table contains 23. The two SLA counts currently use different inclusion rules.
+
+**Implement.** Define total, active, overdue, SLA risk, and high-attention in one metrics module. Label the 100-card total correctly. Show the incidents table’s broader scope explicitly if it includes critical-priority records outside SLA risk. Use the same reference time across summaries and filtered views, and clarify which resolved/closed records contribute to average resolution.
+
+**Accept when** deterministic fixtures cover active, resolved, closed, overdue, at-risk, breached, and urgent-on-target tickets. Every dashboard card and table names its actual scope, and matching views report matching counts. Include empty data and a record missing a valid deadline.
+
+**Completed.** Dashboard metrics and drill-down predicates now share one metrics module. “Tickets” is described as the full role-scoped request set, including resolved and closed records. The SLA KPI reports active at-risk/breached tickets, while the queue explicitly states its broader inclusion of urgent/high-priority active tickets and displays priority beside SLA status. Overdue summaries and registry filters use the same active/deadline predicate with a single reference time per calculation. The average scope is visible and defined: resolved records use their last update; closed records use `closedAt` with an `updatedAt` fallback.
+
+**Verification.** Deterministic tests cover active, resolved, closed, overdue, at-risk, breached, urgent-on-target, empty data, and missing deadlines; focused tests and the production build pass. See `src/components/dashboard/dashboardMetrics.ts` and `src/components/tickets/TicketTable/index.tsx`.
+
+### TN-10 · Put daily triage ahead of decorative dashboard content
+
+**P1** · Depends on TN-05, TN-09 · Dashboard and incident preview · **Done**
+
+**Reproduce.** The desktop dashboard starts with a large welcome banner, then two similarly prominent card bands and breakdowns before the critical incidents. Multiple All Tickets links compete with the primary task. The red SLA card combines a heavy frame, gradient, icon, pill, and pulse.
+
+**Implement.** Give each dashboard section a clear purpose. Compact the greeting and place actionable SLA information and the critical queue ahead of directory shortcuts and breakdowns. Keep one prominent create entry where authorized and one clear registry link. Use quieter cards, aligned gutters, readable chart labels, and one consistent treatment for critical emphasis.
+
+**Accept when** at 1280×720 the viewer can identify the highest-priority issue and its action without passing decorative content, and at the same reading order holds. Labels and values remain legible, and zero counts have a calm, informative state.
+
+**Completed.** Replaced the large gradient welcome banner with a compact greeting, placed operational KPIs and the high-attention queue before directory shortcuts and breakdown charts, and removed the competing dashboard “All Tickets” link. The queue has one understated registry link, quieter table styling, explicit priority/SLA context, and a calm empty state. The authorized header create action remains the sole prominent create entry.
+
+**Verification.** Dashboard integration and component tests pass, and the production build passes. At desktop widths the first content after the compact greeting is the KPI row followed by the actionable queue. See `src/components/dashboard/DashboardView/index.tsx`, `ExecutiveKpiRibbon.tsx`, and `HighAttentionTicketsTable.tsx`.
+
 ## Review coverage
 
 | Reviewer | Browser coverage |
@@ -261,4 +289,4 @@ Pull a blocked card into Ready when all IDs on its **Depends on** line are Done.
 
 Both reviewers used the sample Operations Manager, Support Agent, and Management personas. Reset and settings effects were assessed from visible controls and source. Phone-sized checks used browser emulation. Directory create forms were inspected without submitting directory records. The operator’s sample ticket and transition affected browser-local demo data.
 
-On the reviewed checkout, `npm test` reported 33 passing and 13 failing tests across five failing suites. The failures include router setup and expectations for controls that differ from the running UI. Use the card acceptance checks alongside the corresponding existing tests when implementing fixes.
+Latest verification on this checkout: the focused auth, store, header, and dashboard suites pass (25 tests), and `npm run build` passes. The full `npm test -- --run` suite reports 48 passing and 8 failing tests across NumericPagination, TicketDetailHero, and TicketTable. Those failures currently include expectations for buttons where the UI uses a select, plus ticket-detail controls/workflows that differ from the running UI. Keep the ticket-specific acceptance checks alongside the existing tests when continuing implementation.

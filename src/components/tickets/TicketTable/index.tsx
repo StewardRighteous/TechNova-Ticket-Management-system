@@ -12,6 +12,7 @@ import {
 } from "../../common/barrel";
 import { TicketTableFilters } from "../TicketTableFilters";
 import type { TicketTableFocus } from "../../../store/ticketStore";
+import { getOverdueTickets, isTicketSlaAtRisk } from "../../dashboard/dashboardMetrics";
 
 interface TicketTableProps {
   tickets: Ticket[];
@@ -132,6 +133,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     setPage(1);
   };
 
+  const overdueTicketIds = new Set(getOverdueTickets(tickets).map((ticket) => ticket.id));
   const filtered = tickets.filter((t) => {
     if (initialFocus === "active" && ["Resolved", "Closed"].includes(t.status)) {
       return false;
@@ -139,17 +141,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     if (initialFocus === "resolved" && !["Resolved", "Closed"].includes(t.status)) {
       return false;
     }
-    if (initialFocus === "overdue") {
-      if (["Resolved", "Closed"].includes(t.status) || !t.dueAt || Date.parse(t.dueAt) >= Date.now()) {
-        return false;
-      }
-    }
-    if (
-      initialFocus === "sla-risk" &&
-      !["At Risk", "Breached"].includes(t.slaRisk)
-    ) {
-      return false;
-    }
+    if (initialFocus === "overdue" && !overdueTicketIds.has(t.id)) return false;
+    if (initialFocus === "sla-risk" && !isTicketSlaAtRisk(t)) return false;
 
     if (channelFilter.length > 0 && !channelFilter.includes(t.channel)) {
       return false;

@@ -3,9 +3,9 @@ import type { Ticket } from "../../types/barrel";
 
 interface HeroBannerProps {
   ticket: Ticket;
-  onEscalate: () => void;
-  onRequestQa: () => void;
-  onResolve: () => void;
+  onEscalate?: () => void;
+  onRequestQa?: () => void;
+  onResolve?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
@@ -23,34 +23,34 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
       <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
         <div className="h-full w-full bg-[length:24px_24px] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)]" />
       </div>
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between gap-6">
         {/* Title */}
-        <h1 className="relative  text-lg font-bold leading-snug tracking-tight text-white sm:text-xl">
+        <h1 className="relative text-xl font-bold leading-snug tracking-tight text-white">
           {ticket.title}
         </h1>
         {/* Quick Action row */}
         <div className="relative flex flex-wrap items-center gap-2">
-          <QuickActionButton
+          {onEscalate && <QuickActionButton
             icon="trending_up"
             label="Escalate"
             variant="rose"
             disabled={isTerminal || ticket.status === "Escalated"}
             onClick={onEscalate}
-          />
-          <QuickActionButton
+          />}
+          {onRequestQa && <QuickActionButton
             icon="fact_check"
             label="Request QA Review"
             variant="purple"
             disabled={isTerminal || ticket.status === "Pending QA"}
             onClick={onRequestQa}
-          />
-          <QuickActionButton
+          />}
+          {onResolve && <QuickActionButton
             icon="check_circle"
             label="Mark Resolved"
             variant="emerald"
             disabled={isTerminal}
             onClick={onResolve}
-          />
+          />}
       </div>
       </div>
     </div>
@@ -97,7 +97,7 @@ const QuickActionButton: React.FC<{
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${v.base} ${disabled ? v.disabled : v.hover}`}
     >
-      <span className="material-symbols-outlined text-[16px]">{icon}</span>
+      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">{icon}</span>
       <span>{label}</span>
     </button>
   );

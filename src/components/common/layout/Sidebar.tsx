@@ -19,6 +19,7 @@ export const Sidebar: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
+    data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id),
   );
 
   const isTabAllowed = (tab: string) => permissions.allowedTabs.includes(tab);
@@ -39,7 +40,7 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center gap-3 overflow-hidden">
             <button>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-700 text-white shadow-sm">
-                <span className="material-symbols-outlined text-[20px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                   confirmation_number
                 </span>
               </div>
@@ -61,13 +62,15 @@ export const Sidebar: React.FC = () => {
           {/* Dashboard Tab */}
           <button
             onClick={() => goTo("dashboard")}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
+            aria-current={currentTab === "dashboard" ? "page" : undefined}
+            aria-label={isSidebarCollapsed ? "Dashboard" : undefined}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
               currentTab === "dashboard"
                 ? "bg-indigo-50 text-indigo-600 shadow-sm"
-                : "text-slate-600 hover:bg-slate-100"
+                : "text-slate-200 hover:bg-slate-800 hover:text-white"
             }`}
           >
-            <span className="material-symbols-outlined shrink-0 text-[20px]">
+            <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
               grid_view
             </span>
             {!isSidebarCollapsed && <span>Dashboard</span>}
@@ -76,14 +79,16 @@ export const Sidebar: React.FC = () => {
           {isTabAllowed("tickets") && (
             <button
               onClick={() => goTo("tickets")}
-              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+              aria-current={currentTab === "tickets" ? "page" : undefined}
+              aria-label={isSidebarCollapsed ? "Tickets" : undefined}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
                 currentTab === "tickets"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                  : "text-slate-600 hover:bg-slate-100"
+                  : "text-slate-200 hover:bg-slate-800 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
                   confirmation_number
                 </span>
                 {!isSidebarCollapsed && (
@@ -101,14 +106,16 @@ export const Sidebar: React.FC = () => {
           {isTabAllowed("companies") && (
             <button
               onClick={() => goTo("companies")}
-              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+              aria-current={currentTab === "companies" ? "page" : undefined}
+              aria-label={isSidebarCollapsed ? "Companies" : undefined}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
                 currentTab === "companies"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                  : "text-slate-600 hover:bg-slate-100"
+                  : "text-slate-200 hover:bg-slate-800 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
                   domain
                 </span>
                 {!isSidebarCollapsed && (
@@ -121,14 +128,16 @@ export const Sidebar: React.FC = () => {
           {isTabAllowed("services") && (
             <button
               onClick={() => goTo("services")}
-              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+              aria-current={currentTab === "services" ? "page" : undefined}
+              aria-label={isSidebarCollapsed ? "Services" : undefined}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
                 currentTab === "services"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                  : "text-slate-600 hover:bg-slate-100"
+                  : "text-slate-200 hover:bg-slate-800 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
                   layers
                 </span>
                 {!isSidebarCollapsed && (
@@ -141,14 +150,16 @@ export const Sidebar: React.FC = () => {
           {isTabAllowed("employees") && (
             <button
               onClick={() => goTo("employees")}
-              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+              aria-current={currentTab === "employees" ? "page" : undefined}
+              aria-label={isSidebarCollapsed ? "Employees" : undefined}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
                 currentTab === "employees"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
-                  : "text-slate-600 hover:bg-slate-100"
+                  : "text-slate-200 hover:bg-slate-800 hover:text-white"
               }`}
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <span className="material-symbols-outlined shrink-0 text-[20px]">
+                <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
                   badge
                 </span>
                 {!isSidebarCollapsed && (
@@ -161,13 +172,15 @@ export const Sidebar: React.FC = () => {
           {isTabAllowed("settings") && (
             <button
               onClick={() => goTo("settings")}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+              aria-current={currentTab === "settings" ? "page" : undefined}
+              aria-label={isSidebarCollapsed ? "Settings" : undefined}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
                 currentTab === "settings"
                   ? "bg-indigo-50 font-bold text-indigo-700"
-                  : "text-slate-600 hover:bg-slate-100"
+                  : "text-slate-200 hover:bg-slate-800 hover:text-white"
               }`}
             >
-              <span className="material-symbols-outlined shrink-0 text-[20px]">
+              <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
                 settings
               </span>
               {!isSidebarCollapsed && <span>Settings</span>}

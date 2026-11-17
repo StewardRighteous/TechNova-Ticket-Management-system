@@ -59,8 +59,11 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-slate-900">
-                High-Attention & Critical Incidents
+                High-attention queue
               </h2>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">
+                {highAttentionTickets.length} active tickets: SLA breached or at risk, plus urgent or high-priority tickets that may still be on target.
+              </p>
             </div>
           </div>
         </div>
@@ -71,7 +74,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
             onClick={onExploreAll}
             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
           >
-            <span>View All Tickets</span>
+            <span>Open ticket registry</span>
             <span className="material-symbols-outlined text-[16px]">
               arrow_forward
             </span>
@@ -86,6 +89,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
               <th className="px-5 py-3">Ticket</th>
               <th className="px-3 py-3">Client</th>
               <th className="px-4 py-3">Incident Title</th>
+              <th className="px-3 py-3">Priority</th>
               <th className="px-3 py-3">SLA Status</th>
               <th className="px-3 py-3">Assignee</th>
               <th className="px-5 py-3 ">Action</th>
@@ -107,6 +111,11 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                 <td className="max-w-xs px-4 py-3">
                   <span className="block truncate font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
                     {ticket.title}
+                  </span>
+                </td>
+                <td className="px-3 py-3 whitespace-nowrap">
+                  <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${ticket.priority === "P1 Urgent" ? "border-rose-200 bg-rose-50 text-rose-700" : ticket.priority === "P2 Normal" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+                    {ticket.priority}
                   </span>
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap">
@@ -140,7 +149,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
             ))}
             {highAttentionTickets.length === 0 && (
               <tr>
-                <td colSpan={9} className="p-8 text-center text-xs text-slate-500">
+                <td colSpan={10} className="p-8 text-center text-xs text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[32px] text-emerald-500">
                       check_circle

@@ -6,6 +6,7 @@ interface ServiceDetailHeroProps {
   tickets?: Ticket[];
   companies?: Company[];
   onUpdateService: (updates: Partial<ServiceLine>) => void;
+  canEdit?: boolean;
   onOpenTicket?: (ticketId: string) => void;
 }
 type Tab = "details" | "tickets" | "companies";
@@ -15,6 +16,7 @@ export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
   tickets = [],
   companies = [],
   onUpdateService,
+  canEdit = true,
   onOpenTicket,
 }) => {
   const [tab, setTab] = useState<Tab>("details");
@@ -143,7 +145,7 @@ export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
                       Save
                     </button>
                   </div>
-                ) : (
+                ) : canEdit ? (
                   <button
                     type="button"
                     onClick={() => setEditing(true)}
@@ -151,7 +153,7 @@ export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
                   >
                     Edit
                   </button>
-                )}
+                ) : null}
               </div>
               {editing ? (
                 <textarea

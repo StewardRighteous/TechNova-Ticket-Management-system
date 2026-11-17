@@ -1,7 +1,10 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { DashboardView } from "./index";
 import { useTicketStore } from "../../../store/barrel";
+
+const CurrentPath = () => <output data-testid="current-path">{useLocation().pathname}</output>;
 
 describe("DashboardView Integration", () => {
   beforeEach(() => {
@@ -9,7 +12,7 @@ describe("DashboardView Integration", () => {
   });
 
   it("renders the Executive KPI ribbon with computed metrics", () => {
-    render(<DashboardView />);
+    render(<MemoryRouter><DashboardView /><CurrentPath /></MemoryRouter>);
 
     expect(screen.getByText("Active Tickets")).toBeInTheDocument();
     expect(screen.getByText("Overdue")).toBeInTheDocument();
@@ -18,7 +21,7 @@ describe("DashboardView Integration", () => {
   });
 
   it("renders Volume Breakdown Cards for channels and departments", () => {
-    render(<DashboardView />);
+    render(<MemoryRouter><DashboardView /></MemoryRouter>);
 
     expect(screen.getByText("Tickets by Intake Channel")).toBeInTheDocument();
     expect(screen.getByText("Tickets by Department")).toBeInTheDocument();
@@ -28,10 +31,10 @@ describe("DashboardView Integration", () => {
   });
 
   it("renders High-Attention actionable tickets and navigates on click", () => {
-    render(<DashboardView />);
+    render(<MemoryRouter><DashboardView /><CurrentPath /></MemoryRouter>);
 
     expect(
-      screen.getByText("High-Attention & Critical Incidents"),
+      screen.getByText("High-attention queue"),
     ).toBeInTheDocument();
 
     // From mockup data, check an actionable ticket like TCK-1089 in the High-Attention table
@@ -47,7 +50,7 @@ describe("DashboardView Integration", () => {
       fireEvent.click(row);
       const state = useTicketStore.getState();
       expect(state.selectedTicketId).toBe("TCK-1089");
-      expect(state.activeTab).toBe("tickets");
+      expect(screen.getByTestId("current-path")).toHaveTextContent("/tickets/TCK-1089");
     }
   });
 });

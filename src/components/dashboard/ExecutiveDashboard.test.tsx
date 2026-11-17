@@ -101,9 +101,7 @@ describe("Executive Dashboard UI Components", () => {
     const slaCount = screen.getByText("4");
     expect(slaCount).toBeInTheDocument();
     // Verify crimson styling (either inline style or crimson/red color class)
-    expect(slaCount.closest("[data-testid='sla-risk-kpi']")).toHaveClass(
-      "border-rose-500",
-    );
+    expect(slaCount.closest("[data-testid='sla-risk-kpi']")).toHaveClass("border-rose-500");
 
     expect(screen.getByText("Avg Resolution Time")).toBeInTheDocument();
     expect(screen.getByText("3.5h")).toBeInTheDocument();
@@ -170,7 +168,7 @@ describe("Executive Dashboard UI Components", () => {
     );
 
     expect(
-      screen.getByText("High-Attention & Critical Incidents"),
+      screen.getByText("High-attention queue"),
     ).toBeInTheDocument();
 
     // Tickets listed

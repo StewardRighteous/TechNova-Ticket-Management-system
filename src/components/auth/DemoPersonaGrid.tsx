@@ -1,48 +1,43 @@
 import React from 'react';
-import type { Employee } from '../../types/barrel';
+import type { Employee, RoleId } from '../../types/barrel';
 
 interface DemoPersonaGridProps {
   employees: Employee[];
+  roles: { id: RoleId; name: string; description: string }[];
   onSelectPersona: (empId: string) => void;
+  selectedEmployeeId?: string;
+  heading?: string;
 }
 
 export const DemoPersonaGrid: React.FC<DemoPersonaGridProps> = ({
   employees,
+  roles,
   onSelectPersona,
+  selectedEmployeeId,
+  heading = 'Choose a demo persona',
 }) => {
   return (
-    <div className="mt-8 pt-6 border-t border-slate-200">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          One-Click Demo Personas
-        </span>
-        <span className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full">
-          Instant Role Access
-        </span>
+    <section className="mt-6 border-t border-slate-200 pt-5" aria-label={heading}>
+      <div className="mb-3">
+        <h2 className="text-sm font-bold text-slate-900">{heading}</h2>
+        <p className="mt-1 text-xs leading-5 text-slate-600">Explore the workspace with a sample account. Each persona has different access.</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {employees.map((emp) => (
           <button
             key={emp.id}
             type="button"
             onClick={() => onSelectPersona(emp.id)}
-            className="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 bg-slate-50/60 transition-all text-left flex flex-col justify-between group shadow-xs"
+            aria-pressed={selectedEmployeeId === emp.id}
+            className={`flex min-h-20 flex-col rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${selectedEmployeeId === emp.id ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50'}`}
           >
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-indigo-600">
-                {emp.avatar}
-              </span>
-              <span className="text-xs font-bold text-slate-800 group-hover:text-indigo-700 truncate">
-                {emp.name.split(' ')[0]}
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-500 group-hover:text-indigo-600 truncate font-medium">
-              {emp.roleTitle.split('&')[0]}
-            </span>
+            <span className="text-sm font-semibold text-slate-900">{emp.name}</span>
+            <span className="mt-0.5 text-xs font-semibold text-indigo-700">{roles.find((role) => role.id === emp.role)?.name || emp.roleTitle}</span>
+            <span className="mt-1 text-xs leading-4 text-slate-600">{roles.find((role) => role.id === emp.role)?.description || 'Explore the workspace with this role.'}</span>
           </button>
         ))}
       </div>
-    </div>
+    </section>
   );
 };

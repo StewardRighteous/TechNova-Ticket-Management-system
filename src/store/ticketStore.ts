@@ -10,7 +10,7 @@ import type {
   ToastMessage,
   ToastType,
 } from "../types/barrel";
-import { loadInitialState, persistState, resetStoredState } from "./storage";
+import { clearSessionPersona, getSessionPersonaId, loadInitialState, persistState, resetStoredState, setSessionPersonaId } from "./storage";
 import {
   createNewTicket,
   updateTicketFieldsInList,
@@ -21,6 +21,7 @@ import {
   authenticateById,
   addTimelineNoteToTicket,
 } from "./authHelpers";
+import { ROLE_PERMISSIONS, canAccessTicket, canChangeTicketStatus } from "../utils/rolePermissions";
 
 export type TicketTableFocus = "active" | "overdue" | "sla-risk" | "resolved";
 
@@ -73,16 +74,31 @@ interface TicketStore {
   updateService: (id: string, updates: Partial<ServiceLine>) => void;
 }
 
+function canAccessTicketByState(
+  state: Pick<TicketStore, "data" | "activeRole" | "currentUser">,
+  ticketId: string,
+): boolean {
+  const ticket = state.data.tickets.find((item) => item.id === ticketId);
+  const companyIds = state.data.companies
+    .filter((company) => company.accountManager === state.currentUser?.name)
+    .map((company) => company.id);
+  return Boolean(ticket && canAccessTicket(ticket, state.activeRole, state.currentUser?.id, companyIds));
+}
+
 const initialDb = loadInitialState();
+const savedPersonaId = getSessionPersonaId();
+const savedPersona = savedPersonaId
+  ? initialDb.employees.find((employee) => employee.id === savedPersonaId)
+  : undefined;
 
 export const useTicketStore = create<TicketStore>((set, get) => ({
   data: initialDb,
   activeTab: "dashboard",
   selectedTicketId: null,
   ticketTableFocus: null,
-  activeRole: "operations_manager",
-  currentUser: initialDb.employees[0],
-  isAuthenticated: true,
+  activeRole: savedPersona?.role ?? "operations_manager",
+  currentUser: savedPersona || null,
+  isAuthenticated: Boolean(savedPersona),
   searchQuery: "",
   isSidebarCollapsed: false,
   toasts: [],
@@ -96,6 +112,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
         isAuthenticated: true,
         activeTab: "dashboard",
       });
+      setSessionPersonaId(matched.id);
       return true;
     }
     return false;
@@ -110,11 +127,14 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
         isAuthenticated: true,
         activeTab: "dashboard",
       });
+      setSessionPersonaId(matched.id);
     }
   },
 
-  logout: () =>
-    set({ currentUser: null, isAuthenticated: false, activeTab: "dashboard" }),
+  logout: () => {
+    clearSessionPersona();
+    set({ currentUser: null, isAuthenticated: false, activeTab: "dashboard" });
+  },
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
   setTicketTableFocus: (focus) => set({ ticketTableFocus: focus }),
@@ -133,14 +153,21 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       currentUser: matchedEmployee,
       isAuthenticated: true,
     });
+    setSessionPersonaId(matchedEmployee.id);
   },
   resetDemoData: () => {
+    const state = get();
     const pristine = resetStoredState();
-    const defaultEmployee = pristine.employees[0];
+    const activeEmployee = state.currentUser
+      ? pristine.employees.find((employee) => employee.id === state.currentUser?.id)
+      : undefined;
+    const defaultEmployee = activeEmployee || pristine.employees[0];
+    setSessionPersonaId(defaultEmployee.id);
     set({
       data: pristine,
       currentUser: defaultEmployee,
       activeRole: defaultEmployee?.role || "operations_manager",
+      isAuthenticated: Boolean(defaultEmployee),
       selectedTicketId: pristine.tickets[0]?.id || null,
       searchQuery: "",
     });
@@ -163,8 +190,12 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addTicket: (ticketInput) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canCreateTicket) return;
+    const company = state.data.companies.find((item) => item.id === ticketInput.companyId);
+    const service = state.data.services.find((item) => item.id === ticketInput.serviceId);
+    if (!company || !service) return;
     const { newTicket, updatedData } = createNewTicket(
-      ticketInput,
+      { ...ticketInput, companyName: company.name, companyCode: company.code, serviceName: service.name },
       state.activeRole,
       state.data,
     );
@@ -174,6 +205,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   updateTicketStatus: (ticketId, status, note) => {
     const state = get();
+    if (!canAccessTicketByState(state, ticketId) || !canChangeTicketStatus(state.activeRole, status)) return;
     const currentEmp = state.currentUser || state.data.employees[0];
     const updatedTickets = updateTicketStatusInList(
       state.data.tickets,
@@ -189,11 +221,38 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   updateTicket: (ticketId, updates) => {
     const state = get();
+    if (!canAccessTicketByState(state, ticketId)) return;
+    if (updates.status && !canChangeTicketStatus(state.activeRole, updates.status)) return;
+    if ((updates.assignedToId || updates.assignedToName || updates.assignedToRole) && !ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
+    const safeUpdates = { ...updates };
+    if (!safeUpdates.companyId) {
+      delete safeUpdates.companyName;
+      delete safeUpdates.companyCode;
+    }
+    if (!safeUpdates.serviceId) delete safeUpdates.serviceName;
+    if (safeUpdates.companyId) {
+      const company = state.data.companies.find((item) => item.id === safeUpdates.companyId);
+      if (!company) return;
+      safeUpdates.companyName = company.name;
+      safeUpdates.companyCode = company.code;
+    }
+    if (safeUpdates.serviceId) {
+      const service = state.data.services.find((item) => item.id === safeUpdates.serviceId);
+      if (!service) return;
+      safeUpdates.serviceName = service.name;
+    }
+    if (safeUpdates.assignedToId) {
+      const employee = state.data.employees.find((item) => item.id === safeUpdates.assignedToId);
+      if (!employee) return;
+      safeUpdates.assignedToName = employee.name;
+      safeUpdates.assignedToRole = employee.roleTitle;
+      safeUpdates.currentStageRole = employee.role;
+    }
     const currentEmp = state.currentUser || state.data.employees[0];
     const tickets = updateTicketFieldsInList(
       state.data.tickets,
       ticketId,
-      updates,
+      safeUpdates,
       currentEmp,
     );
     const updatedData = { ...state.data, tickets };
@@ -203,6 +262,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   assignTicket: (ticketId, employeeId, note) => {
     const state = get();
+    if (!canAccessTicketByState(state, ticketId) || !ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
     const currentEmp = state.currentUser || state.data.employees[0];
     const targetEmp = state.data.employees.find((e) => e.id === employeeId);
     if (!targetEmp) return;
@@ -245,6 +305,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addTicketTimelineNote: (ticketId, note) => {
     const state = get();
+    if (!canAccessTicketByState(state, ticketId)) return;
     const currentEmp = state.currentUser || state.data.employees[0];
     const updatedData = addTimelineNoteToTicket(
       state.data,
@@ -258,6 +319,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addCompany: (company) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
     const updatedData = {
       ...state.data,
       companies: [...state.data.companies, company],
@@ -268,6 +330,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addService: (service) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
     const updatedData = {
       ...state.data,
       services: [...state.data.services, service],
@@ -278,6 +341,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addEmployee: (employee) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
     const updatedData = {
       ...state.data,
       employees: [...state.data.employees, employee],
@@ -287,6 +351,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   },
   updateEmployee: (id, updates) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam || !state.data.employees.some((item) => item.id === id)) return;
     const updatedData = {
       ...state.data,
       employees: state.data.employees.map((item) =>
@@ -298,6 +363,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   },
   updateCompany: (id, updates) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam || !state.data.companies.some((item) => item.id === id)) return;
     const updatedData = {
       ...state.data,
       companies: state.data.companies.map((item) =>
@@ -309,6 +375,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   },
   updateService: (id, updates) => {
     const state = get();
+    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam || !state.data.services.some((item) => item.id === id)) return;
     const updatedData = {
       ...state.data,
       services: state.data.services.map((item) =>

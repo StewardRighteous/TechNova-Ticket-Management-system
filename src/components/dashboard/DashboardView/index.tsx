@@ -5,6 +5,7 @@ import {
   filterEmployeesByRole,
   filterServicesByRole,
   filterTicketsByRole,
+  ROLE_PERMISSIONS,
 } from "../../../utils/barrel";
 import { ExecutiveKpiRibbon } from "../ExecutiveKpiRibbon";
 import { VolumeBreakdownCards } from "../VolumeBreakdownCards";
@@ -36,9 +37,11 @@ export const DashboardView: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
+    data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id),
   );
 
-  const metrics = computeExecutiveMetrics(tickets);
+  const referenceNow = new Date();
+  const metrics = computeExecutiveMetrics(tickets, referenceNow);
 
   const recent = [...tickets]
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
@@ -58,10 +61,10 @@ export const DashboardView: React.FC = () => {
   const entityCards = [
     {
       label: "Tickets",
-      value: tickets.length,
+      value: metrics.totalTickets,
       icon: "confirmation_number",
       tab: "tickets",
-      caption: "Active service requests",
+      caption: "All requests, including resolved and closed",
       iconClass: "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600",
     },
     {
@@ -89,103 +92,78 @@ export const DashboardView: React.FC = () => {
       iconClass: "bg-violet-50 text-violet-600 group-hover:bg-violet-600",
     },
   ] as const;
+  const allowedEntityCards = entityCards.filter(({ tab }) => ROLE_PERMISSIONS[activeRole].allowedTabs.includes(tab));
+  const visibleNotifications = data.notifications.filter((notification) => {
+    if (!notification.ticketId) return true;
+    const ticket = tickets.find((item) => item.id === notification.ticketId);
+    return Boolean(ticket);
+  });
 
   return (
-    <div className="max-w-8xl space-y-6 p-6">
-      {/* Executive Welcome Hero */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-md">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-         
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-              {getGreeting()}, {currentUser?.name || "Executive Leader"}
-            </h1>
-            <p className="mt-1 text-sm text-slate-300">
-              Operational overview of active service contracts, SLA compliance, and cross-department workloads.
-            </p>
-          </div>
+    <div className="max-w-8xl space-y-5 p-6">
+      <section className="rounded-xl border border-slate-200 bg-white px-5 py-4">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          {getGreeting()}, {currentUser?.name || "Team"}
+        </h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Your service requests and the work that needs attention first.
+        </p>
+      </section>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/tickets")}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-white/20 hover:shadow-xs"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                table_view
-              </span>
-              <span>All Tickets</span>
-            </button>
-          </div>
+      <section aria-labelledby="dashboard-operations-heading">
+        <div className="mb-3">
+          <h2 id="dashboard-operations-heading" className="text-sm font-bold text-slate-900">Operational health</h2>
+          <p className="mt-0.5 text-xs text-slate-600">Role-scoped ticket totals, calculated from the current time.</p>
         </div>
+        <ExecutiveKpiRibbon
+          totalActive={metrics.totalActive}
+          overdueCount={metrics.overdueCount}
+          slaAtRiskOrBreachedCount={metrics.slaAtRiskOrBreachedCount}
+          formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
+          onActiveClick={() => openTicketSection("active")}
+          onOverdueClick={() => openTicketSection("overdue")}
+          onSlaRiskClick={() => document.getElementById("high-attention-incidents")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          onResolvedClick={() => openTicketSection("resolved")}
+        />
+        <p className="mt-2 text-xs leading-5 text-slate-600">
+          Resolution average uses all resolved and closed tickets. Resolved tickets use their last update; closed tickets use their close time, or last update when no close time is recorded.
+        </p>
       </section>
 
-      {/* 1. Executive KPI Ribbon */}
-      <ExecutiveKpiRibbon
-        totalActive={metrics.totalActive}
-        overdueCount={metrics.overdueCount}
-        slaAtRiskOrBreachedCount={metrics.slaAtRiskOrBreachedCount}
-        formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
-        onActiveClick={() => openTicketSection("active")}
-        onOverdueClick={() => openTicketSection("overdue")}
-        onSlaRiskClick={() =>
-          document
-            .getElementById("high-attention-incidents")
-            ?.scrollIntoView({ behavior: "smooth", block: "start" })
-        }
-        onResolvedClick={() => openTicketSection("resolved")}
-      />
-
-      {/* Quick Navigation Cards */}
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {entityCards.map(({ label, value, icon, tab, caption, iconClass }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => navigate(`/${tab}`)}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
-          >
-            <div className="absolute -top-8 -right-8 size-24 rounded-full bg-slate-50 transition group-hover:scale-125" />
-            <div className="relative flex items-start justify-between">
-              <div>
-                <span className="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase">
-                  {label}
-                </span>
-                <p className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">
-                  {value}
-                </p>
-              </div>
-              <span className={`material-symbols-outlined rounded-xl p-2.5 text-[21px] transition group-hover:text-white ${iconClass}`}>
-                {icon}
-              </span>
-            </div>
-            <div className="relative mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-              <p className="text-xs font-medium text-slate-500">{caption}</p>
-              <span className="material-symbols-outlined text-[17px] text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500">
-                arrow_forward
-              </span>
-            </div>
-          </button>
-        ))}
-      </section>
-
-      {/* 2. Interactive Volume Breakdown Cards */}
-      <VolumeBreakdownCards
-        tickets={tickets}
-        teams={data.teams}
-        departments={data.departments}
-      />
-
-      {/* 3. High-Attention Actionable Ticket Table */}
       <HighAttentionTicketsTable
         tickets={tickets}
         onSelectTicket={openTicket}
         onExploreAll={() => navigate("/tickets")}
       />
 
+      <section aria-labelledby="dashboard-workspace-heading" className="space-y-4">
+        <div>
+          <h2 id="dashboard-workspace-heading" className="text-sm font-bold text-slate-900">Browse workspace</h2>
+          <p className="mt-0.5 text-xs text-slate-600">Directory totals and ticket breakdowns.</p>
+        </div>
+        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {allowedEntityCards.map(({ label, value, icon, tab, caption, iconClass }) => (
+            <button key={label} type="button" onClick={() => navigate(`/${tab}`)} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-300 hover:shadow-sm">
+              <div className="relative flex items-start justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-slate-600">{label}</span>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
+                </div>
+                <span aria-hidden="true" className={`material-symbols-outlined rounded-lg p-2 text-xl ${iconClass}`}>{icon}</span>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
+                <p className="text-xs text-slate-600">{caption}</p>
+                <span aria-hidden="true" className="material-symbols-outlined text-base text-slate-400">arrow_forward</span>
+              </div>
+            </button>
+          ))}
+        </section>
+        <VolumeBreakdownCards tickets={tickets} teams={data.teams} departments={data.departments} />
+      </section>
+
       <div className="grid items-start gap-6 lg:grid-cols-[2fr_1fr]">
         <RecentTickets tickets={recent} onOpen={openTicket} />
-        <NotificationsCard notifications={data.notifications} onOpen={openTicket} />
+        <NotificationsCard notifications={visibleNotifications} onOpen={openTicket} onViewAll={() => navigate("/notifications")} />
       </div>
     </div>
   );

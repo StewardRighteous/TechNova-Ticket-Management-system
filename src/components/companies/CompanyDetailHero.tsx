@@ -5,6 +5,7 @@ interface CompanyDetailHeroProps {
   company: Company;
   onBack: () => void;
   onUpdateCompany: (updates: Partial<Company>) => void;
+  canEdit?: boolean;
   tickets?: Ticket[];
   onOpenTicket?: (ticketId: string) => void;
 }
@@ -53,6 +54,7 @@ const displayValue = (value: unknown) =>
 export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   company,
   onUpdateCompany,
+  canEdit = true,
   tickets = [],
   onOpenTicket,
 }) => {
@@ -131,7 +133,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
               Review and manage the complete company profile.
             </p>
           </div>
-          {!isEditing ? (
+          {!isEditing && canEdit ? (
             <button
               type="button"
               onClick={() => setIsEditing(true)}
@@ -142,7 +144,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
               </span>{" "}
               Edit
             </button>
-          ) : (
+          ) : isEditing ? (
             <div className="flex gap-2">
               <button
                 type="button"
@@ -159,7 +161,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
                 Save
               </button>
             </div>
-          )}
+          ) : null}
         </div>
         {!isEditing && <div className="mt-5 flex flex-wrap gap-2">
           {tabs.map((tab) => (

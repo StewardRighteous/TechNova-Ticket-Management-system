@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useTicketStore } from "./ticketStore";
 import initialData from "../../mockup.json";
 import { STORAGE_KEY } from "./storage";
+import type { Employee } from "../types/barrel";
 
 describe("TicketStore - Core Domain Store, Local Persistence & Demo Reset", () => {
   beforeEach(() => {
@@ -53,6 +54,28 @@ describe("TicketStore - Core Domain Store, Local Persistence & Demo Reset", () =
     expect(saved.tickets[0].title).toBe(initialData.tickets[0].title);
   });
 
+  it("preserves the active persona when that persona exists in seed data", () => {
+    const seedAgent = initialData.employees.find((employee) => employee.role === "support_agent")!;
+    useTicketStore.getState().loginAsEmployee(seedAgent.id);
+    useTicketStore.getState().resetDemoData();
+    expect(useTicketStore.getState().currentUser?.id).toBe(seedAgent.id);
+    expect(useTicketStore.getState().activeRole).toBe("support_agent");
+    expect(useTicketStore.getState().isAuthenticated).toBe(true);
+  });
+
+  it("returns a removed active persona to the default demo identity after reset", () => {
+    const customEmployee: Employee = { ...(initialData.employees[0] as Employee), id: "custom-user", name: "Custom User" };
+    const state = useTicketStore.getState();
+    useTicketStore.setState({
+      data: { ...state.data, employees: [...state.data.employees, customEmployee] },
+      currentUser: customEmployee,
+      activeRole: customEmployee.role,
+    });
+    useTicketStore.getState().resetDemoData();
+    expect(useTicketStore.getState().currentUser?.id).toBe(initialData.employees[0].id);
+    expect(useTicketStore.getState().isAuthenticated).toBe(true);
+  });
+
   it("supports switching active persona between Support Agent, Dev Lead, and Operations Manager", () => {
     const store = useTicketStore.getState();
 
@@ -67,6 +90,17 @@ describe("TicketStore - Core Domain Store, Local Persistence & Demo Reset", () =
     store.setActivePersona("operations_manager");
     expect(useTicketStore.getState().activeRole).toBe("operations_manager");
     expect(useTicketStore.getState().currentUser?.role).toBe("operations_manager");
+  });
+
+  it("remembers an explicitly selected demo persona for this tab and clears it on sign out", () => {
+    const seedAgent = initialData.employees.find((employee) => employee.role === "support_agent")!;
+    useTicketStore.getState().loginAsEmployee(seedAgent.id);
+    expect(sessionStorage.getItem("technova_demo_persona")).toBe(seedAgent.id);
+    expect(useTicketStore.getState().currentUser?.id).toBe(seedAgent.id);
+
+    useTicketStore.getState().logout();
+    expect(sessionStorage.getItem("technova_demo_persona")).toBeNull();
+    expect(useTicketStore.getState().isAuthenticated).toBe(false);
   });
 
   it("supports adding and auto-dismissing toast notifications", () => {
