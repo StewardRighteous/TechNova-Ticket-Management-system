@@ -18,7 +18,6 @@ export const TicketRegistryView: React.FC = () => {
     updateTicketStatus,
     assignTicket,
     updateTicket,
-    setIsCreateModalOpen,
   } = useTicketStore();
 
   const [tableFocus] = useState(ticketTableFocus);
@@ -69,15 +68,6 @@ export const TicketRegistryView: React.FC = () => {
     [navigate, setSelectedTicketId],
   );
 
-  const handleBack = useCallback(() => {
-    setSelectedTicketId(null);
-    navigate("/tickets");
-    // Restore scroll position on next frame
-    requestAnimationFrame(() => {
-      window.scrollTo(0, tableStateRef.current.scrollTop);
-    });
-  }, [navigate, setSelectedTicketId]);
-
   const handleTableStateChange = useCallback(
     (state: {
       page: number;
@@ -102,7 +92,6 @@ export const TicketRegistryView: React.FC = () => {
           companies={data.companies}
           services={data.services}
           onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
-          onBack={handleBack}
           onStatusChange={(status) =>
             updateTicketStatus(selectedTicket.id, status)
           }
@@ -116,7 +105,7 @@ export const TicketRegistryView: React.FC = () => {
           teams={data.teams}
           departments={data.departments}
           onViewTicket={handleViewTicket}
-          onCreateNew={() => setIsCreateModalOpen(true)}
+          onCreateNew={() => navigate("/tickets/new")}
           initialPage={tableStateRef.current.page}
           initialPageSize={tableStateRef.current.pageSize}
           initialSearch={tableStateRef.current.search}

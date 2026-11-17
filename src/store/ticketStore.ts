@@ -33,7 +33,6 @@ interface TicketStore {
   currentUser: Employee | null;
   isAuthenticated: boolean;
   searchQuery: string;
-  isCreateModalOpen: boolean;
   isSidebarCollapsed: boolean;
   toasts: ToastMessage[];
 
@@ -46,7 +45,6 @@ interface TicketStore {
   setActiveRole: (role: RoleId) => void;
   setActivePersona: (role: RoleId) => void;
   setSearchQuery: (query: string) => void;
-  setIsCreateModalOpen: (open: boolean) => void;
   toggleSidebarCollapse: () => void;
   resetDemoData: () => void;
 
@@ -86,7 +84,6 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   currentUser: initialDb.employees[0],
   isAuthenticated: true,
   searchQuery: "",
-  isCreateModalOpen: false,
   isSidebarCollapsed: false,
   toasts: [],
 
@@ -161,7 +158,6 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   removeToast: (id) =>
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setIsCreateModalOpen: (open) => set({ isCreateModalOpen: open }),
   toggleSidebarCollapse: () =>
     set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
 

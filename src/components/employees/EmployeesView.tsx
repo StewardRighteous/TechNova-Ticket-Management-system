@@ -4,7 +4,6 @@ import { useTicketStore } from "../../store/barrel";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeDetailHero } from "./EmployeeDetailHero";
 import { filterEmployeesByRole } from "../../utils/barrel";
-import { Breadcrumb } from "../common/barrel";
 
 export const EmployeesView: React.FC = () => {
   const { data, activeRole, updateEmployee, addToast } = useTicketStore();
@@ -26,11 +25,6 @@ export const EmployeesView: React.FC = () => {
     <div className="space-y-4 p-2">
       {selectedEmployee ? (
         <>
-          <Breadcrumb
-            section="Employees"
-            current={selectedEmployee.name}
-            onBack={() => navigate("/employees")}
-          />
           <EmployeeDetailHero
             employee={selectedEmployee}
             tickets={data.tickets}
@@ -44,6 +38,7 @@ export const EmployeesView: React.FC = () => {
           employees={roleEmployees}
           activeRoleId={activeRole}
           onViewEmployee={(id) => navigate(`/employees/${encodeURIComponent(id)}`)}
+          onCreateNew={() => navigate("/employees/new")}
         />
       )}
     </div>

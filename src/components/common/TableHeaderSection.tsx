@@ -63,12 +63,13 @@ export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
         </div>
       )}
 
-      <button
+      {onClick && <button
+        type="button"
         onClick={onClick}
         className="flex items-center gap-1 rounded-lg bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
       >
         <span className="material-symbols-outlined text-[16px]">add</span> New
-      </button>
+      </button>}
     </div>
   );
 };

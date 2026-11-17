@@ -9,6 +9,7 @@ import {
 interface ServiceTableProps {
   services: ServiceLine[];
   onViewService: (serviceId: string) => void;
+  onCreateNew?: () => void;
   initialPage?: number;
   initialPageSize?: number;
   initialSearch?: string;
@@ -28,6 +29,7 @@ type SortField = "name" | "code" | "lead" | "sla" | "tickets" | "uptime";
 export const ServiceTable: React.FC<ServiceTableProps> = ({
   services,
   onViewService,
+  onCreateNew,
   initialPage = 1,
   initialPageSize = 10,
   initialSearch = "",
@@ -119,6 +121,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
           updateState({ search: value, page: 1 });
         }}
         searchPlaceholder="Filter services or lead..."
+        onClick={onCreateNew}
         children={
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-6 py-3">
             <ComboboxFilter

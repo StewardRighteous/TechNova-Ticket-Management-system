@@ -12,3 +12,4 @@ export * from './SlaCountdown';
 export * from './TabbedTimeline';
 export * from './IssueOverviewCard';
 export * from './OwnershipCard';
+export * from "./CreateTicketPage";

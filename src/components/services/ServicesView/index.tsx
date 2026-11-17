@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTicketStore } from '../../../store/barrel';
 import { ServiceTable } from '../ServiceTable';
 import { ServiceDetailHero } from '../ServiceDetailHero';
-import { Breadcrumb } from '../../common/barrel';
 
 export const ServicesView: React.FC = () => {
   const { data, updateService } = useTicketStore();
@@ -19,7 +18,6 @@ export const ServicesView: React.FC = () => {
     <div className="space-y-4 p-2">
       {selectedService ? (
         <>
-          <Breadcrumb section="Services" current={selectedService.name} onBack={() => navigate("/services")} />
           <ServiceDetailHero
           service={selectedService}
           tickets={data.tickets}
@@ -32,6 +30,7 @@ export const ServicesView: React.FC = () => {
         <ServiceTable
           services={data.services}
           onViewService={(id) => navigate(`/services/${encodeURIComponent(id)}`)}
+          onCreateNew={() => navigate("/services/new")}
           initialPage={tableState.page}
           initialPageSize={tableState.pageSize}
           initialSearch={tableState.search}

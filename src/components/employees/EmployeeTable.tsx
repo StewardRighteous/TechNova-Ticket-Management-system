@@ -6,6 +6,7 @@ interface EmployeeTableProps {
   employees: Employee[];
   activeRoleId: string;
   onViewEmployee: (employeeId: string) => void;
+  onCreateNew?: () => void;
 }
 
 type SortField = "name" | "role" | "capacity" | "status";
@@ -14,6 +15,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   employees,
   activeRoleId,
   onViewEmployee,
+  onCreateNew,
 }) => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -73,6 +75,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
           setPage(1);
         }}
         searchPlaceholder="Filter engineer name or role..."
+        onClick={onCreateNew}
       >
         <ComboboxFilter label="Department" selectedValues={departmentFilter} onChange={(v) => { setDepartmentFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.departmentId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
         <ComboboxFilter label="Location" selectedValues={locationFilter} onChange={(v) => { setLocationFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.locationId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />

@@ -4,7 +4,6 @@ import { useTicketStore } from "../../store/barrel";
 import { CompanyTable } from "./CompanyTable";
 import { CompanyDetailHero } from "./CompanyDetailHero";
 import { filterCompaniesByRole } from "../../utils/barrel";
-import { Breadcrumb } from "../common/barrel";
 
 export const CompaniesView: React.FC = () => {
   const { data, activeRole, currentUser, updateCompany, addToast } = useTicketStore();
@@ -33,11 +32,6 @@ export const CompaniesView: React.FC = () => {
     <div className="space-y-4 p-2">
       {selectedCompany ? (
         <>
-          <Breadcrumb
-            section="Companies"
-            current={selectedCompany.name}
-            onBack={() => navigate("/companies")}
-          />
           <CompanyDetailHero
             company={selectedCompany}
             onBack={() => navigate("/companies")}
@@ -50,6 +44,7 @@ export const CompaniesView: React.FC = () => {
         <CompanyTable
           companies={roleCompanies}
           onViewCompany={(id) => navigate(`/companies/${encodeURIComponent(id)}`)}
+          onCreateNew={() => navigate("/companies/new")}
         />
       )}
     </div>

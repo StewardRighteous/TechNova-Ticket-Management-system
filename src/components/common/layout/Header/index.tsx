@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useTicketStore } from "../../../../store/barrel";
 
 
@@ -8,18 +10,30 @@ export const Header: React.FC = () => {
     activeTab,
     currentUser,
     data,
-    setIsCreateModalOpen,
     isSidebarCollapsed,
     resetDemoData,
     addToast,
     logout,
+    setSelectedTicketId,
   } = useTicketStore();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const currentRoleInfo =
     data.roles.find((r) => r.id === activeRole) || data.roles[0];
   const activeEmployee = currentUser || data.employees[0];
+  const createPage = location.pathname.match(/^\/(tickets|companies|services|employees)\/new$/);
+  const createLabels: Record<string, string> = { tickets: "New ticket", companies: "New company", services: "New service", employees: "New employee" };
+  const detailPage = location.pathname.match(/^\/(tickets|companies|services|employees)\/([^/]+)$/);
+  const detailId = detailPage ? decodeURIComponent(detailPage[2]) : "";
+  const detailLabels: Record<string, string> = {
+    tickets: data.tickets.find((item) => item.id === detailId)?.code || "Ticket details",
+    companies: data.companies.find((item) => item.id === detailId)?.name || "Company details",
+    services: data.services.find((item) => item.id === detailId)?.name || "Service details",
+    employees: data.employees.find((item) => item.id === detailId)?.name || "Employee details",
+  };
 
   const handleResetDemoData = () => {
     resetDemoData();
@@ -33,9 +47,11 @@ export const Header: React.FC = () => {
         isSidebarCollapsed ? "left-15" : "left-64"
       }`}
     >
-      <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">
-        {activeTab}
-      </h1>
+      {createPage || detailPage ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+        <button type="button" onClick={() => { const section = (createPage || detailPage)![1]; if (section === "tickets" && detailPage) setSelectedTicketId(null); navigate(`/${section}`); }} className="capitalize text-indigo-600 hover:text-indigo-800">{(createPage || detailPage)![1]}</button>
+        <span className="text-slate-300">›</span>
+        <span className="truncate text-slate-700">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</span>
+      </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{activeTab}</h1>}
       <div className="flex items-center gap-4">
     
 
@@ -52,14 +68,14 @@ export const Header: React.FC = () => {
           <span className="hidden sm:inline">Reset Demo</span>
         </button>
 
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
+        {activeTab === "tickets" && <button
+          onClick={() => navigate("/tickets/new")}
           className="flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-slate-800"
           type="button"
         >
           <span className="material-symbols-outlined text-[17px]">add</span>
           <span>New Ticket</span>
-        </button>
+        </button>}
 
         <div className="h-6 w-px bg-slate-200"></div>
 

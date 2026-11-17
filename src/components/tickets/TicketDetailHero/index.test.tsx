@@ -107,7 +107,6 @@ describe("TicketDetailHero – Hero Banner & Workflow Actions", () => {
       <TicketDetailHero
         ticket={{ ...ticket, ...overrides }}
         employees={employees}
-        onBack={onBack}
         onStatusChange={onStatusChange}
         onAssigneeChange={onAssigneeChange}
       />,

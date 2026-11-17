@@ -6,7 +6,6 @@ import type {
   Ticket,
   TicketStatus,
 } from "../../../types/barrel";
-import { Breadcrumb } from "../../common/barrel";
 import { HeroBanner } from "../HeroBanner";
 import { IssueOverviewCard } from "../IssueOverviewCard";
 import { TabbedTimeline } from "../TabbedTimeline";
@@ -17,7 +16,6 @@ import { TicketDetailsPanel } from "../TicketDetailsPanel/barrel";
 interface TicketDetailHeroProps {
   ticket: Ticket;
   employees: Employee[];
-  onBack: () => void;
   onStatusChange: (status: TicketStatus) => void;
   onAssigneeChange: (empId: string, note?: string) => void;
   companies?: Company[];
@@ -28,7 +26,6 @@ interface TicketDetailHeroProps {
 export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
   ticket,
   employees,
-  onBack,
   onStatusChange,
   onAssigneeChange,
   companies = [],
@@ -59,12 +56,6 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
 
   return (
     <div className="space-y-4">
-      <Breadcrumb
-        section="← Back to Tickets"
-        current={ticket.code}
-        onBack={onBack}
-      />
-
       <HeroBanner
         ticket={ticket}
         onEscalate={handleEscalate}

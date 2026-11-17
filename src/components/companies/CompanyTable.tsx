@@ -5,6 +5,7 @@ import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common
 interface CompanyTableProps {
   companies: Company[];
   onViewCompany: (companyId: string) => void;
+  onCreateNew?: () => void;
 }
 
 type SortField = "name" | "tier" | "contact" | "tickets" | "sla";
@@ -12,6 +13,7 @@ type SortField = "name" | "tier" | "contact" | "tickets" | "sla";
 export const CompanyTable: React.FC<CompanyTableProps> = ({
   companies,
   onViewCompany,
+  onCreateNew,
 }) => {
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
@@ -68,6 +70,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
           setPage(1);
         }}
         searchPlaceholder="Filter companies or contacts..."
+        onClick={onCreateNew}
       >
         <div className="flex flex-wrap items-center gap-2">
           <ComboboxFilter label="Account tier" singleSelect selectedValues={tierFilter === "all" ? [] : [tierFilter]} onChange={(v) => { setTierFilter(v[0] || "all"); setPage(1); }} options={[...new Set(companies.map((c) => c.tier))].map((v) => ({ value: v, label: v }))} />
