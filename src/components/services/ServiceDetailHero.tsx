@@ -1,205 +1,22 @@
-import React, { useEffect, useState } from "react";
-import type { ServiceLine } from "../../types";
+import React, { useState } from "react";
+import type { Company, ServiceLine, Ticket } from "../../types";
 
-interface ServiceDetailHeroProps {
-  service: ServiceLine;
-  onBack: () => void;
-  onUpdateService: (updates: Partial<ServiceLine>) => void;
-}
-type Tab = "overview" | "operations";
-const fields: Record<
-  Tab,
-  { key: keyof ServiceLine; label: string; type?: string; readOnly?: boolean }[]
-> = {
-  overview: [
-    { key: "id", label: "Service ID", readOnly: true },
-    { key: "code", label: "Service code", readOnly: true },
-    { key: "name", label: "Service name" },
-    { key: "department", label: "Department" },
-    { key: "lead", label: "Service lead" },
-    { key: "description", label: "Description" },
-    { key: "technologies", label: "Technologies" },
-  ],
-  operations: [
-    { key: "status", label: "Status" },
-    { key: "slaTarget", label: "SLA target" },
-    { key: "uptime", label: "Uptime", readOnly: true },
-    {
-      key: "activeTickets",
-      label: "Active tickets",
-      type: "number",
-      readOnly: true,
-    },
-  ],
-};
-const valueText = (value: unknown) =>
-  Array.isArray(value) ? value.join(", ") : String(value ?? "—");
+interface ServiceDetailHeroProps { service: ServiceLine; tickets?: Ticket[]; companies?: Company[]; onUpdateService: (updates: Partial<ServiceLine>) => void; onOpenTicket?: (ticketId: string) => void; }
+type Tab = "details" | "tickets" | "companies";
 
-export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
-  service,
-  onUpdateService,
-}) => {
-  const [draft, setDraft] = useState<ServiceLine>(service);
-  const [isEditing, setIsEditing] = useState(false);
-  const [tab, setTab] = useState<Tab>("overview");
-  const [confirmation, setConfirmation] = useState<"save" | "cancel" | null>(
-    null,
-  );
-  useEffect(() => setDraft(service), [service]);
-  const updateField = (key: keyof ServiceLine, value: string) =>
-    setDraft((current) => ({
-      ...current,
-      [key]:
-        key === "activeTickets"
-          ? Number(value)
-          : key === "technologies"
-            ? value
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean)
-            : value,
-    }));
-  const completeAction = () => {
-    if (confirmation === "save") onUpdateService(draft);
-    else if (confirmation === "cancel") setDraft(service);
-    setConfirmation(null);
-    setIsEditing(false);
-  };
-  const summary = [
-    ["Department", service.department],
-    ["Service lead", service.lead],
-    ["SLA target", service.slaTarget],
-    ["Status", service.status],
-    ["Active tickets", service.activeTickets],
-    ["Uptime", service.uptime],
-  ];
-  return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-slate-900 p-6 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-bold text-white">{service.name}</h1>
-        <div className="mt-5 border-b border-slate-200" />
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {summary.map(([label, value]) => (
-            <div key={label}>
-              <p className="text-[8px] font-semibold tracking-wide text-white uppercase">
-                {label}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-white">{value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              Service details
-            </h2>
-            <p className="mt-1 text-xs text-slate-500">
-              Review and manage the complete service profile.
-            </p>
-          </div>
-          {!isEditing ? (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                edit
-              </span>{" "}
-              Edit
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmation("cancel")}
-                className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmation("save")}
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
-              >
-                Save
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {(["overview", "operations"] as Tab[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setTab(item)}
-              className={`rounded-lg px-3 py-2 text-xs font-semibold capitalize ${tab === item ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100"}`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {fields[tab].map((field) => (
-            <label
-              key={field.key}
-              className="text-xs font-semibold text-slate-500"
-            >
-              {field.label}
-              {isEditing && !field.readOnly ? (
-                <input
-                  type={field.type || "text"}
-                  value={valueText(draft[field.key])}
-                  onChange={(event) =>
-                    updateField(field.key, event.target.value)
-                  }
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                />
-              ) : (
-                <span className="mt-2 block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-700">
-                  {valueText(draft[field.key])}
-                </span>
-              )}
-            </label>
-          ))}
-        </div>
-      </section>
-      {confirmation && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">
-              {confirmation === "save" ? "Save changes?" : "Discard changes?"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-500">
-              {confirmation === "save"
-                ? "Your service details will be updated."
-                : "Your unsaved changes will be lost."}
-            </p>
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmation(null)}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Go back
-              </button>
-              <button
-                type="button"
-                onClick={completeAction}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold text-white ${confirmation === "save" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-red-600 hover:bg-red-700"}`}
-              >
-                {confirmation === "save" ? "Save changes" : "Discard"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({ service, tickets = [], companies = [], onUpdateService, onOpenTicket }) => {
+  const [tab, setTab] = useState<Tab>("details");
+  const [editing, setEditing] = useState(false);
+  const [description, setDescription] = useState(service.description);
+  const linkedTickets = tickets.filter((ticket) => ticket.serviceId === service.id && !["Resolved", "Closed"].includes(ticket.status));
+  const subscribedCompanies = companies.filter((company) => company.subscribedServices.includes(service.name) || company.subscribedServices.includes(service.code));
+  return <div className="space-y-4">
+    <section className="rounded-2xl border border-slate-200 bg-slate-900 p-6 shadow-sm sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><span className="font-mono text-xs font-bold text-indigo-300">{service.code}</span><h1 className="mt-1 text-2xl font-bold text-white">{service.name}</h1><p className="mt-1 text-sm text-slate-300">{service.department} · Lead: {service.lead}</p></div><div className="flex gap-2"><button type="button" onClick={() => setTab("tickets")} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-900">View active tickets</button><button type="button" onClick={() => setTab("details")} className="rounded-lg bg-indigo-500 px-3 py-2 text-xs font-bold text-white">View escalation guide</button></div></div><div className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-700 pt-5 sm:grid-cols-4">{[["Department lead", service.lead], ["Status", service.status], ["SLA target", service.slaTarget], ["Uptime", service.uptime]].map(([label, value]) => <div key={label}><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 text-sm font-semibold text-white">{value}</p></div>)}</div></section>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{[["Active Tickets", service.activeTickets], ["Health / Uptime", service.uptime], ["Assigned Specialists", new Set(linkedTickets.map((ticket) => ticket.assignedToId)).size]].map(([label, value]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-2 text-2xl font-bold text-slate-900">{value}</p></div>)}</div>
+    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 pt-3">{([["details", "Service Details"], ["tickets", "Linked Tickets"], ["companies", "Subscribed Companies"]] as const).map(([id, label]) => <button key={id} type="button" onClick={() => setTab(id)} className={`border-b-2 px-3 py-3 text-xs font-bold ${tab === id ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500"}`}>{label}</button>)}</div><div className="p-5">
+      {tab === "details" && <div className="space-y-5"><div className="flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900">Service details</h2>{editing ? <div className="flex gap-2"><button type="button" onClick={() => { setDescription(service.description); setEditing(false); }} className="text-xs font-semibold text-slate-500">Cancel</button><button type="button" onClick={() => { onUpdateService({ description }); setEditing(false); }} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white">Save</button></div> : <button type="button" onClick={() => setEditing(true)} className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700">Edit</button>}</div>{editing ? <textarea value={description} onChange={(event) => setDescription(event.target.value)} className="min-h-24 w-full rounded-lg border border-slate-300 p-3 text-sm" /> : <p className="text-sm leading-6 text-slate-600">{service.description}</p>}<div><h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Supported technology stack</h3><div className="mt-2 flex flex-wrap gap-2">{service.technologies.map((technology) => <span key={technology} className="rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">{technology}</span>)}</div></div><div className="rounded-xl bg-amber-50 p-4"><h3 className="text-xs font-bold uppercase tracking-wide text-amber-800">Escalation guidelines</h3><p className="mt-1 text-sm text-amber-900">Escalate unresolved incidents approaching the {service.slaTarget} target to {service.lead} with diagnostic context and customer impact.</p></div></div>}
+      {tab === "tickets" && <LinkedTickets tickets={linkedTickets} onOpenTicket={onOpenTicket} />}{tab === "companies" && <CompanyList companies={subscribedCompanies} />}</div></section>
+  </div>;
 };
+const LinkedTickets: React.FC<{ tickets: Ticket[]; onOpenTicket?: (id: string) => void }> = ({ tickets, onOpenTicket }) => <div><h2 className="text-lg font-bold text-slate-900">Linked tickets</h2><div className="mt-4 overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="pb-3">Ticket</th><th className="pb-3">Title</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{tickets.length ? tickets.map((ticket) => <tr key={ticket.id}><td className="py-3"><button type="button" onClick={() => onOpenTicket?.(ticket.id)} className="font-bold text-indigo-700 hover:underline">{ticket.code}</button></td><td className="py-3 text-slate-700">{ticket.title}</td><td className="py-3 text-slate-600">{ticket.status}</td></tr>) : <tr><td colSpan={3} className="py-4 text-slate-500">No active tickets linked to this service.</td></tr>}</tbody></table></div></div>;
+const CompanyList: React.FC<{ companies: Company[] }> = ({ companies }) => <div><h2 className="text-lg font-bold text-slate-900">Subscribed client companies</h2><div className="mt-4 overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="pb-3">Company</th><th className="pb-3">Tier</th><th className="pb-3">Account manager</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{companies.length ? companies.map((company) => <tr key={company.id}><td className="py-3 font-semibold text-slate-900">{company.name}</td><td className="py-3">{company.tier}</td><td className="py-3">{company.accountManager}</td><td className="py-3">{company.status}</td></tr>) : <tr><td colSpan={4} className="py-4 text-slate-500">No subscribed companies found.</td></tr>}</tbody></table></div></div>;
