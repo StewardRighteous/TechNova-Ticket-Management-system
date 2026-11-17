@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useTicketStore } from "../../store";
 import { TicketTable } from "./TicketTable";
 import { TicketDetailHero } from "./TicketDetailHero";
@@ -11,12 +11,33 @@ export const TicketRegistryView: React.FC = () => {
     currentUser,
     setSelectedTicketId,
     updateTicketStatus,
-    updateTicket,
     assignTicket,
     setIsCreateModalOpen,
   } = useTicketStore();
 
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+
+  // Preserve table scroll/filter state across detail-view round-trips.
+  // The ref survives the TicketTable unmount so we can restore from it.
+  const tableStateRef = useRef<{
+    page: number;
+    pageSize: number;
+    scrollTop: number;
+    search: string;
+    channelFilter: string[];
+    statusFilter: string[];
+    priorityFilter: string[];
+    departmentFilter: string[];
+  }>({
+    page: 1,
+    pageSize: 10,
+    scrollTop: 0,
+    search: "",
+    channelFilter: [],
+    statusFilter: [],
+    priorityFilter: [],
+    departmentFilter: [],
+  });
 
   // Role-specific filtered tickets
   const roleTickets = filterTicketsByRole(
@@ -28,33 +49,70 @@ export const TicketRegistryView: React.FC = () => {
     roleTickets.find((t) => t.id === activeTicketId) ||
     data.tickets.find((t) => t.id === activeTicketId);
 
+  const handleViewTicket = useCallback(
+    (id: string) => {
+      // Save the current scroll position before navigating away
+      tableStateRef.current.scrollTop = window.scrollY;
+      setActiveTicketId(id);
+      setSelectedTicketId(id);
+      window.scrollTo(0, 0);
+    },
+    [setSelectedTicketId],
+  );
+
+  const handleBack = useCallback(() => {
+    setActiveTicketId(null);
+    setSelectedTicketId(null);
+    // Restore scroll position on next frame
+    requestAnimationFrame(() => {
+      window.scrollTo(0, tableStateRef.current.scrollTop);
+    });
+  }, []);
+
+  const handleTableStateChange = useCallback(
+    (state: {
+      page: number;
+      pageSize: number;
+      search: string;
+      channelFilter: string[];
+      statusFilter: string[];
+      priorityFilter: string[];
+      departmentFilter: string[];
+    }) => {
+      tableStateRef.current = { ...tableStateRef.current, ...state };
+    },
+    [],
+  );
+
   return (
     <div className="space-y-6 p-2">
       {selectedTicket ? (
         <TicketDetailHero
           ticket={selectedTicket}
-          companies={data.companies}
-          services={data.services}
           employees={data.employees}
-          onBack={() => setActiveTicketId(null)}
+          onBack={handleBack}
           onStatusChange={(status) =>
             updateTicketStatus(selectedTicket.id, status)
           }
           onAssigneeChange={(empId, note) =>
             assignTicket(selectedTicket.id, empId, note)
           }
-          onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
         />
       ) : (
         <TicketTable
           tickets={roleTickets}
           teams={data.teams}
           departments={data.departments}
-          onViewTicket={(id) => {
-            setActiveTicketId(id);
-            setSelectedTicketId(id);
-          }}
+          onViewTicket={handleViewTicket}
           onCreateNew={() => setIsCreateModalOpen(true)}
+          initialPage={tableStateRef.current.page}
+          initialPageSize={tableStateRef.current.pageSize}
+          initialSearch={tableStateRef.current.search}
+          initialChannelFilter={tableStateRef.current.channelFilter}
+          initialStatusFilter={tableStateRef.current.statusFilter}
+          initialPriorityFilter={tableStateRef.current.priorityFilter}
+          initialDepartmentFilter={tableStateRef.current.departmentFilter}
+          onTableStateChange={handleTableStateChange}
         />
       )}
     </div>

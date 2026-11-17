@@ -1,100 +1,184 @@
-import React, { useState } from "react";
+import React from "react";
 import type {
-  Company,
   Employee,
-  ServiceLine,
   Ticket,
   TicketStatus,
 } from "../../types";
-import { TicketBanner } from "./TicketBanner";
-import { TicketAssignmentProgress } from "./TicketAssignmentProgress";
-import { TicketDetailsPanel } from "./TicketDetailsPanel";
 import { Breadcrumb } from "../common";
+import { HeroBanner } from "./HeroBanner";
+import { IssueOverviewCard } from "./IssueOverviewCard";
+import { TabbedTimeline } from "./TabbedTimeline";
+import { OwnershipCard } from "./OwnershipCard";
+import { useTicketStore } from "../../store";
 
 interface TicketDetailHeroProps {
   ticket: Ticket;
-  companies: Company[];
-  services: ServiceLine[];
   employees: Employee[];
   onBack: () => void;
   onStatusChange: (status: TicketStatus) => void;
   onAssigneeChange: (empId: string, note?: string) => void;
-  onUpdateTicket: (updates: Partial<Ticket>) => void;
 }
-
-type DetailTab = "details" | "assignment";
 
 export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
   ticket,
-  companies,
-  services,
   employees,
   onBack,
   onStatusChange,
   onAssigneeChange,
-  onUpdateTicket,
 }) => {
-  const [activeTab, setActiveTab] = useState<DetailTab>("details");
+  const { addToast, addTicketTimelineNote } = useTicketStore();
+
+  const handleEscalate = () => {
+    onStatusChange("Escalated");
+    addToast(
+      `${ticket.code} escalated to Senior Support / Dev`,
+      "warning",
+    );
+  };
+
+  const handleRequestQa = () => {
+    onStatusChange("Pending QA");
+    addToast(
+      `${ticket.code} sent for QA review`,
+      "info",
+    );
+  };
+
+  const handleResolve = () => {
+    onStatusChange("Resolved");
+    addToast(
+      `${ticket.code} marked as resolved`,
+      "success",
+    );
+  };
+
+  const handleAddInternalNote = (body: string) => {
+    addTicketTimelineNote(ticket.id, body);
+    addToast("Internal note added", "success");
+  };
 
   return (
-    <div className="space-y-2">
-      <Breadcrumb section="Tickets" current={ticket.code} onBack={onBack} />
-      <TicketBanner ticket={ticket} />
+    <div className="space-y-4">
+      <Breadcrumb section="← Back to Tickets" current={ticket.code} onBack={onBack} />
 
-      <div
-        className="flex gap-2 border-b border-slate-200"
-        role="tablist"
-        aria-label="Ticket information"
-      >
-        <TabButton
-          active={activeTab === "details"}
-          onClick={() => setActiveTab("details")}
-          icon="description"
-        >
-          Ticket details
-        </TabButton>
-        <TabButton
-          active={activeTab === "assignment"}
-          onClick={() => setActiveTab("assignment")}
-          icon="assignment"
-        >
-          Assignment progress
-        </TabButton>
+      <HeroBanner
+        ticket={ticket}
+        onEscalate={handleEscalate}
+        onRequestQa={handleRequestQa}
+        onResolve={handleResolve}
+      />
+
+      {/* 2-column workspace */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Left column — issue overview + tabbed timeline */}
+        <div className="space-y-4 lg:col-span-2">
+          <IssueOverviewCard ticket={ticket} />
+
+          <TabbedTimeline
+            timeline={ticket.timeline}
+            internalNotes={ticket.internalNotes ?? []}
+            employees={employees}
+            onAddInternalNote={handleAddInternalNote}
+          />
+        </div>
+
+        {/* Right column — ownership + workflow sidebar */}
+        <div className="space-y-4">
+          <OwnershipCard ticket={ticket} employees={employees} />
+
+          {/* Workflow actions card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Workflow Actions
+            </h4>
+
+            <WorkflowButton
+              icon="trending_up"
+              label="Escalate to Senior Support / Dev"
+              description="Route this ticket to L2/L3 for deeper investigation"
+              onClick={handleEscalate}
+              disabled={
+                ticket.status === "Escalated" ||
+                ticket.status === "Resolved" ||
+                ticket.status === "Closed"
+              }
+            />
+
+            <WorkflowButton
+              icon="fact_check"
+              label="Request QA Review"
+              description="Submit for QA testing and verification"
+              onClick={handleRequestQa}
+              disabled={
+                ticket.status === "Pending QA" ||
+                ticket.status === "Resolved" ||
+                ticket.status === "Closed"
+              }
+            />
+
+            <WorkflowButton
+              icon="check_circle"
+              label="Mark Resolved"
+              description="Close the investigation and mark complete"
+              onClick={handleResolve}
+              disabled={
+                ticket.status === "Resolved" ||
+                ticket.status === "Closed"
+              }
+            />
+
+            {/* Reassignment */}
+            <div className="border-t border-slate-100 pt-3">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Reassign Ticket
+              </label>
+              <select
+                value={ticket.assignedToId}
+                onChange={(e) => onAssigneeChange(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
+              >
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name} ({emp.roleTitle})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {activeTab === "details" ? (
-        <TicketDetailsPanel
-          ticket={ticket}
-          companies={companies}
-          services={services}
-          onSave={onUpdateTicket}
-        />
-      ) : (
-        <TicketAssignmentProgress
-          onStatusChange={onStatusChange}
-          ticket={ticket}
-          employees={employees}
-          onAssigneeChange={onAssigneeChange}
-        />
-      )}
     </div>
   );
 };
 
-const TabButton: React.FC<
-  React.PropsWithChildren<{
-    active: boolean;
-    onClick: () => void;
-    icon: string;
-  }>
-> = ({ active, onClick, icon, children }) => (
+/* ------------------------------------------------------------------ */
+
+const WorkflowButton: React.FC<{
+  icon: string;
+  label: string;
+  description: string;
+  onClick: () => void;
+  disabled?: boolean;
+}> = ({ icon, label, description, onClick, disabled = false }) => (
   <button
-    role="tab"
-    aria-selected={active}
+    type="button"
+    disabled={disabled}
     onClick={onClick}
-    className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-bold ${active ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}
+    className={`group flex w-full items-start gap-3 rounded-xl border border-slate-100 p-3 text-left transition-colors ${
+      disabled
+        ? "cursor-not-allowed opacity-40"
+        : "hover:border-indigo-200 hover:bg-indigo-50/50"
+    }`}
   >
-    <span className="material-symbols-outlined text-[17px]">{icon}</span>
-    {children}
+    <span className="material-symbols-outlined mt-0.5 text-[18px] text-indigo-500">
+      {icon}
+    </span>
+    <div className="min-w-0 flex-1">
+      <p className="text-xs font-bold text-slate-800">{label}</p>
+      <p className="mt-0.5 text-[11px] text-slate-500">{description}</p>
+    </div>
+    <span className="material-symbols-outlined mt-0.5 text-[16px] text-slate-300 transition-colors group-hover:text-indigo-500">
+      arrow_forward
+    </span>
   </button>
 );

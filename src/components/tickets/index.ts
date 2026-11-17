@@ -7,3 +7,8 @@ export * from './TicketDetailHero';
 export * from './TicketTableFilters';
 export * from './TicketTable';
 export * from './TicketRegistryView';
+export * from './HeroBanner';
+export * from './SlaCountdown';
+export * from './TabbedTimeline';
+export * from './IssueOverviewCard';
+export * from './OwnershipCard';

@@ -3,9 +3,6 @@ import type {
   Ticket,
   Team,
   Department,
-  InboundChannel,
-  TicketPriority,
-  TicketStatus,
 } from "../../types";
 import {
   PriorityBadge,
@@ -22,6 +19,22 @@ interface TicketTableProps {
   departments?: Department[];
   onViewTicket: (ticketId: string) => void;
   onCreateNew: () => void;
+  initialPage?: number;
+  initialPageSize?: number;
+  initialSearch?: string;
+  initialChannelFilter?: string[];
+  initialStatusFilter?: string[];
+  initialPriorityFilter?: string[];
+  initialDepartmentFilter?: string[];
+  onTableStateChange?: (state: {
+    page: number;
+    pageSize: number;
+    search: string;
+    channelFilter: string[];
+    statusFilter: string[];
+    priorityFilter: string[];
+    departmentFilter: string[];
+  }) => void;
 }
 
 type SortField = "code" | "title" | "company" | "priority" | "status" | "time";
@@ -59,18 +72,26 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   departments = [],
   onViewTicket,
   onCreateNew,
+  initialPage,
+  initialPageSize,
+  initialSearch,
+  initialChannelFilter,
+  initialStatusFilter,
+  initialPriorityFilter,
+  initialDepartmentFilter,
+  onTableStateChange,
 }) => {
-  const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [channelFilter, setChannelFilter] = useState<string[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [priorityFilter, setPriorityFilter] = useState<string[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
+  const [searchInput, setSearchInput] = useState(initialSearch ?? "");
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
+  const [channelFilter, setChannelFilter] = useState<string[]>(initialChannelFilter ?? []);
+  const [statusFilter, setStatusFilter] = useState<string[]>(initialStatusFilter ?? []);
+  const [priorityFilter, setPriorityFilter] = useState<string[]>(initialPriorityFilter ?? []);
+  const [departmentFilter, setDepartmentFilter] = useState<string[]>(initialDepartmentFilter ?? []);
 
   const [sortField, setSortField] = useState<SortField>("time");
   const [sortAsc, setSortAsc] = useState<boolean>(false);
-  const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(initialPage ?? 1);
+  const [pageSize, setPageSize] = useState<number>(initialPageSize ?? 10);
 
   // Debounce search input by 200ms
   useEffect(() => {
@@ -80,6 +101,28 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     }, 200);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  // Report table state changes so parent can preserve them
+  useEffect(() => {
+    onTableStateChange?.({
+      page,
+      pageSize,
+      search: searchInput,
+      channelFilter,
+      statusFilter,
+      priorityFilter,
+      departmentFilter,
+    });
+  }, [
+    page,
+    pageSize,
+    searchInput,
+    channelFilter,
+    statusFilter,
+    priorityFilter,
+    departmentFilter,
+    onTableStateChange,
+  ]);
 
   // Map team to department lookup
   const teamToDept = React.useMemo(() => {

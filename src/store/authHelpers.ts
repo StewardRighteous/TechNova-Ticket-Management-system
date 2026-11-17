@@ -26,17 +26,15 @@ export function addTimelineNoteToTicket(
     if (t.id === ticketId) {
       return {
         ...t,
-        timeline: [
-          ...t.timeline,
+        internalNotes: [
+          ...(t.internalNotes ?? []),
           {
-            id: `tl-${Date.now()}`,
-            author: currentEmp.name,
-            role: currentEmp.roleTitle,
-            action: 'Note Added',
-            timestamp: 'Just now',
-            note
+            id: `note-${Date.now()}`,
+            authorId: currentEmp.id,
+            body: note,
+            createdAt: 'Just now'
           }
-        ]
+        ],
       };
     }
     return t;

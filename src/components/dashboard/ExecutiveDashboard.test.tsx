@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import React from "react";
 import { ExecutiveKpiRibbon } from "./ExecutiveKpiRibbon";
 import { VolumeBreakdownCards } from "./VolumeBreakdownCards";
 import { HighAttentionTicketsTable } from "./HighAttentionTicketsTable";

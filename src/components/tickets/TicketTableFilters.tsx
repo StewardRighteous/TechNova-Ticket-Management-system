@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import type { InboundChannel, TicketPriority, TicketStatus } from "../../types";
+import React from "react";
 import { ComboboxFilter } from "../common/ComboboxFilter";
 
 export interface TicketDepartmentOption {
