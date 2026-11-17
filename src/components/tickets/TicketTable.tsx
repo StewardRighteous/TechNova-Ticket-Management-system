@@ -7,11 +7,11 @@ import type {
 import {
   PriorityBadge,
   StatusBadge,
-  ChannelBadge,
   NumericPagination,
   TableHeaderSection,
 } from "../common";
 import { TicketTableFilters } from "./TicketTableFilters";
+import type { TicketTableFocus } from "../../store/ticketStore";
 
 interface TicketTableProps {
   tickets: Ticket[];
@@ -26,6 +26,7 @@ interface TicketTableProps {
   initialStatusFilter?: string[];
   initialPriorityFilter?: string[];
   initialDepartmentFilter?: string[];
+  initialFocus?: TicketTableFocus;
   onTableStateChange?: (state: {
     page: number;
     pageSize: number;
@@ -38,33 +39,6 @@ interface TicketTableProps {
 }
 
 type SortField = "code" | "title" | "company" | "priority" | "status" | "time";
-
-const renderSlaIndicator = (risk: Ticket["slaRisk"], deadline?: string) => {
-  if (risk === "Breached") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
-        <span className="size-1.5 rounded-full bg-rose-600 animate-pulse" />
-        Breached
-      </span>
-    );
-  }
-
-  if (risk === "At Risk") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-        <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
-        At Risk {deadline ? `(${deadline})` : ""}
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
-      <span className="size-1.5 rounded-full bg-emerald-500" />
-      On Target
-    </span>
-  );
-};
 
 export const TicketTable: React.FC<TicketTableProps> = ({
   tickets,
@@ -79,6 +53,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   initialStatusFilter,
   initialPriorityFilter,
   initialDepartmentFilter,
+  initialFocus,
   onTableStateChange,
 }) => {
   const [searchInput, setSearchInput] = useState(initialSearch ?? "");
@@ -157,6 +132,24 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   };
 
   const filtered = tickets.filter((t) => {
+    if (initialFocus === "active" && ["Resolved", "Closed"].includes(t.status)) {
+      return false;
+    }
+    if (initialFocus === "resolved" && !["Resolved", "Closed"].includes(t.status)) {
+      return false;
+    }
+    if (initialFocus === "overdue") {
+      if (["Resolved", "Closed"].includes(t.status) || !t.dueAt || Date.parse(t.dueAt) >= Date.now()) {
+        return false;
+      }
+    }
+    if (
+      initialFocus === "sla-risk" &&
+      !["At Risk", "Breached"].includes(t.slaRisk)
+    ) {
+      return false;
+    }
+
     if (channelFilter.length > 0 && !channelFilter.includes(t.channel)) {
       return false;
     }

@@ -77,12 +77,22 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           </span>
         </button>
       </div>
-      {/* Right: Stepper / Page Size Selector */}
-      <div className="flex w-60 items-center gap-2">
-        <div className="text-[11px] tracking-wider text-slate-400 capitalize">
-          Rows per page
+      {/* Right: Adaptive page-size selector */}
+      <div
+        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1.5"
+        data-testid="table-page-size"
+      >
+        <div className="flex items-center gap-1.5 px-1.5 text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
+          <span className="material-symbols-outlined text-[16px] text-slate-400">
+            view_list
+          </span>
+          <span>Rows</span>
         </div>
-        <div className="grid grid-cols-3 gap-1">
+        <div
+          className="flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 shadow-xs"
+          role="group"
+          aria-label="Rows per page"
+        >
           {pageSizeOptions.map((opt) => {
             const isSelected = pageSize === opt;
             return (
@@ -93,10 +103,12 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
                   onPageSizeChange(opt);
                   onPageChange(1);
                 }}
-                className={`flex size-9 items-center justify-center rounded-xl text-xs font-semibold transition ${
+                aria-label={`${opt} rows per page`}
+                aria-pressed={isSelected}
+                className={`min-w-9 rounded-md px-2 py-1.5 text-xs font-bold transition focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
                   isSelected
                     ? "bg-indigo-600 text-white shadow-sm"
-                    : "border border-slate-100 bg-slate-100 text-slate-700 hover:bg-slate-100"
+                    : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
                 }`}
               >
                 {opt}
@@ -104,6 +116,9 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
             );
           })}
         </div>
+        <span className="pr-1 text-[11px] font-medium text-slate-400">
+          / page
+        </span>
       </div>
     </div>
   );

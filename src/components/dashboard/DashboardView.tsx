@@ -40,7 +40,14 @@ const getGreeting = () => {
 };
 
 export const DashboardView: React.FC = () => {
-  const { data, activeRole, currentUser, setSelectedTicketId, setActiveTab } =
+  const {
+    data,
+    activeRole,
+    currentUser,
+    setSelectedTicketId,
+    setActiveTab,
+    setTicketTableFocus,
+  } =
     useTicketStore();
 
   const tickets = filterTicketsByRole(
@@ -60,26 +67,45 @@ export const DashboardView: React.FC = () => {
     setActiveTab("tickets");
   };
 
+  const openTicketSection = (focus: "active" | "overdue" | "sla-risk" | "resolved") => {
+    setSelectedTicketId(null);
+    setTicketTableFocus(focus);
+    setActiveTab("tickets");
+  };
+
   const entityCards = [
-    ["Tickets", tickets.length, "confirmation_number", "tickets"],
-    [
-      "Companies",
-      filterCompaniesByRole(data.companies, activeRole, currentUser?.name).length,
-      "business",
-      "companies",
-    ],
-    [
-      "Employees",
-      filterEmployeesByRole(data.employees, activeRole).length,
-      "groups",
-      "employees",
-    ],
-    [
-      "Services",
-      filterServicesByRole(data.services, activeRole).length,
-      "design_services",
-      "services",
-    ],
+    {
+      label: "Tickets",
+      value: tickets.length,
+      icon: "confirmation_number",
+      tab: "tickets",
+      caption: "Active service requests",
+      iconClass: "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600",
+    },
+    {
+      label: "Companies",
+      value: filterCompaniesByRole(data.companies, activeRole, currentUser?.name).length,
+      icon: "business",
+      tab: "companies",
+      caption: "Client companies managed",
+      iconClass: "bg-sky-50 text-sky-600 group-hover:bg-sky-600",
+    },
+    {
+      label: "Employees",
+      value: filterEmployeesByRole(data.employees, activeRole).length,
+      icon: "groups",
+      tab: "employees",
+      caption: "Team members in your role",
+      iconClass: "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600",
+    },
+    {
+      label: "Services",
+      value: filterServicesByRole(data.services, activeRole).length,
+      icon: "design_services",
+      tab: "services",
+      caption: "Contracted service lines",
+      iconClass: "bg-violet-50 text-violet-600 group-hover:bg-violet-600",
+    },
   ] as const;
 
   return (
@@ -118,29 +144,45 @@ export const DashboardView: React.FC = () => {
         overdueCount={metrics.overdueCount}
         slaAtRiskOrBreachedCount={metrics.slaAtRiskOrBreachedCount}
         formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
+        onActiveClick={() => openTicketSection("active")}
+        onOverdueClick={() => openTicketSection("overdue")}
+        onSlaRiskClick={() =>
+          document
+            .getElementById("high-attention-incidents")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+        onResolvedClick={() => openTicketSection("resolved")}
       />
 
       {/* Quick Navigation Cards */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {entityCards.map(([label, value, icon, tab]) => (
+        {entityCards.map(({ label, value, icon, tab, caption, iconClass }) => (
           <button
             key={label}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
+            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-slate-500 uppercase">
-                {label}
-              </span>
-              <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-2 text-[20px] text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
+            <div className="absolute -top-8 -right-8 size-24 rounded-full bg-slate-50 transition group-hover:scale-125" />
+            <div className="relative flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase">
+                  {label}
+                </span>
+                <p className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">
+                  {value}
+                </p>
+              </div>
+              <span className={`material-symbols-outlined rounded-xl p-2.5 text-[21px] transition group-hover:text-white ${iconClass}`}>
                 {icon}
               </span>
             </div>
-            <p className="mt-3 text-3xl font-extrabold text-slate-900">{value}</p>
-            <p className="mt-1 text-xs font-medium text-slate-400">
-              Browse {label.toLowerCase()}
-            </p>
+            <div className="relative mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+              <p className="text-xs font-medium text-slate-500">{caption}</p>
+              <span className="material-symbols-outlined text-[17px] text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500">
+                arrow_forward
+              </span>
+            </div>
           </button>
         ))}
       </section>
@@ -176,7 +218,7 @@ const RecentTickets: React.FC<{
   onOpen: (id: string) => void;
 }> = ({ tickets, onOpen }) => (
   <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-    <div className="border-b border-slate-100 p-5">
+    <div className="border-b border-slate-100 p-4">
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-1.5 text-[18px] text-indigo-600">
           update
@@ -190,7 +232,7 @@ const RecentTickets: React.FC<{
           key={ticket.id}
           type="button"
           onClick={() => onOpen(ticket.id)}
-          className="grid w-full grid-cols-1 gap-2 px-5 py-3.5 text-left transition hover:bg-slate-50 md:grid-cols-[80px_2fr_110px_1fr] md:items-center"
+          className="grid w-full grid-cols-1 gap-1.5 px-4 py-2.5 text-left transition hover:bg-slate-50 md:grid-cols-[72px_2fr_100px_1fr] md:items-center"
         >
           <span className="font-mono text-xs font-bold text-slate-500">
             {ticket.code}
@@ -220,7 +262,7 @@ const NotificationsCard: React.FC<{
   onOpen: (id: string) => void;
 }> = ({ notifications, onOpen }) => (
   <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-    <div className="flex items-center justify-between border-b border-slate-100 p-5">
+    <div className="flex items-center justify-between border-b border-slate-100 p-4">
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined rounded-lg bg-indigo-50 p-1.5 text-[18px] text-indigo-600">
           notifications
@@ -238,7 +280,7 @@ const NotificationsCard: React.FC<{
           type="button"
           onClick={() => notification.ticketId && onOpen(notification.ticketId)}
           disabled={!notification.ticketId}
-          className="flex w-full gap-3 px-5 py-3.5 text-left transition hover:bg-slate-50 disabled:cursor-default"
+          className="flex w-full gap-2.5 px-4 py-2.5 text-left transition hover:bg-slate-50 disabled:cursor-default"
         >
           <span className="material-symbols-outlined mt-0.5 text-[18px] text-indigo-500">
             {notification.icon}

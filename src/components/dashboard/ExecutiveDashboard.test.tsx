@@ -109,6 +109,38 @@ describe("Executive Dashboard UI Components", () => {
     expect(screen.getByText("3.5h")).toBeInTheDocument();
   });
 
+  it("makes each KPI card actionable when a navigation handler is provided", () => {
+    const handlers = {
+      active: vi.fn(),
+      overdue: vi.fn(),
+      slaRisk: vi.fn(),
+      resolved: vi.fn(),
+    };
+
+    render(
+      <ExecutiveKpiRibbon
+        totalActive={12}
+        overdueCount={3}
+        slaAtRiskOrBreachedCount={4}
+        formattedAvgResolutionTime="3.5h"
+        onActiveClick={handlers.active}
+        onOverdueClick={handlers.overdue}
+        onSlaRiskClick={handlers.slaRisk}
+        onResolvedClick={handlers.resolved}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Active Tickets/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Overdue/ }));
+    fireEvent.click(screen.getByTestId("sla-risk-kpi"));
+    fireEvent.click(screen.getByRole("button", { name: /Avg Resolution Time/ }));
+
+    expect(handlers.active).toHaveBeenCalledOnce();
+    expect(handlers.overdue).toHaveBeenCalledOnce();
+    expect(handlers.slaRisk).toHaveBeenCalledOnce();
+    expect(handlers.resolved).toHaveBeenCalledOnce();
+  });
+
   it("renders VolumeBreakdownCards with channel and department distribution", () => {
     render(
       <VolumeBreakdownCards

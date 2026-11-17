@@ -126,32 +126,25 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
       </div>
 
       {/* Page size selector */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500 font-medium">Rows per page:</span>
-        <div className="flex items-center gap-1">
-          {pageSizeOptions.map((opt) => {
-            const isSelected = pageSize === opt;
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => {
-                  onPageSizeChange(opt);
-                  onPageChange(1);
-                }}
-                aria-label={`${opt} per page`}
-                className={`flex h-7 px-2.5 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
-                  isSelected
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <label className="flex items-center gap-2 text-xs font-medium text-slate-500">
+        <span>Rows per page:</span>
+        <span className="relative">
+          <select
+            value={pageSize}
+            onChange={(event) => {
+              onPageSizeChange(Number(event.target.value));
+              onPageChange(1);
+            }}
+            aria-label="Rows per page"
+            className="h-8 appearance-none rounded-lg border border-slate-200 bg-white py-1 pl-3 pr-8 text-xs font-semibold text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+          >
+            {pageSizeOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 text-[16px] text-slate-400">expand_more</span>
+        </span>
+      </label>
     </div>
   );
 };

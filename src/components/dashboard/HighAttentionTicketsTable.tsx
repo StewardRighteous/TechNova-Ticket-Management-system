@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Ticket } from "../../types";
-import { ChannelBadge, PriorityBadge, StatusBadge } from "../common";
+import { NumericPagination } from "../common";
 import { getHighAttentionTickets } from "./dashboardMetrics";
 
 export interface HighAttentionTicketsTableProps {
@@ -42,9 +42,15 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
   onExploreAll,
 }) => {
   const highAttentionTickets = getHighAttentionTickets(tickets);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const paginatedTickets = highAttentionTickets.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md">
+    <section
+      id="high-attention-incidents"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md"
+    >
       <div className="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined rounded-lg bg-rose-50 p-2 text-[20px] text-rose-600">
@@ -86,7 +92,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
-            {highAttentionTickets.map((ticket) => (
+            {paginatedTickets.map((ticket) => (
               <tr
                 key={ticket.id}
                 onClick={() => onSelectTicket(ticket.id)}
@@ -152,6 +158,14 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
           </tbody>
         </table>
       </div>
+      <NumericPagination
+        totalItems={highAttentionTickets.length}
+        currentPage={page}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[5, 10, 25]}
+      />
     </section>
   );
 };

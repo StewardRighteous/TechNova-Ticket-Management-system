@@ -46,6 +46,7 @@ const fields: Record<
     { key: "slaResponseTime", label: "SLA response time" },
   ],
 };
+const allFields = (Object.keys(fields) as Tab[]).flatMap((tab) => fields[tab]);
 const displayValue = (value: unknown) =>
   Array.isArray(value) ? value.join(", ") : String(value ?? "—");
 
@@ -160,7 +161,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
             </div>
           )}
         </div>
-        <div className="mt-5 flex flex-wrap gap-2">
+        {!isEditing && <div className="mt-5 flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -174,9 +175,9 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
               {tab.label}
             </button>
           ))}
-        </div>
+        </div>}
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {fields[activeTab].map((field) => (
+          {(isEditing ? allFields : fields[activeTab]).map((field) => (
             <label
               key={field.key}
               className="text-xs font-semibold text-slate-500"

@@ -54,7 +54,7 @@ export const TextArea: React.FC<{
     {label}
     <textarea
       className={`${readonly ? readOnlyFieldClass : fieldClass} mt-1`}
-      rows={1}
+      rows={2}
       value={value ?? ""}
       onChange={(e) => set(e.target.value)}
       readOnly={readonly}

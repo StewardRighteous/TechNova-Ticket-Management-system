@@ -1,6 +1,8 @@
 import React from "react";
 import type {
+  Company,
   Employee,
+  ServiceLine,
   Ticket,
   TicketStatus,
 } from "../../types";
@@ -10,6 +12,7 @@ import { IssueOverviewCard } from "./IssueOverviewCard";
 import { TabbedTimeline } from "./TabbedTimeline";
 import { OwnershipCard } from "./OwnershipCard";
 import { useTicketStore } from "../../store";
+import { TicketDetailsPanel } from "./TicketDetailsPanel";
 
 interface TicketDetailHeroProps {
   ticket: Ticket;
@@ -17,6 +20,9 @@ interface TicketDetailHeroProps {
   onBack: () => void;
   onStatusChange: (status: TicketStatus) => void;
   onAssigneeChange: (empId: string, note?: string) => void;
+  companies?: Company[];
+  services?: ServiceLine[];
+  onUpdateTicket?: (updates: Partial<Ticket>) => void;
 }
 
 export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
@@ -25,31 +31,25 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
   onBack,
   onStatusChange,
   onAssigneeChange,
+  companies = [],
+  services = [],
+  onUpdateTicket,
 }) => {
   const { addToast, addTicketTimelineNote } = useTicketStore();
 
   const handleEscalate = () => {
     onStatusChange("Escalated");
-    addToast(
-      `${ticket.code} escalated to Senior Support / Dev`,
-      "warning",
-    );
+    addToast(`${ticket.code} escalated to Senior Support / Dev`, "warning");
   };
 
   const handleRequestQa = () => {
     onStatusChange("Pending QA");
-    addToast(
-      `${ticket.code} sent for QA review`,
-      "info",
-    );
+    addToast(`${ticket.code} sent for QA review`, "info");
   };
 
   const handleResolve = () => {
     onStatusChange("Resolved");
-    addToast(
-      `${ticket.code} marked as resolved`,
-      "success",
-    );
+    addToast(`${ticket.code} marked as resolved`, "success");
   };
 
   const handleAddInternalNote = (body: string) => {
@@ -59,7 +59,11 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
 
   return (
     <div className="space-y-4">
-      <Breadcrumb section="← Back to Tickets" current={ticket.code} onBack={onBack} />
+      <Breadcrumb
+        section="← Back to Tickets"
+        current={ticket.code}
+        onBack={onBack}
+      />
 
       <HeroBanner
         ticket={ticket}
@@ -80,6 +84,18 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
             employees={employees}
             onAddInternalNote={handleAddInternalNote}
           />
+
+          {onUpdateTicket && (
+            <TicketDetailsPanel
+              ticket={ticket}
+              companies={companies}
+              services={services}
+              onSave={(updates) => {
+                onUpdateTicket(updates);
+                addToast(`${ticket.code} details saved`, "success");
+              }}
+            />
+          )}
         </div>
 
         {/* Right column — ownership + workflow sidebar */}
@@ -87,8 +103,8 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
           <OwnershipCard ticket={ticket} employees={employees} />
 
           {/* Workflow actions card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h4 className="text-xs font-bold tracking-wider text-slate-400 uppercase">
               Workflow Actions
             </h4>
 
@@ -122,20 +138,19 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
               description="Close the investigation and mark complete"
               onClick={handleResolve}
               disabled={
-                ticket.status === "Resolved" ||
-                ticket.status === "Closed"
+                ticket.status === "Resolved" || ticket.status === "Closed"
               }
             />
 
             {/* Reassignment */}
             <div className="border-t border-slate-100 pt-3">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="mb-1 block text-xs font-semibold text-slate-700">
                 Reassign Ticket
               </label>
               <select
                 value={ticket.assignedToId}
                 onChange={(e) => onAssigneeChange(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {employees.map((emp) => (
                   <option key={emp.id} value={emp.id}>

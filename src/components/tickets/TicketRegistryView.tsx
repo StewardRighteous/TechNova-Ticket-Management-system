@@ -11,15 +11,22 @@ export const TicketRegistryView: React.FC = () => {
     currentUser,
     setSelectedTicketId,
     selectedTicketId,
+    ticketTableFocus,
+    setTicketTableFocus,
     updateTicketStatus,
     assignTicket,
+    updateTicket,
     setIsCreateModalOpen,
   } = useTicketStore();
 
   const [activeTicketId, setActiveTicketId] = useState<string | null>(useTicketStore.getState().selectedTicketId);
+  const [tableFocus] = useState(ticketTableFocus);
   React.useEffect(() => {
     if (selectedTicketId) setActiveTicketId(selectedTicketId);
   }, [selectedTicketId]);
+  React.useEffect(() => {
+    if (ticketTableFocus) setTicketTableFocus(null);
+  }, [setTicketTableFocus, ticketTableFocus]);
 
   // Preserve table scroll/filter state across detail-view round-trips.
   // The ref survives the TicketTable unmount so we can restore from it.
@@ -94,6 +101,9 @@ export const TicketRegistryView: React.FC = () => {
         <TicketDetailHero
           ticket={selectedTicket}
           employees={data.employees}
+          companies={data.companies}
+          services={data.services}
+          onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
           onBack={handleBack}
           onStatusChange={(status) =>
             updateTicketStatus(selectedTicket.id, status)
@@ -116,6 +126,7 @@ export const TicketRegistryView: React.FC = () => {
           initialStatusFilter={tableStateRef.current.statusFilter}
           initialPriorityFilter={tableStateRef.current.priorityFilter}
           initialDepartmentFilter={tableStateRef.current.departmentFilter}
+          initialFocus={tableFocus ?? undefined}
           onTableStateChange={handleTableStateChange}
         />
       )}

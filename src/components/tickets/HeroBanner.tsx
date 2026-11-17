@@ -1,7 +1,5 @@
 import React from "react";
 import type { Ticket } from "../../types";
-import { StatusBadge, PriorityBadge, ChannelBadge } from "../common";
-import { SlaCountdown } from "./SlaCountdown";
 
 interface HeroBannerProps {
   ticket: Ticket;

@@ -22,10 +22,13 @@ import {
   addTimelineNoteToTicket,
 } from "./authHelpers";
 
+export type TicketTableFocus = "active" | "overdue" | "sla-risk" | "resolved";
+
 interface TicketStore {
   data: MockupDatabase;
   activeTab: string;
   selectedTicketId: string | null;
+  ticketTableFocus: TicketTableFocus | null;
   activeRole: RoleId;
   currentUser: Employee | null;
   isAuthenticated: boolean;
@@ -39,6 +42,7 @@ interface TicketStore {
   logout: () => void;
   setActiveTab: (tab: string) => void;
   setSelectedTicketId: (id: string | null) => void;
+  setTicketTableFocus: (focus: TicketTableFocus | null) => void;
   setActiveRole: (role: RoleId) => void;
   setActivePersona: (role: RoleId) => void;
   setSearchQuery: (query: string) => void;
@@ -77,6 +81,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   data: initialDb,
   activeTab: "dashboard",
   selectedTicketId: null,
+  ticketTableFocus: null,
   activeRole: "operations_manager",
   currentUser: initialDb.employees[0],
   isAuthenticated: true,
@@ -115,6 +120,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     set({ currentUser: null, isAuthenticated: false, activeTab: "dashboard" }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
+  setTicketTableFocus: (focus) => set({ ticketTableFocus: focus }),
   setActiveRole: (role) => {
     const matchedEmployee =
       get().data.employees.find((e) => e.role === role) ||
