@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useTicketStore } from "../../store";
+import { useTicketStore } from "../../store/barrel";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeDetailHero } from "./EmployeeDetailHero";
-import { filterEmployeesByRole } from "../../utils";
-import { Breadcrumb } from "../common";
+import { filterEmployeesByRole } from "../../utils/barrel";
+import { Breadcrumb } from "../common/barrel";
 
 export const EmployeesView: React.FC = () => {
   const { data, activeRole, updateEmployee, addToast, setActiveTab, setSelectedTicketId } = useTicketStore();
@@ -15,7 +15,7 @@ export const EmployeesView: React.FC = () => {
     data.employees.find((e) => e.id === activeEmployeeId);
 
   const handleUpdateEmployee = (
-    updates: Partial<import("../../types").Employee>,
+    updates: Partial<import("../../types/barrel").Employee>,
   ) => {
     if (activeEmployeeId) { updateEmployee(activeEmployeeId, updates); addToast("Employee changes saved", "success"); }
   };

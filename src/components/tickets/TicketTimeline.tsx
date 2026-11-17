@@ -1,5 +1,5 @@
 import React from "react";
-import type { TicketTimelineItem } from "../../types";
+import type { TicketTimelineItem } from "../../types/barrel";
 
 interface TicketTimelineProps {
   timeline: TicketTimelineItem[];

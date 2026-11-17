@@ -1,5 +1,5 @@
 import React from "react";
-import type { Ticket } from "../../types";
+import type { Ticket } from "../../types/barrel";
 
 interface IssueOverviewCardProps {
   ticket: Ticket;

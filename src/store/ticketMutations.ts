@@ -1,4 +1,4 @@
-import type { MockupDatabase, Ticket, RoleId, TicketStatus, Employee } from '../types';
+import type { MockupDatabase, Ticket, RoleId, TicketStatus, Employee } from '../types/barrel';
 
 export function createNewTicket(
   ticketInput: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'timeAgo' | 'timeline'> & { initialNote?: string },

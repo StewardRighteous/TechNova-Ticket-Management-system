@@ -1,4 +1,4 @@
-import type { Employee, MockupDatabase } from '../types';
+import type { Employee, MockupDatabase } from '../types/barrel';
 
 export function authenticateByEmail(
   email: string,

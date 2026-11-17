@@ -1,5 +1,5 @@
 import React from "react";
-import type { Ticket, Team, Department, InboundChannel } from "../../types";
+import type { Ticket, Team, Department, InboundChannel } from "../../types/barrel";
 import {
   computeChannelBreakdown,
   computeDepartmentBreakdown,

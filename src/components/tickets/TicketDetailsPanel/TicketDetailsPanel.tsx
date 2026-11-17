@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Ticket } from "../../../types";
+import type { Ticket } from "../../../types/barrel";
 import { createDraft } from "./draft";
 import { TicketDetailsEditForm } from "./TicketDetailsEditForm";
 import { ConfirmationDialog } from "./shared";

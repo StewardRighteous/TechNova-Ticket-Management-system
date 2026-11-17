@@ -1,5 +1,5 @@
 import initialData from '../../mockup.json';
-import type { MockupDatabase } from '../types';
+import type { MockupDatabase } from '../types/barrel';
 
 export const STORAGE_KEY = 'technova_tickets_state_v1';
 

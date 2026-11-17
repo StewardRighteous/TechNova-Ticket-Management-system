@@ -1,5 +1,5 @@
 import React from 'react';
-import type { InboundChannel } from '../../types';
+import type { InboundChannel } from '../../types/barrel';
 
 interface ChannelBadgeProps {
   channel: InboundChannel;

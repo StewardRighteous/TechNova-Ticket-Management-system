@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import type { Company } from "../../types";
-import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common";
+import type { Company } from "../../types/barrel";
+import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common/barrel";
 
 interface CompanyTableProps {
   companies: Company[];

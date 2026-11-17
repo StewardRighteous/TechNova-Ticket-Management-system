@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Employee, TicketTimelineItem, InternalNote } from "../../types";
+import type { Employee, TicketTimelineItem, InternalNote } from "../../types/barrel";
 
 type TimelineTab = "communications" | "internal";
 

@@ -5,7 +5,7 @@ import {
   computeDepartmentBreakdown,
   getHighAttentionTickets,
 } from "./dashboardMetrics";
-import type { Ticket, Team, Department } from "../../types";
+import type { Ticket, Team, Department } from "../../types/barrel";
 
 describe("Executive Dashboard Metrics & Breakdowns", () => {
   const departments: Department[] = [

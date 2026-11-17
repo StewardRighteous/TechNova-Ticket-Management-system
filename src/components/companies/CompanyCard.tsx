@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Company } from '../../types';
-import { ChannelBadge } from '../common';
+import type { Company } from '../../types/barrel';
+import { ChannelBadge } from '../common/barrel';
 
 interface CompanyCardProps {
   company: Company;

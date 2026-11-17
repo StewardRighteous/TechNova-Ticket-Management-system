@@ -1,5 +1,5 @@
 import React from "react";
-import type { Company, ServiceLine, Ticket } from "../../../types";
+import type { Company, ServiceLine, Ticket } from "../../../types/barrel";
 import { DiagnosticInput, Input, Read, Select, TextArea } from "./shared";
 import type { Draft, TicketDetailsTab } from "./types";
 

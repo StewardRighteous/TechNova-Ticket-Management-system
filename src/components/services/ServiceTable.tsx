@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import type { ServiceLine } from "../../types";
+import type { ServiceLine } from "../../types/barrel";
 import {
   ComboboxFilter,
   NumericPagination,
   TableHeaderSection,
-} from "../common";
+} from "../common/barrel";
 
 interface ServiceTableProps {
   services: ServiceLine[];

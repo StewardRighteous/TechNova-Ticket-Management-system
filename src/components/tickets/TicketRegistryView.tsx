@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback } from "react";
-import { useTicketStore } from "../../store";
+import { useTicketStore } from "../../store/barrel";
 import { TicketTable } from "./TicketTable";
 import { TicketDetailHero } from "./TicketDetailHero";
-import { filterTicketsByRole } from "../../utils";
+import { filterTicketsByRole } from "../../utils/barrel";
 
 export const TicketRegistryView: React.FC = () => {
   const {

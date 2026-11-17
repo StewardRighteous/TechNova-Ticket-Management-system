@@ -1,4 +1,4 @@
-import type { RoleId, Ticket, Company, Employee, ServiceLine } from '../types';
+import type { RoleId, Ticket, Company, Employee, ServiceLine } from '../types/barrel';
 
 export interface RolePermissions {
   allowedTabs: string[];

@@ -1,5 +1,5 @@
 import React from "react";
-import type { TicketPriority, TicketStatus } from "../../types";
+import type { TicketPriority, TicketStatus } from "../../types/barrel";
 
 interface StatusBadgeProps {
   status: TicketStatus;

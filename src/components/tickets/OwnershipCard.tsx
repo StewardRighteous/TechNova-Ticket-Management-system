@@ -1,5 +1,5 @@
 import React from "react";
-import type { Employee, Ticket } from "../../types";
+import type { Employee, Ticket } from "../../types/barrel";
 
 interface OwnershipCardProps {
   ticket: Ticket;

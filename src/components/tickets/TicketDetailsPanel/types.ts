@@ -3,7 +3,7 @@ import type {
   ServiceLine,
   Ticket,
   TicketDiagnosticData,
-} from "../../../types";
+} from "../../../types/barrel";
 export interface TicketDetailsPanelProps {
   ticket: Ticket;
   companies: Company[];

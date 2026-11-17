@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import type { Ticket } from "../../types";
-import { NumericPagination } from "../common";
+import type { Ticket } from "../../types/barrel";
+import { NumericPagination } from "../common/barrel";
 import { getHighAttentionTickets } from "./dashboardMetrics";
 
 export interface HighAttentionTicketsTableProps {

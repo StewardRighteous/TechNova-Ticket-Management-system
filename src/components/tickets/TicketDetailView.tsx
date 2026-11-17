@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { Ticket, Employee, TicketStatus } from '../../types';
-import { ChannelBadge, PriorityBadge, StatusBadge } from '../common';
+import type { Ticket, Employee, TicketStatus } from '../../types/barrel';
+import { ChannelBadge, PriorityBadge, StatusBadge } from '../common/barrel';
 import { TicketTimeline } from './TicketTimeline';
 import { TicketActionSidebar } from './TicketActionSidebar';
 

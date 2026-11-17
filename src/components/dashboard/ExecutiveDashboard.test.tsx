@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { ExecutiveKpiRibbon } from "./ExecutiveKpiRibbon";
 import { VolumeBreakdownCards } from "./VolumeBreakdownCards";
 import { HighAttentionTicketsTable } from "./HighAttentionTicketsTable";
-import type { Ticket, Team, Department } from "../../types";
+import type { Ticket, Team, Department } from "../../types/barrel";
 
 const mockTickets: Ticket[] = [
   {

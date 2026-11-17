@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ServiceLine } from '../../types';
+import type { ServiceLine } from '../../types/barrel';
 
 interface ServiceCardProps {
   service: ServiceLine;

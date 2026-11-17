@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useTicketStore } from "../../store";
+import { useTicketStore } from "../../store/barrel";
 import { CompanyTable } from "./CompanyTable";
 import { CompanyDetailHero } from "./CompanyDetailHero";
-import { filterCompaniesByRole } from "../../utils";
-import { Breadcrumb } from "../common";
+import { filterCompaniesByRole } from "../../utils/barrel";
+import { Breadcrumb } from "../common/barrel";
 
 export const CompaniesView: React.FC = () => {
   const { data, activeRole, currentUser, updateCompany, addToast, setActiveTab, setSelectedTicketId } = useTicketStore();
@@ -19,7 +19,7 @@ export const CompaniesView: React.FC = () => {
     data.companies.find((c) => c.id === activeCompanyId);
 
   const handleUpdateCompany = (
-    updates: Partial<import("../../types").Company>,
+    updates: Partial<import("../../types/barrel").Company>,
   ) => {
     if (activeCompanyId) {
       updateCompany(activeCompanyId, updates);

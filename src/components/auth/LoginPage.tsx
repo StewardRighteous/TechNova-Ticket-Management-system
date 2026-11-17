@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTicketStore } from '../../store';
+import { useTicketStore } from '../../store/barrel';
 import { DemoPersonaGrid } from './DemoPersonaGrid';
 
 export const LoginPage: React.FC = () => {

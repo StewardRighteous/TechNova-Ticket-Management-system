@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import type { Ticket, InboundChannel } from "../../types";
+import type { Ticket, InboundChannel } from "../../types/barrel";
 import {
   ChannelBadge,
   PriorityBadge,
   StatusBadge,
   TablePagination,
   TableHeaderSection,
-} from "../common";
+} from "../common/barrel";
 import { DashboardChannelFilters } from "./DashboardChannelFilters";
 
 interface DashboardTicketTableProps {

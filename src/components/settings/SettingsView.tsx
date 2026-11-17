@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useTicketStore } from "../../store";
+import { useTicketStore } from "../../store/barrel";
 
 interface ToggleProps {
   checked: boolean;

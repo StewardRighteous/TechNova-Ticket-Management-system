@@ -1,1 +1,1 @@
-export { TicketDetailsPanel } from "./TicketDetailsPanel/index";
+export { TicketDetailsPanel } from "./TicketDetailsPanel/barrel";

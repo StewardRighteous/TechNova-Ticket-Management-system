@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import type { Employee } from "../../types";
-import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common";
+import type { Employee } from "../../types/barrel";
+import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common/barrel";
 
 interface EmployeeTableProps {
   employees: Employee[];

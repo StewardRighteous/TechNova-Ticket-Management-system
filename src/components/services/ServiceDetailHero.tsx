@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Company, ServiceLine, Ticket } from "../../types";
+import type { Company, ServiceLine, Ticket } from "../../types/barrel";
 
 interface ServiceDetailHeroProps {
   service: ServiceLine;

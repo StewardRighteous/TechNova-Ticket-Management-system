@@ -1,4 +1,4 @@
-import type { Ticket, Team, Department, InboundChannel } from "../../types";
+import type { Ticket, Team, Department, InboundChannel } from "../../types/barrel";
 
 export interface ExecutiveMetrics {
   totalActive: number;

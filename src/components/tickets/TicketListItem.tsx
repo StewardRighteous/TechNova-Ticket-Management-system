@@ -1,6 +1,6 @@
 import React from "react";
-import type { Ticket } from "../../types";
-import { ChannelBadge, PriorityBadge, StatusBadge } from "../common";
+import type { Ticket } from "../../types/barrel";
+import { ChannelBadge, PriorityBadge, StatusBadge } from "../common/barrel";
 
 interface TicketListItemProps {
   ticket: Ticket;

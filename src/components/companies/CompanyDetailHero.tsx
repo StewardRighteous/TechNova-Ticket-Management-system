@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { Company, Ticket } from "../../types";
+import type { Company, Ticket } from "../../types/barrel";
 
 interface CompanyDetailHeroProps {
   company: Company;

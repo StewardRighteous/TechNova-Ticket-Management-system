@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Ticket, Employee, TicketStatus } from '../../types';
+import type { Ticket, Employee, TicketStatus } from '../../types/barrel';
 
 interface TicketActionSidebarProps {
   ticket: Ticket;

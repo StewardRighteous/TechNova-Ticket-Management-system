@@ -9,7 +9,7 @@ import type {
   TicketStatus,
   ToastMessage,
   ToastType,
-} from "../types";
+} from "../types/barrel";
 import { loadInitialState, persistState, resetStoredState } from "./storage";
 import {
   createNewTicket,

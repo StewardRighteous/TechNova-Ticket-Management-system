@@ -1,4 +1,4 @@
-import type { Ticket } from "../../../types";
+import type { Ticket } from "../../../types/barrel";
 import type { Draft } from "./types";
 export const createDraft = (ticket: Ticket): Draft => ({
   title: ticket.title,

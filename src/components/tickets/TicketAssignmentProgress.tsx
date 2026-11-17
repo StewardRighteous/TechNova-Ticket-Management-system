@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Employee, Ticket, TicketStatus } from "../../types";
+import type { Employee, Ticket, TicketStatus } from "../../types/barrel";
 
 interface TicketAssignmentProgressProps {
   ticket: Ticket;

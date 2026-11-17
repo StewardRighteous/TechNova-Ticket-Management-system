@@ -1,5 +1,5 @@
 import React from "react";
-import { ComboboxFilter } from "../common/ComboboxFilter";
+import { ComboboxFilter } from "../common/ComboboxFilter/index";
 
 export interface TicketDepartmentOption {
   id: string;
