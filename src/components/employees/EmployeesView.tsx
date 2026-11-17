@@ -6,7 +6,7 @@ import { filterEmployeesByRole } from "../../utils";
 import { Breadcrumb } from "../common";
 
 export const EmployeesView: React.FC = () => {
-  const { data, activeRole, updateEmployee } = useTicketStore();
+  const { data, activeRole, updateEmployee, addToast, setActiveTab, setSelectedTicketId } = useTicketStore();
   const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
 
   const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
@@ -17,7 +17,7 @@ export const EmployeesView: React.FC = () => {
   const handleUpdateEmployee = (
     updates: Partial<import("../../types").Employee>,
   ) => {
-    if (activeEmployeeId) updateEmployee(activeEmployeeId, updates);
+    if (activeEmployeeId) { updateEmployee(activeEmployeeId, updates); addToast("Employee changes saved", "success"); }
   };
 
   return (
@@ -34,6 +34,7 @@ export const EmployeesView: React.FC = () => {
             tickets={data.tickets}
             onBack={() => setActiveEmployeeId(null)}
             onUpdateEmployee={handleUpdateEmployee}
+            onOpenTicket={(ticketId) => { setSelectedTicketId(ticketId); setActiveTab("tickets"); }}
           />
         </>
       ) : (

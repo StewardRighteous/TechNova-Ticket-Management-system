@@ -6,6 +6,7 @@ interface EmployeeDetailHeroProps {
   tickets: Ticket[];
   onBack: () => void;
   onUpdateEmployee: (updates: Partial<Employee>) => void;
+  onOpenTicket?: (ticketId: string) => void;
 }
 type Tab = "profile" | "work";
 const fields: Record<
@@ -42,12 +43,14 @@ const textValue = (value: unknown) =>
 
 export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
   employee,
-  tickets: _tickets,
+  tickets,
   onUpdateEmployee,
+  onOpenTicket,
 }) => {
   const [draft, setDraft] = useState<Employee>(employee);
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState<Tab>("profile");
+  const [workspaceTab, setWorkspaceTab] = useState<"tickets" | "profile">("tickets");
   const [confirmation, setConfirmation] = useState<"save" | "cancel" | null>(
     null,
   );
@@ -77,7 +80,9 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
     ["Phone", employee.phone],
     ["Status", employee.status],
     ["Department", employee.departmentId || "Not assigned"],
-    ["Capacity", `${employee.activeTicketsCount} / ${employee.capacityMax}`],
+    ["Capacity", `${employee.activeTicketsCount} / ${employee.capacityMax} tickets`],
+    ["SLA compliance", `${tickets.filter((t) => t.assignedToId === employee.id && t.slaRisk !== "Breached").length}/${Math.max(1, tickets.filter((t) => t.assignedToId === employee.id).length)} on target`],
+    ["Location", employee.locationId || "Remote"],
   ];
   return (
     <div className="space-y-6">
@@ -95,6 +100,11 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
             </div>
           ))}
         </div>
+      </section>
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex gap-1 border-b border-slate-200 px-4 pt-3"><button type="button" onClick={() => setWorkspaceTab("tickets")} className={`border-b-2 px-3 py-3 text-xs font-bold ${workspaceTab === "tickets" ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500"}`}>Assigned Tickets</button><button type="button" onClick={() => setWorkspaceTab("profile")} className={`border-b-2 px-3 py-3 text-xs font-bold ${workspaceTab === "profile" ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500"}`}>Profile & Skills</button></div>
+        {workspaceTab === "tickets" && <div className="p-5"><div className="mb-4 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600" style={{ width: `${Math.min(100, employee.activeTicketsCount / Math.max(1, employee.capacityMax) * 100)}%` }} /></div><table className="w-full text-left text-xs"><thead className="text-[10px] uppercase text-slate-500"><tr><th className="pb-3">Ticket</th><th className="pb-3">Title</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{tickets.filter((t) => t.assignedToId === employee.id).map((ticket) => <tr key={ticket.id}><td className="py-3"><button type="button" onClick={() => onOpenTicket?.(ticket.id)} className="font-bold text-indigo-700 hover:underline">{ticket.code}</button></td><td className="py-3">{ticket.title}</td><td className="py-3">{ticket.status}</td></tr>)}</tbody></table></div>}
+        {workspaceTab === "profile" && <div className="grid gap-4 p-5 text-xs text-slate-600 sm:grid-cols-2"><div><p className="font-bold text-slate-900">Contact</p><p>{employee.email} · {employee.phone}</p></div><div><p className="font-bold text-slate-900">Team & permissions</p><p>{employee.teamId || "Unassigned"} · {(employee.permissions || []).join(", ") || "Standard access"}</p></div><div className="sm:col-span-2"><p className="font-bold text-slate-900">Skills</p><div className="mt-2 flex flex-wrap gap-2">{employee.skills.map((skill) => <span key={skill} className="rounded-full bg-indigo-50 px-2 py-1 text-indigo-700">{skill}</span>)}</div></div></div>}
       </section>
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">

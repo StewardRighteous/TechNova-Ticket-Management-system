@@ -13,7 +13,7 @@ A dedicated full-width Ticket Detail View replacing cramped side panels/drawers:
 04: Table-First Ticket Registry & Dynamic Intake Flow
 
 **Status:**
-ready-for-agent
+closed
 
 - [ ] Row click in the ticket table transitions to the dedicated full-width Ticket Detail View.
 - [ ] Breadcrumb `← Back to Tickets` returns to the table preserving page and filter query state.

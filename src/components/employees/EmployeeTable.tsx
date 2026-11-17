@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Employee } from "../../types";
-import { TablePagination, TableHeaderSection } from "../common";
+import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -18,6 +18,8 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
+  const [locationFilter, setLocationFilter] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
@@ -34,6 +36,8 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const filtered = employees.filter((e) => {
     if (roleFilter !== "all" && e.role !== roleFilter) return false;
     if (statusFilter !== "all" && e.status !== statusFilter) return false;
+    if (departmentFilter.length && !departmentFilter.includes(e.departmentId || "Unassigned")) return false;
+    if (locationFilter.length && !locationFilter.includes(e.locationId || "Unassigned")) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -70,6 +74,9 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         }}
         searchPlaceholder="Filter engineer name or role..."
       >
+        <ComboboxFilter label="Department" selectedValues={departmentFilter} onChange={(v) => { setDepartmentFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.departmentId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
+        <ComboboxFilter label="Location" selectedValues={locationFilter} onChange={(v) => { setLocationFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.locationId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
+        <ComboboxFilter label="Role" singleSelect selectedValues={roleFilter === "all" ? [] : [roleFilter]} onChange={(v) => { setRoleFilter(v[0] || "all"); setPage(1); }} options={[...new Set(employees.map((e) => e.role))].map((v) => ({ value: v, label: v }))} />
         <select
           value={roleFilter}
           onChange={(e) => {
@@ -139,7 +146,8 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
               return (
                 <tr
                   key={emp.id}
-                  className="group transition-colors hover:bg-indigo-50/40"
+                  className="group cursor-pointer transition-colors hover:bg-indigo-50/40"
+                  onClick={() => onViewEmployee(emp.id)}
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
@@ -217,13 +225,13 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         </table>
       </div>
 
-      <TablePagination
+      <NumericPagination
         totalItems={filtered.length}
         currentPage={page}
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10]}
+        pageSizeOptions={[5, 10, 25]}
       />
     </div>
   );

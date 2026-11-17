@@ -76,7 +76,7 @@ const initialDb = loadInitialState();
 export const useTicketStore = create<TicketStore>((set, get) => ({
   data: initialDb,
   activeTab: "dashboard",
-  selectedTicketId: "TCK-1084",
+  selectedTicketId: null,
   activeRole: "operations_manager",
   currentUser: initialDb.employees[0],
   isAuthenticated: true,

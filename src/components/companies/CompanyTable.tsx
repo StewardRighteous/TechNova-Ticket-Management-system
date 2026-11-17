@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Company } from "../../types";
-import { TablePagination, TableHeaderSection } from "../common";
+import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common";
 
 interface CompanyTableProps {
   companies: Company[];
@@ -15,6 +15,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
 }) => {
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
@@ -29,7 +30,8 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
   };
 
   const filtered = companies.filter((c) => {
-    if (tierFilter !== "all" && !c.tier.includes(tierFilter)) return false;
+    if (tierFilter !== "all" && c.tier !== tierFilter) return false;
+    if (statusFilter.length > 0 && !statusFilter.includes(c.status)) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -67,46 +69,9 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
         }}
         searchPlaceholder="Filter companies or contacts..."
       >
-        <div className="flex items-center rounded-xl bg-slate-100 p-1 text-xs">
-          <button
-            onClick={() => {
-              setTierFilter("all");
-              setPage(1);
-            }}
-            className={`rounded-lg px-3 py-1 font-semibold transition-all ${
-              tierFilter === "all"
-                ? "bg-white text-indigo-700 shadow-sm"
-                : "text-slate-600"
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => {
-              setTierFilter("Tier 1");
-              setPage(1);
-            }}
-            className={`rounded-lg px-3 py-1 font-semibold transition-all ${
-              tierFilter === "Tier 1"
-                ? "bg-white text-indigo-700 shadow-sm"
-                : "text-slate-600"
-            }`}
-          >
-            Tier 1
-          </button>
-          <button
-            onClick={() => {
-              setTierFilter("Tier 2");
-              setPage(1);
-            }}
-            className={`rounded-lg px-3 py-1 font-semibold transition-all ${
-              tierFilter === "Tier 2"
-                ? "bg-white text-indigo-700 shadow-sm"
-                : "text-slate-600"
-            }`}
-          >
-            Tier 2
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ComboboxFilter label="Account tier" singleSelect selectedValues={tierFilter === "all" ? [] : [tierFilter]} onChange={(v) => { setTierFilter(v[0] || "all"); setPage(1); }} options={[...new Set(companies.map((c) => c.tier))].map((v) => ({ value: v, label: v }))} />
+          <ComboboxFilter label="Status" selectedValues={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} options={[...new Set(companies.map((c) => c.status))].map((v) => ({ value: v, label: v }))} />
         </div>
       </TableHeaderSection>
 
@@ -224,7 +189,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                 </td>
                 <td className="px-6 py-3.5 text-left whitespace-nowrap">
                   <button
-                    onClick={() => onViewCompany(c.id)}
+                onClick={() => onViewCompany(c.id)}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
                   >
                     <span className="material-symbols-outlined text-[15px]">
@@ -239,13 +204,13 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
         </table>
       </div>
 
-      <TablePagination
+      <NumericPagination
         totalItems={filtered.length}
         currentPage={page}
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10]}
+        pageSizeOptions={[5, 10, 25]}
       />
     </div>
   );

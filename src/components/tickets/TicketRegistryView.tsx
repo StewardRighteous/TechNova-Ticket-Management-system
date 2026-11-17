@@ -10,12 +10,16 @@ export const TicketRegistryView: React.FC = () => {
     activeRole,
     currentUser,
     setSelectedTicketId,
+    selectedTicketId,
     updateTicketStatus,
     assignTicket,
     setIsCreateModalOpen,
   } = useTicketStore();
 
-  const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+  const [activeTicketId, setActiveTicketId] = useState<string | null>(useTicketStore.getState().selectedTicketId);
+  React.useEffect(() => {
+    if (selectedTicketId) setActiveTicketId(selectedTicketId);
+  }, [selectedTicketId]);
 
   // Preserve table scroll/filter state across detail-view round-trips.
   // The ref survives the TicketTable unmount so we can restore from it.

@@ -6,7 +6,7 @@ import { filterCompaniesByRole } from "../../utils";
 import { Breadcrumb } from "../common";
 
 export const CompaniesView: React.FC = () => {
-  const { data, activeRole, currentUser, updateCompany } = useTicketStore();
+  const { data, activeRole, currentUser, updateCompany, addToast, setActiveTab, setSelectedTicketId } = useTicketStore();
   const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
 
   const roleCompanies = filterCompaniesByRole(
@@ -21,7 +21,10 @@ export const CompaniesView: React.FC = () => {
   const handleUpdateCompany = (
     updates: Partial<import("../../types").Company>,
   ) => {
-    if (activeCompanyId) updateCompany(activeCompanyId, updates);
+    if (activeCompanyId) {
+      updateCompany(activeCompanyId, updates);
+      addToast("Company changes saved", "success");
+    }
   };
 
   return (
@@ -37,6 +40,8 @@ export const CompaniesView: React.FC = () => {
             company={selectedCompany}
             onBack={() => setActiveCompanyId(null)}
             onUpdateCompany={handleUpdateCompany}
+            tickets={data.tickets.filter((ticket) => ticket.companyId === selectedCompany.id && !["Resolved", "Closed"].includes(ticket.status))}
+            onOpenTicket={(ticketId) => { setSelectedTicketId(ticketId); setActiveTab("tickets"); }}
           />
         </>
       ) : (
