@@ -55,13 +55,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
               <h2 className="text-base font-bold text-slate-900">
                 High-Attention & Critical Incidents
               </h2>
-              <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-800">
-                {highAttentionTickets.length} Requiring Action
-              </span>
             </div>
-            <p className="mt-0.5 text-xs text-slate-500">
-              P1 Urgent tickets and accounts with imminent or breached SLAs
-            </p>
           </div>
         </div>
 
@@ -84,14 +78,11 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
           <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
             <tr>
               <th className="px-5 py-3">Ticket</th>
-              <th className="px-3 py-3">Channel</th>
               <th className="px-3 py-3">Client</th>
               <th className="px-4 py-3">Incident Title</th>
-              <th className="px-3 py-3">Priority</th>
               <th className="px-3 py-3">SLA Status</th>
               <th className="px-3 py-3">Assignee</th>
-              <th className="px-3 py-3">Status</th>
-              <th className="px-5 py-3 text-right">Action</th>
+              <th className="px-5 py-3 ">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -101,11 +92,8 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                 onClick={() => onSelectTicket(ticket.id)}
                 className="group cursor-pointer transition hover:bg-rose-50/40"
               >
-                <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-indigo-700">
+                <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                   {ticket.code}
-                </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <ChannelBadge channel={ticket.channel} showText={false} />
                 </td>
                 <td className="px-3 py-3 font-semibold whitespace-nowrap text-slate-800">
                   {ticket.companyName}
@@ -114,9 +102,6 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                   <span className="block truncate font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
                     {ticket.title}
                   </span>
-                </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <PriorityBadge priority={ticket.priority} />
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap">
                   {renderSlaBadge(ticket.slaRisk, ticket.slaDeadline)}
@@ -129,9 +114,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                     <span className="font-medium">{ticket.assignedToName}</span>
                   </div>
                 </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <StatusBadge status={ticket.status} />
-                </td>
+      
                 <td className="px-5 py-3 text-right whitespace-nowrap">
                   <button
                     type="button"

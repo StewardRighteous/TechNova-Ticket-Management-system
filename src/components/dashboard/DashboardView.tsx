@@ -88,12 +88,7 @@ export const DashboardView: React.FC = () => {
       <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-md">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 ring-1 ring-indigo-500/30 ring-inset">
-                Executive Command Center
-              </span>
-              <span className="text-xs text-slate-400">Live operational telemetry</span>
-            </div>
+         
             <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
               {getGreeting()}, {currentUser?.name || "Executive Leader"}
             </h1>
@@ -197,7 +192,7 @@ const RecentTickets: React.FC<{
           onClick={() => onOpen(ticket.id)}
           className="grid w-full grid-cols-1 gap-2 px-5 py-3.5 text-left transition hover:bg-slate-50 md:grid-cols-[80px_2fr_110px_1fr] md:items-center"
         >
-          <span className="font-mono text-xs font-bold text-indigo-700">
+          <span className="font-mono text-xs font-bold text-slate-500">
             {ticket.code}
           </span>
           <span className="truncate text-xs font-semibold text-slate-900">

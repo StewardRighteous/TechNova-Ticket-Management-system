@@ -268,23 +268,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               </th>
               <th className="px-4 py-3">Incident</th>
               <th
-                className="cursor-pointer px-4 py-3"
-                onClick={() => handleSort("company")}
-              >
-                <div className="flex items-center gap-1">
-                  <span>Company & Contact</span>
-                  <span className="material-symbols-outlined text-[15px] opacity-70">
-                    {sortField === "company"
-                      ? sortAsc
-                        ? "arrow_drop_up"
-                        : "arrow_drop_down"
-                      : "unfold_more"}
-                  </span>
-                </div>
-              </th>
-              <th className="px-3 py-3">Channel</th>
-              <th className="px-4 py-3">Department</th>
-              <th
                 className="cursor-pointer px-3 py-3"
                 onClick={() => handleSort("priority")}
               >
@@ -299,7 +282,19 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </span>
                 </div>
               </th>
-              <th className="px-3 py-3">SLA Status</th>
+              <th
+                className=" px-4 py-3"
+          
+              >
+                <div className="flex items-center gap-1">
+                  <span>Company</span>
+             
+                </div>
+              </th>
+        
+              <th className="px-4 py-3">Department</th>
+              
+          
               <th
                 className="cursor-pointer px-3 py-3"
                 onClick={() => handleSort("status")}
@@ -315,7 +310,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </span>
                 </div>
               </th>
-              <th className="px-5 py-3 text-right">Action</th>
+              <th className="px-5 py-3">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -327,7 +322,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   onClick={() => onViewTicket(t.id)}
                   className="group cursor-pointer transition-colors hover:bg-indigo-50/40"
                 >
-                  <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-indigo-700">
+                  <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                     {t.code}
                   </td>
                   <td className="max-w-xs px-4 py-3">
@@ -338,23 +333,20 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       {t.description}
                     </div>
                   </td>
+                  <td className="px-3 py-3 whitespace-nowrap">
+                    <PriorityBadge priority={t.priority} />
+                  </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="font-semibold text-slate-900">
                       {t.companyName}
                     </div>
-                    {t.clientContact && (
-                      <div className="text-[11px] text-slate-500">
-                        {t.clientContact}
-                      </div>
-                    )}
+                  
                   </td>
 
-                  <td className="px-3 py-3 whitespace-nowrap">
-                    <ChannelBadge channel={t.channel} showText={false} />
-                  </td>
+              
 
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-normal">
                     <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">
                         corporate_fare
@@ -363,13 +355,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     </span>
                   </td>
 
-                  <td className="px-3 py-3 whitespace-nowrap">
-                    <PriorityBadge priority={t.priority} />
-                  </td>
+                  
 
-                  <td className="px-3 py-3 whitespace-nowrap">
-                    {renderSlaIndicator(t.slaRisk, t.slaDeadline)}
-                  </td>
+                
 
                   <td className="px-3 py-3 whitespace-nowrap">
                     <StatusBadge status={t.status} />

@@ -114,11 +114,11 @@ const CommunicationsPanel: React.FC<{
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col flex-col-reverse">
       {timeline.map((item, idx) => (
         <div
           key={item.id || idx}
-          className="relative border-l-2 border-indigo-100 pb-2 pl-6 last:border-transparent"
+          className="relative border-l-2 border-indigo-100 pb-2 pl-6 first:border-transparent"
         >
           <div className="absolute -left-1.75 top-0 h-3 w-3 rounded-full border-2 border-white bg-indigo-600 ring-2 ring-indigo-100" />
           <div className="flex items-center justify-between">
@@ -134,9 +134,26 @@ const CommunicationsPanel: React.FC<{
               {item.timestamp}
             </span>
           </div>
-          <div className="mt-0.5 text-xs font-semibold text-indigo-700">
-            {item.action}
-          </div>
+          {item.action.toLowerCase().includes("opened") && (
+            <div className="mt-0.5 text-xs font-semibold text-indigo-500">
+              {item.action}
+            </div>
+          )}
+          {item.action.toLowerCase().includes("escalated") && (
+            <div className="mt-0.5 text-xs font-semibold text-rose-500">
+              {item.action}
+            </div>
+          )}
+          {item.action.toLowerCase().includes("qa") && (
+            <div className="mt-0.5 text-xs font-semibold text-purple-500">
+              {item.action}
+            </div>
+          )}
+          {item.action.toLowerCase().includes("resolved") && (
+            <div className="mt-0.5 text-xs font-semibold text-emerald-500">
+              {item.action}
+            </div>
+          )}
           <p className="mt-1 rounded-lg border border-slate-100 bg-slate-50 p-2.5 text-xs leading-relaxed text-slate-600">
             {item.note}
           </p>

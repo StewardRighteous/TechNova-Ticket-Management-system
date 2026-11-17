@@ -90,7 +90,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
       <section className="rounded-2xl border border-slate-200 bg-slate-900 p-6 shadow-sm sm:p-8">
         <div className="flex items-center justify-between gap-3"><div><h1 className="text-2xl font-bold text-white">{company.name}</h1><span className="mt-2 inline-block rounded-full bg-indigo-400/20 px-3 py-1 text-xs font-semibold text-indigo-100">{company.tier} · {company.status}</span></div><div className="flex gap-2"><button type="button" onClick={() => setWorkspaceTab("contacts")} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-900">Add Contact</button><button type="button" onClick={() => setWorkspaceTab("tickets")} className="rounded-lg bg-indigo-500 px-3 py-2 text-xs font-bold text-white">Log Interaction</button></div></div>
         <div className="mt-5 border-b border-slate-200" />
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div className="mt-3 grid grid-cols-1 gap-1 sm:grid-cols-3">
           {[
             ["Account tier", company.tier],
             ["Account manager", company.accountManager],
@@ -99,9 +99,9 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
             ["Active contracts", company.activeContracts],
             ["Active tickets", company.activeTickets],
           ].map(([label, value]) => (
-            <div key={label}>
-              <p className="text-[10px] font-semibold tracking-wide text-white uppercase">
-                {label}
+            <div className="inline-flex gap-1 items-baseline" key={label}>
+              <p className=" text-[10px] font-semibold tracking-wide text-slate-200 capitalize">
+                {label}:
               </p>
               <p className="mt-1 text-sm font-semibold text-white">{value}</p>
             </div>

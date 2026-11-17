@@ -20,54 +20,40 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
     ticket.status === "Resolved" || ticket.status === "Closed";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6 text-white shadow-lg sm:p-8">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6  text-white shadow-lg sm:p-8">
       {/* Decorative grid */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
         <div className="h-full w-full bg-[length:24px_24px] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)]" />
       </div>
-
-      {/* Top row: ID + badges */}
-      <div className="relative flex flex-col gap-4 border-b border-white/10 pb-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="font-mono text-lg font-bold tracking-tight text-indigo-300">
-            {ticket.code}
-          </span>
-          <StatusBadge status={ticket.status} />
-          <PriorityBadge priority={ticket.priority} />
-          <ChannelBadge channel={ticket.channel} />
-        </div>
-
-        <SlaCountdown deadline={ticket.slaDeadline} dueAt={ticket.dueAt} risk={ticket.slaRisk} />
+      <div className="flex justify-between items-center">
+        {/* Title */}
+        <h1 className="relative  text-lg font-bold leading-snug tracking-tight text-white sm:text-xl">
+          {ticket.title}
+        </h1>
+        {/* Quick Action row */}
+        <div className="relative flex flex-wrap items-center gap-2">
+          <QuickActionButton
+            icon="trending_up"
+            label="Escalate"
+            variant="rose"
+            disabled={isTerminal || ticket.status === "Escalated"}
+            onClick={onEscalate}
+          />
+          <QuickActionButton
+            icon="fact_check"
+            label="Request QA Review"
+            variant="purple"
+            disabled={isTerminal || ticket.status === "Pending QA"}
+            onClick={onRequestQa}
+          />
+          <QuickActionButton
+            icon="check_circle"
+            label="Mark Resolved"
+            variant="emerald"
+            disabled={isTerminal}
+            onClick={onResolve}
+          />
       </div>
-
-      {/* Title */}
-      <h1 className="relative mt-4 text-lg font-bold leading-snug tracking-tight text-white sm:text-xl">
-        {ticket.title}
-      </h1>
-
-      {/* Quick Action row */}
-      <div className="relative mt-5 flex flex-wrap items-center gap-2">
-        <QuickActionButton
-          icon="trending_up"
-          label="Escalate"
-          variant="rose"
-          disabled={isTerminal || ticket.status === "Escalated"}
-          onClick={onEscalate}
-        />
-        <QuickActionButton
-          icon="fact_check"
-          label="Request QA Review"
-          variant="purple"
-          disabled={isTerminal || ticket.status === "Pending QA"}
-          onClick={onRequestQa}
-        />
-        <QuickActionButton
-          icon="check_circle"
-          label="Mark Resolved"
-          variant="emerald"
-          disabled={isTerminal}
-          onClick={onResolve}
-        />
       </div>
     </div>
   );

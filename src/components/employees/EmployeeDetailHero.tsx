@@ -92,9 +92,9 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
         </div>
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {summary.map(([label, value]) => (
-            <div key={label}>
-              <p className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
-                {label}
+            <div key={label} className="inline-flex gap-1 items-baseline">
+              <p className="text-xs font-semibold tracking-wide text-slate-400 capitalize">
+                {label}:
               </p>
               <p className="mt-1 text-sm font-semibold text-white">{value}</p>
             </div>

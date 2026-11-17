@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTicketStore } from "../../store";
-import type { RoleId } from "../../types";
+
 
 export const Header: React.FC = () => {
   const {
@@ -10,7 +10,6 @@ export const Header: React.FC = () => {
     data,
     setIsCreateModalOpen,
     isSidebarCollapsed,
-    setActivePersona,
     resetDemoData,
     addToast,
     logout,
@@ -28,12 +27,6 @@ export const Header: React.FC = () => {
     setIsProfileDropdownOpen(false);
   };
 
-  const personas: { id: RoleId; label: string }[] = [
-    { id: "support_agent", label: "Support Agent" },
-    { id: "development_team", label: "Dev Lead" },
-    { id: "operations_manager", label: "Operations Manager" },
-  ];
-
   return (
     <header
       className={`fixed top-0 right-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-6 backdrop-blur transition-all duration-300 ${
@@ -44,33 +37,7 @@ export const Header: React.FC = () => {
         {activeTab}
       </h1>
       <div className="flex items-center gap-4">
-        {/* Persona Switcher Dropdown */}
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-2.5 py-1">
-          <span className="material-symbols-outlined text-[16px] text-slate-400">
-            switch_account
-          </span>
-          <label htmlFor="persona-switcher" className="sr-only">
-            Active Persona
-          </label>
-          <select
-            id="persona-switcher"
-            aria-label="Active Persona"
-            value={activeRole}
-            onChange={(e) => {
-              const role = e.target.value as RoleId;
-              setActivePersona(role);
-              const label = personas.find((p) => p.id === role)?.label || role;
-              addToast(`Switched persona to ${label}`, "info");
-            }}
-            className="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"
-          >
-            {personas.map((persona) => (
-              <option key={persona.id} value={persona.id}>
-                {persona.label}
-              </option>
-            ))}
-          </select>
-        </div>
+    
 
         {/* Reset Demo Data Action */}
         <button
