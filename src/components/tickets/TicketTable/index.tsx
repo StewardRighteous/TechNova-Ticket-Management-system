@@ -64,7 +64,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const [departmentFilter, setDepartmentFilter] = useState<string[]>(initialDepartmentFilter ?? []);
 
   const [sortField, setSortField] = useState<SortField>("time");
-  const [sortAsc, setSortAsc] = useState<boolean>(false);
+  // The time comparator is newest first, so the initial direction is ascending.
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [page, setPage] = useState<number>(initialPage ?? 1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize ?? 10);
 
@@ -244,10 +245,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         <table className="w-full border-collapse text-left text-xs">
           <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
             <tr>
-              <th
-                className="cursor-pointer px-5 py-3"
-                onClick={() => handleSort("code")}
-              >
+              <th aria-sort={sortField === "code" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-5 py-3">
+                <button type="button" onClick={() => handleSort("code")} className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   <span>ID</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70">
@@ -258,12 +257,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       : "unfold_more"}
                   </span>
                 </div>
+                </button>
               </th>
               <th className="px-4 py-3">Incident</th>
-              <th
-                className="cursor-pointer px-3 py-3"
-                onClick={() => handleSort("priority")}
-              >
+              <th aria-sort={sortField === "priority" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-3">
+                <button type="button" onClick={() => handleSort("priority")} className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   <span>Priority</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70">
@@ -274,6 +272,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       : "unfold_more"}
                   </span>
                 </div>
+                </button>
               </th>
               <th
                 className=" px-4 py-3"
@@ -288,10 +287,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               <th className="px-4 py-3">Department</th>
               
           
-              <th
-                className="cursor-pointer px-3 py-3"
-                onClick={() => handleSort("status")}
-              >
+              <th aria-sort={sortField === "status" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-3">
+                <button type="button" onClick={() => handleSort("status")} className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   <span>Status</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70">
@@ -302,6 +299,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       : "unfold_more"}
                   </span>
                 </div>
+                </button>
               </th>
               <th className="px-5 py-3">Action</th>
             </tr>

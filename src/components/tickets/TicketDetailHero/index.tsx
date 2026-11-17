@@ -35,7 +35,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
   services = [],
   onUpdateTicket,
 }) => {
-  const { addToast, addTicketTimelineNote } = useTicketStore();
+  const { addToast, addTicketTimelineNote, activeRole } = useTicketStore();
 
   const handleEscalate = () => {
     onStatusChange("Escalated");
@@ -108,7 +108,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
               Workflow Actions
             </h4>
 
-            <WorkflowButton
+        {activeRole !== "development_team" && activeRole !== "qa" && <WorkflowButton
               icon="trending_up"
               label="Escalate to Senior Support / Dev"
               description="Route this ticket to L2/L3 for deeper investigation"
@@ -118,7 +118,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
                 ticket.status === "Resolved" ||
                 ticket.status === "Closed"
               }
-            />
+        />}
 
             <WorkflowButton
               icon="fact_check"
@@ -143,7 +143,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
             />
 
             {/* Reassignment */}
-            <div className="border-t border-slate-100 pt-3">
+            {activeRole !== "development_team" && activeRole !== "qa" && <div className="border-t border-slate-100 pt-3">
               <label className="mb-1 block text-xs font-semibold text-slate-700">
                 Reassign Ticket
               </label>
@@ -158,7 +158,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
                   </option>
                 ))}
               </select>
-            </div>
+            </div>}
           </div>
         </div>
       </div>

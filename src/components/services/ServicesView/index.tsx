@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTicketStore } from '../../../store/barrel';
 import { ServiceTable } from '../ServiceTable';
 import { ServiceDetailHero } from '../ServiceDetailHero';
 import { Breadcrumb } from '../../common/barrel';
 
 export const ServicesView: React.FC = () => {
-  const { data, updateService, setActiveTab, setSelectedTicketId } = useTicketStore();
-  const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
+  const { data, updateService } = useTicketStore();
+  const navigate = useNavigate();
+  const { serviceId: activeServiceId } = useParams<{ serviceId: string }>();
   const [tableState, setTableState] = useState({ page: 1, pageSize: 10, search: '', departmentFilter: [] as string[], statusFilter: [] as string[] });
 
   const selectedService = data.services.find((s) => s.id === activeServiceId);
@@ -17,19 +19,19 @@ export const ServicesView: React.FC = () => {
     <div className="space-y-4 p-2">
       {selectedService ? (
         <>
-          <Breadcrumb section="Services" current={selectedService.name} onBack={() => setActiveServiceId(null)} />
+          <Breadcrumb section="Services" current={selectedService.name} onBack={() => navigate("/services")} />
           <ServiceDetailHero
           service={selectedService}
           tickets={data.tickets}
           companies={data.companies}
           onUpdateService={handleUpdateService}
-          onOpenTicket={(ticketId) => { setSelectedTicketId(ticketId); setActiveTab('tickets'); }}
+          onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>
       ) : (
         <ServiceTable
           services={data.services}
-          onViewService={(id) => setActiveServiceId(id)}
+          onViewService={(id) => navigate(`/services/${encodeURIComponent(id)}`)}
           initialPage={tableState.page}
           initialPageSize={tableState.pageSize}
           initialSearch={tableState.search}

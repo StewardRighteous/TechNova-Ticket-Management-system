@@ -3,14 +3,16 @@ import { useTicketStore } from "../../store/barrel";
 import { TicketTable } from "./TicketTable";
 import { TicketDetailHero } from "./TicketDetailHero";
 import { filterTicketsByRole } from "../../utils/barrel";
+import { useNavigate, useParams } from "react-router-dom";
 
 export const TicketRegistryView: React.FC = () => {
+  const navigate = useNavigate();
+  const { ticketId } = useParams<{ ticketId: string }>();
   const {
     data,
     activeRole,
     currentUser,
     setSelectedTicketId,
-    selectedTicketId,
     ticketTableFocus,
     setTicketTableFocus,
     updateTicketStatus,
@@ -19,11 +21,7 @@ export const TicketRegistryView: React.FC = () => {
     setIsCreateModalOpen,
   } = useTicketStore();
 
-  const [activeTicketId, setActiveTicketId] = useState<string | null>(useTicketStore.getState().selectedTicketId);
   const [tableFocus] = useState(ticketTableFocus);
-  React.useEffect(() => {
-    if (selectedTicketId) setActiveTicketId(selectedTicketId);
-  }, [selectedTicketId]);
   React.useEffect(() => {
     if (ticketTableFocus) setTicketTableFocus(null);
   }, [setTicketTableFocus, ticketTableFocus]);
@@ -57,28 +55,28 @@ export const TicketRegistryView: React.FC = () => {
     currentUser?.id,
   );
   const selectedTicket =
-    roleTickets.find((t) => t.id === activeTicketId) ||
-    data.tickets.find((t) => t.id === activeTicketId);
+    roleTickets.find((t) => t.id === ticketId) ||
+    data.tickets.find((t) => t.id === ticketId);
 
   const handleViewTicket = useCallback(
     (id: string) => {
       // Save the current scroll position before navigating away
       tableStateRef.current.scrollTop = window.scrollY;
-      setActiveTicketId(id);
       setSelectedTicketId(id);
+      navigate(`/tickets/${encodeURIComponent(id)}`);
       window.scrollTo(0, 0);
     },
-    [setSelectedTicketId],
+    [navigate, setSelectedTicketId],
   );
 
   const handleBack = useCallback(() => {
-    setActiveTicketId(null);
     setSelectedTicketId(null);
+    navigate("/tickets");
     // Restore scroll position on next frame
     requestAnimationFrame(() => {
       window.scrollTo(0, tableStateRef.current.scrollTop);
     });
-  }, []);
+  }, [navigate, setSelectedTicketId]);
 
   const handleTableStateChange = useCallback(
     (state: {

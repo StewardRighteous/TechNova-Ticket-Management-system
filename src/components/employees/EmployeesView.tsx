@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeDetailHero } from "./EmployeeDetailHero";
@@ -6,8 +7,9 @@ import { filterEmployeesByRole } from "../../utils/barrel";
 import { Breadcrumb } from "../common/barrel";
 
 export const EmployeesView: React.FC = () => {
-  const { data, activeRole, updateEmployee, addToast, setActiveTab, setSelectedTicketId } = useTicketStore();
-  const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
+  const { data, activeRole, updateEmployee, addToast } = useTicketStore();
+  const navigate = useNavigate();
+  const { employeeId: activeEmployeeId } = useParams<{ employeeId: string }>();
 
   const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
   const selectedEmployee =
@@ -27,21 +29,21 @@ export const EmployeesView: React.FC = () => {
           <Breadcrumb
             section="Employees"
             current={selectedEmployee.name}
-            onBack={() => setActiveEmployeeId(null)}
+            onBack={() => navigate("/employees")}
           />
           <EmployeeDetailHero
             employee={selectedEmployee}
             tickets={data.tickets}
-            onBack={() => setActiveEmployeeId(null)}
+            onBack={() => navigate("/employees")}
             onUpdateEmployee={handleUpdateEmployee}
-            onOpenTicket={(ticketId) => { setSelectedTicketId(ticketId); setActiveTab("tickets"); }}
+            onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>
       ) : (
         <EmployeeTable
           employees={roleEmployees}
           activeRoleId={activeRole}
-          onViewEmployee={(id) => setActiveEmployeeId(id)}
+          onViewEmployee={(id) => navigate(`/employees/${encodeURIComponent(id)}`)}
         />
       )}
     </div>

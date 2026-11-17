@@ -1,11 +1,12 @@
 import React from "react";
 import { useTicketStore } from "../../../store/barrel";
 import { ROLE_PERMISSIONS, filterTicketsByRole } from "../../../utils/barrel";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const Sidebar: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
-    activeTab,
-    setActiveTab,
     data,
     activeRole,
     currentUser,
@@ -21,6 +22,8 @@ export const Sidebar: React.FC = () => {
   );
 
   const isTabAllowed = (tab: string) => permissions.allowedTabs.includes(tab);
+  const currentTab = location.pathname.split("/")[1] || "dashboard";
+  const goTo = (tab: string) => navigate(`/${tab}`);
 
   return (
     <aside
@@ -57,9 +60,9 @@ export const Sidebar: React.FC = () => {
         <div className="space-y-1 px-3 py-3">
           {/* Dashboard Tab */}
           <button
-            onClick={() => setActiveTab("dashboard")}
+            onClick={() => goTo("dashboard")}
             className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
-              activeTab === "dashboard"
+              currentTab === "dashboard"
                 ? "bg-indigo-50 text-indigo-600 shadow-sm"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
@@ -72,9 +75,9 @@ export const Sidebar: React.FC = () => {
 
           {isTabAllowed("tickets") && (
             <button
-              onClick={() => setActiveTab("tickets")}
+              onClick={() => goTo("tickets")}
               className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                activeTab === "tickets"
+                currentTab === "tickets"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
@@ -97,9 +100,9 @@ export const Sidebar: React.FC = () => {
 
           {isTabAllowed("companies") && (
             <button
-              onClick={() => setActiveTab("companies")}
+              onClick={() => goTo("companies")}
               className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                activeTab === "companies"
+                currentTab === "companies"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
@@ -117,9 +120,9 @@ export const Sidebar: React.FC = () => {
 
           {isTabAllowed("services") && (
             <button
-              onClick={() => setActiveTab("services")}
+              onClick={() => goTo("services")}
               className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                activeTab === "services"
+                currentTab === "services"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
@@ -137,9 +140,9 @@ export const Sidebar: React.FC = () => {
 
           {isTabAllowed("employees") && (
             <button
-              onClick={() => setActiveTab("employees")}
+              onClick={() => goTo("employees")}
               className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                activeTab === "employees"
+                currentTab === "employees"
                   ? "border border-indigo-200 bg-indigo-50 font-bold text-indigo-700"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
@@ -157,9 +160,9 @@ export const Sidebar: React.FC = () => {
 
           {isTabAllowed("settings") && (
             <button
-              onClick={() => setActiveTab("settings")}
+              onClick={() => goTo("settings")}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                activeTab === "settings"
+                currentTab === "settings"
                   ? "bg-indigo-50 font-bold text-indigo-700"
                   : "text-slate-600 hover:bg-slate-100"
               }`}

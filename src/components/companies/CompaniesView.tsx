@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { CompanyTable } from "./CompanyTable";
 import { CompanyDetailHero } from "./CompanyDetailHero";
@@ -6,8 +7,9 @@ import { filterCompaniesByRole } from "../../utils/barrel";
 import { Breadcrumb } from "../common/barrel";
 
 export const CompaniesView: React.FC = () => {
-  const { data, activeRole, currentUser, updateCompany, addToast, setActiveTab, setSelectedTicketId } = useTicketStore();
-  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
+  const { data, activeRole, currentUser, updateCompany, addToast } = useTicketStore();
+  const navigate = useNavigate();
+  const { companyId: activeCompanyId } = useParams<{ companyId: string }>();
 
   const roleCompanies = filterCompaniesByRole(
     data.companies,
@@ -34,20 +36,20 @@ export const CompaniesView: React.FC = () => {
           <Breadcrumb
             section="Companies"
             current={selectedCompany.name}
-            onBack={() => setActiveCompanyId(null)}
+            onBack={() => navigate("/companies")}
           />
           <CompanyDetailHero
             company={selectedCompany}
-            onBack={() => setActiveCompanyId(null)}
+            onBack={() => navigate("/companies")}
             onUpdateCompany={handleUpdateCompany}
             tickets={data.tickets.filter((ticket) => ticket.companyId === selectedCompany.id && !["Resolved", "Closed"].includes(ticket.status))}
-            onOpenTicket={(ticketId) => { setSelectedTicketId(ticketId); setActiveTab("tickets"); }}
+            onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>
       ) : (
         <CompanyTable
           companies={roleCompanies}
-          onViewCompany={(id) => setActiveCompanyId(id)}
+          onViewCompany={(id) => navigate(`/companies/${encodeURIComponent(id)}`)}
         />
       )}
     </div>

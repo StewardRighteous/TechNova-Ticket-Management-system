@@ -11,6 +11,7 @@ import { VolumeBreakdownCards } from "../VolumeBreakdownCards";
 import { HighAttentionTicketsTable } from "../HighAttentionTicketsTable";
 import { computeExecutiveMetrics } from "../dashboardMetrics";
 import { RecentTickets, NotificationsCard } from "../activityCards";
+import { useNavigate } from "react-router-dom";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -21,12 +22,12 @@ const getGreeting = () => {
 };
 
 export const DashboardView: React.FC = () => {
+  const navigate = useNavigate();
   const {
     data,
     activeRole,
     currentUser,
     setSelectedTicketId,
-    setActiveTab,
     setTicketTableFocus,
   } =
     useTicketStore();
@@ -45,13 +46,13 @@ export const DashboardView: React.FC = () => {
 
   const openTicket = (id: string) => {
     setSelectedTicketId(id);
-    setActiveTab("tickets");
+    navigate(`/tickets/${encodeURIComponent(id)}`);
   };
 
   const openTicketSection = (focus: "active" | "overdue" | "sla-risk" | "resolved") => {
     setSelectedTicketId(null);
     setTicketTableFocus(focus);
-    setActiveTab("tickets");
+    navigate("/tickets");
   };
 
   const entityCards = [
@@ -107,7 +108,7 @@ export const DashboardView: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setActiveTab("tickets")}
+              onClick={() => navigate("/tickets")}
               className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-white/20 hover:shadow-xs"
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -141,7 +142,7 @@ export const DashboardView: React.FC = () => {
           <button
             key={label}
             type="button"
-            onClick={() => setActiveTab(tab)}
+            onClick={() => navigate(`/${tab}`)}
             className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
           >
             <div className="absolute -top-8 -right-8 size-24 rounded-full bg-slate-50 transition group-hover:scale-125" />
@@ -179,7 +180,7 @@ export const DashboardView: React.FC = () => {
       <HighAttentionTicketsTable
         tickets={tickets}
         onSelectTicket={openTicket}
-        onExploreAll={() => setActiveTab("tickets")}
+        onExploreAll={() => navigate("/tickets")}
       />
 
       <div className="grid items-start gap-6 lg:grid-cols-[2fr_1fr]">
