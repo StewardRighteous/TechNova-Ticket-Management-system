@@ -73,10 +73,10 @@ export const Header: React.FC = () => {
         isSidebarCollapsed ? "left-15" : "left-64"
       }`}
     >
-      {createPage || detailPage ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+      {createPage || detailPage ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
         <button type="button" onClick={() => { const section = (createPage || detailPage)![1]; if (section === "tickets" && detailPage) setSelectedTicketId(null); const returnTo = section === "tickets" && detailPage ? (location.state as { returnTo?: string } | null)?.returnTo : undefined; navigate(returnTo || `/${section}`, { state: { ...((location.state as object | null) || {}), ticketScrollY: window.history.state?.usr?.ticketScrollY } }); }} className="capitalize text-indigo-600 hover:text-indigo-800">{(createPage || detailPage)![1]}</button>
         <span className="text-slate-300">›</span>
-        <h1 className="truncate text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</h1>
+        <h1 className="truncate text-base font-extrabold tracking-tight text-slate-900 sm:text-lg">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</h1>
       </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{location.pathname === "/notifications" ? "Notifications" : location.pathname === "/tickets" ? "All Tickets" : activeTab}</h1>}
       <div className="flex items-center gap-4">
     
