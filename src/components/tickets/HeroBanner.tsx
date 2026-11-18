@@ -4,7 +4,7 @@ import type { Ticket } from "../../types/barrel";
 interface HeroBannerProps { ticket: Ticket }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ ticket }) => {
-  return <div className="rounded-t-2xl bg-gradient-to-br from-slate-950 via-[#10264a] to-[#102f54] p-4 text-white sm:p-6">
+  return <div className="rounded-t-2xl bg-gradient-to-br from-[#1f2041] via-[#302a49] to-[#19647e] p-4 text-white sm:p-6">
     <section aria-labelledby="ticket-summary-title">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-white ${statusColor(ticket.status)}`}>{ticket.status}</span>

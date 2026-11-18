@@ -28,7 +28,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col justify-between border-r border-slate-200 bg-slate-900 transition-all duration-300 select-none ${
+      className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col justify-between border-r border-[#302a49] bg-[#1f2041] transition-all duration-300 select-none ${
         isSidebarCollapsed ? "w-17" : "w-64"
       }`}
     >
@@ -39,7 +39,7 @@ export const Sidebar: React.FC = () => {
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <button>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-700 text-white shadow-sm">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#19647e] text-white shadow-sm">
                 <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                   confirmation_number
                 </span>

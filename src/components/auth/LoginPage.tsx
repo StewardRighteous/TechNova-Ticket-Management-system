@@ -47,7 +47,7 @@ export const LoginPage: React.FC = () => {
     <main className="login-shell flex min-h-screen items-center justify-center p-4">
       <div className="login-card w-full max-w-[560px] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
         <header className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#111d39] text-white">
+          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#1f2041] text-white">
             <span
               aria-hidden="true"
               className="material-symbols-outlined text-[27px]"
@@ -55,7 +55,7 @@ export const LoginPage: React.FC = () => {
               confirmation_number
             </span>
           </div>
-          <h1 className="text-[24px] font-bold tracking-tight text-[#111d39] sm:text-[27px]">
+          <h1 className="text-[24px] font-bold tracking-tight text-[#1f2041] sm:text-[27px]">
             TechNova Solutions
           </h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -67,7 +67,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setMode("signin")}
-            className={`flex min-h-[42px] items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${mode === "signin" ? "border-[#102345] bg-[#102345] text-white shadow-sm" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+            className={`flex min-h-[42px] items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${mode === "signin" ? "border-[#1f2041] bg-[#1f2041] text-white shadow-sm" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
           >
             <span className="material-symbols-outlined text-[19px]">
               person
@@ -77,7 +77,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setMode("roles")}
-            className={`flex min-h-[42px] items-center justify-center gap-2 rounded-lg border px-3 text-sm transition ${mode === "roles" ? "border-[#102345] bg-[#102345] text-white shadow-sm" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+            className={`flex min-h-[42px] items-center justify-center gap-2 rounded-lg border px-3 text-sm transition ${mode === "roles" ? "border-[#1f2041] bg-[#1f2041] text-white shadow-sm" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
           >
             <span className="material-symbols-outlined text-[19px]">bolt</span>
             <span className="font-semibold">Instant Sign In</span>
@@ -86,7 +86,7 @@ export const LoginPage: React.FC = () => {
 
         {mode === "signin" ? (
           <>
-            <h2 className="mb-4 text-center text-[23px] font-bold tracking-tight text-[#111d39]">
+            <h2 className="mb-4 text-center text-[23px] font-bold tracking-tight text-[#1f2041]">
               Sign in
             </h2>
             <form onSubmit={handleFormSubmit} className="space-y-3.5">

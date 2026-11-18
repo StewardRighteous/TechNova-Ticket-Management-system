@@ -21,7 +21,7 @@ export const DemoPersonaGrid: React.FC<DemoPersonaGridProps> = ({
   return (
     <section className="mt-2" aria-label={heading}>
       <div className="mb-4">
-        <h2 className=" text-center text-[22px] font-bold tracking-tight text-[#111d39]">
+        <h2 className=" text-center text-[22px] font-bold tracking-tight text-[#1f2041]">
           {heading}
         </h2>
         <p className="text-center text-sm text-slate-500">

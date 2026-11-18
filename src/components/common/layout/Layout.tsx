@@ -24,7 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [currentUser?.id]);
 
   return (
-    <div className={`min-h-screen bg-[#f8f9ff] text-slate-900${compactMode ? " compact-workspace" : ""}`}>
+    <div className={`min-h-screen bg-[#f6f8fa] text-slate-900${compactMode ? " compact-workspace" : ""}`}>
       <Sidebar />
       <div
         className={`transition-all duration-300 ${

@@ -1,13 +1,52 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-indigo: #1f2041;
+  --color-brand-purple: #4b3f72;
+  --color-brand-gold: #ffc857;
+  --color-brand-teal: #119da4;
+  --color-brand-blue: #19647e;
+  --color-indigo-50: #e9f7f7;
+  --color-indigo-100: #d4eeee;
+  --color-indigo-200: #a8dddd;
+  --color-indigo-300: #75c7c9;
+  --color-indigo-400: #42b0b5;
+  --color-indigo-500: #119da4;
+  --color-indigo-600: #0e858d;
+  --color-indigo-700: #0d6d77;
+  --color-indigo-800: #125965;
+  --color-indigo-900: #164a55;
+  --color-indigo-950: #1f2041;
+  --color-violet-50: #f0edf5;
+  --color-violet-100: #e4dfed;
+  --color-violet-200: #c9c0db;
+  --color-violet-300: #a89abc;
+  --color-violet-400: #85749d;
+  --color-violet-500: #6a5a83;
+  --color-violet-600: #594a73;
+  --color-violet-700: #4b3f72;
+  --color-violet-800: #3d345d;
+  --color-violet-900: #302a49;
+  --color-blue-50: #eaf4f7;
+  --color-blue-100: #d2e8ed;
+  --color-blue-200: #a8d3dc;
+  --color-blue-300: #75b8c8;
+  --color-blue-400: #4599ae;
+  --color-blue-500: #19647e;
+  --color-blue-600: #16566f;
+  --color-blue-700: #14485e;
+  --color-blue-800: #123c4e;
+  --color-blue-900: #103342;
+}
+
 @layer base {
   :root {
-    --color-text-primary: #0b1c30;
+    --color-text-primary: #1f2041;
     --color-text-secondary: #475569;
     --color-surface: #ffffff;
     --color-surface-muted: #f1f5f9;
-    --color-accent: #4b41e1;
-    --color-focus: #4b41e1;
+    --color-accent: #119da4;
+    --color-focus: #119da4;
     --color-status-open: #92400e;
     --color-status-progress: #3730a3;
     --color-status-escalated: #9f1239;
@@ -19,21 +58,21 @@
     --on-error-container: #93000a;
     --on-background: #0b1c30;
     --on-secondary-fixed: #0f0069;
-    --surface: #f8f9ff;
-    --surface-bright: #f8f9ff;
-    --surface-container: #e5eeff;
+    --surface: #f6f8fa;
+    --surface-bright: #f6f8fa;
+    --surface-container: #e9f0f2;
     --on-secondary-container: #fffbff;
     --tertiary-container: #410004;
     --primary-fixed-dim: #bec6e0;
     --surface-container-lowest: #ffffff;
-    --secondary: #4b41e1;
+    --secondary: #4b3f72;
     --inverse-primary: #bec6e0;
     --tertiary-fixed-dim: #ffb3ad;
-    --surface-dim: #cbdbf5;
+    --surface-dim: #dce6e8;
     --primary-fixed: #dae2fd;
-    --on-surface: #0b1c30;
-    --primary: #000000;
-    --background: #f8f9ff;
+    --on-surface: #1f2041;
+    --primary: #119da4;
+    --background: #f6f8fa;
     --surface-container-highest: #d3e4fe;
     --surface-variant: #d3e4fe;
     --error-container: #ffdad6;
@@ -46,7 +85,7 @@
     --surface-container-high: #dce9ff;
     --on-primary: #ffffff;
     --secondary-container: #645efb;
-    --primary-container: #131b2e;
+    --primary-container: #1f2041;
     --surface-tint: #565e74;
     --on-secondary: #ffffff;
     --on-tertiary-fixed: #410004;
@@ -99,20 +138,20 @@
 
 @layer components {
   .dashboard-page {
-    background: radial-gradient(ellipse at 70% 0%, #eef2ff 0%, transparent 45%);
+    background: radial-gradient(ellipse at 70% 0%, #e9f7f7 0%, transparent 45%);
   }
 
   .dashboard-welcome {
     min-height: 72px;
-    background: radial-gradient(ellipse at 58% 120%, rgb(67 56 202 / 35%), transparent 30%), linear-gradient(105deg, #111a3c, #171e49 58%, #101a35);
+    background: radial-gradient(ellipse at 58% 120%, rgb(17 157 164 / 28%), transparent 30%), linear-gradient(105deg, #1f2041, #302a49 58%, #19647e);
   }
 
   .dashboard-overview-card > section[aria-labelledby="dashboard-operations-heading"] {
-    background: #f8fafc;
+    background: #f5f8f9;
   }
 
   .dashboard-overview-card > section {
-    background: linear-gradient(180deg, #fff, #fbfcff);
+    background: linear-gradient(180deg, #fff, #f8fbfb);
   }
 
   #high-attention-incidents,

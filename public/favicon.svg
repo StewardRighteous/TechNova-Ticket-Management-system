@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TechNova">
-  <rect width="64" height="64" rx="17" fill="#334155" />
+  <rect width="64" height="64" rx="17" fill="#1F2041" />
   <path d="M18 20h28a3 3 0 0 1 3 3v4a5 5 0 0 0 0 10v4a3 3 0 0 1-3 3H18a3 3 0 0 1-3-3v-4a5 5 0 0 0 0-10v-4a3 3 0 0 1 3-3Z" fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round" />
   <path d="M32 23v3m0 4v3m0 4v3" stroke="#fff" stroke-width="3" stroke-linecap="round" />
 </svg>
