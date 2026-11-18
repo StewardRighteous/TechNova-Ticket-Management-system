@@ -53,18 +53,23 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
     priority.toLowerCase().includes("urgent") ||
     priority.toLowerCase().includes("high")
   ) {
-    badgeClasses = "border border-red-300 bg-red-50 text-red-900";
+    badgeClasses = "bg-red-50 text-red-900";
   } else if (
     priority.includes("P2") ||
     priority.toLowerCase().includes("normal") ||
     priority.toLowerCase().includes("medium")
   ) {
-    badgeClasses = "border border-slate-300 bg-slate-100 text-slate-900";
+    badgeClasses = "bg-slate-100 text-slate-900";
   } else if (
     priority.includes("P3") ||
     priority.toLowerCase().includes("low")
   ) {
-    badgeClasses = "border border-slate-300 bg-slate-100 text-slate-900";
+    badgeClasses = "bg-slate-100 text-slate-900";
+  } else if (
+    priority.includes("P4") ||
+    priority.toLowerCase().includes("trivial")
+  ) {
+    badgeClasses = "bg-sky-50 text-sky-800";
   }
 
   return (

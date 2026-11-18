@@ -222,8 +222,17 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <h2 className="text-lg font-bold tracking-tight">{activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}</h2>
           <p className="mt-1 text-xs text-slate-300">Review, prioritize, and manage support requests.</p>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {[["TOTAL", tickets.length, "border-blue-400/30 bg-blue-500/15 text-blue-200"], ["OPEN", tickets.filter((ticket) => ticket.status === "Open").length, "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"], ["IN PROGRESS", tickets.filter((ticket) => ticket.status === "In Progress").length, "border-amber-400/30 bg-amber-500/15 text-amber-200"], ["RESOLVED", tickets.filter((ticket) => ticket.status === "Resolved" || ticket.status === "Closed").length, "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"]].map(([label, count, styles]) => <div key={String(label)} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
+          {[
+            ["TOTAL", tickets.length, "border-blue-400/30 bg-blue-500/15 text-blue-200"],
+            ["OPEN", tickets.filter((ticket) => ticket.status === "Open").length, "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"],
+            ["IN PROGRESS", tickets.filter((ticket) => ticket.status === "In Progress").length, "border-amber-400/30 bg-amber-500/15 text-amber-200"],
+            ["ESCALATED", tickets.filter((ticket) => ticket.status === "Escalated").length, "border-orange-400/30 bg-orange-500/15 text-orange-200"],
+            ["UNDER REVIEW", tickets.filter((ticket) => ticket.status === "Under Review").length, "border-cyan-400/30 bg-cyan-500/15 text-cyan-200"],
+            ["PENDING QA", tickets.filter((ticket) => ticket.status === "Pending QA").length, "border-violet-400/30 bg-violet-500/15 text-violet-200"],
+            ["RESOLVED", tickets.filter((ticket) => ticket.status === "Resolved").length, "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"],
+            ["CLOSED", tickets.filter((ticket) => ticket.status === "Closed").length, "border-slate-400/30 bg-slate-500/15 text-slate-200"],
+          ].map(([label, count, styles]) => <div key={String(label)} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
@@ -257,35 +266,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         <table className="ticket-list-table w-full border-collapse text-left text-xs">
           <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
             <tr>
-              <th aria-sort={sortField === "code" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-5 py-2.5">
-                <button type="button" onClick={() => handleSort("code")} className="flex items-center gap-1">
-                <div className="flex items-center gap-1">
-                  <span>ID</span>
-                  <span className="material-symbols-outlined text-[15px] opacity-70">
-                    {sortField === "code"
-                      ? sortAsc
-                        ? "arrow_drop_up"
-                        : "arrow_drop_down"
-                      : "unfold_more"}
-                  </span>
-                </div>
-                </button>
-              </th>
+              <th className="px-5 py-2.5">ID</th>
               <th className="px-4 py-2.5">Incident</th>
-              <th aria-sort={sortField === "priority" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-2.5">
-                <button type="button" onClick={() => handleSort("priority")} className="flex items-center gap-1">
-                <div className="flex items-center gap-1">
-                  <span>Priority</span>
-                  <span className="material-symbols-outlined text-[15px] opacity-70">
-                    {sortField === "priority"
-                      ? sortAsc
-                        ? "arrow_drop_up"
-                        : "arrow_drop_down"
-                      : "unfold_more"}
-                  </span>
-                </div>
-                </button>
-              </th>
+              <th className="px-3 py-2.5">Priority</th>
               <th
                 className=" px-4 py-2.5"
           
@@ -299,21 +282,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               <th className="px-4 py-2.5">Department</th>
               
           
-              <th aria-sort={sortField === "status" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-2.5">
-                <button type="button" onClick={() => handleSort("status")} className="flex items-center gap-1">
-                <div className="flex items-center gap-1">
-                  <span>Status</span>
-                  <span className="material-symbols-outlined text-[15px] opacity-70">
-                    {sortField === "status"
-                      ? sortAsc
-                        ? "arrow_drop_up"
-                        : "arrow_drop_down"
-                      : "unfold_more"}
-                  </span>
-                </div>
-                </button>
-              </th>
-              <th className="px-5 py-2.5 text-right">Action</th>
+              <th className="px-3 py-2.5">Status</th>
+              <th className="px-5 py-2.5">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -363,7 +333,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     <StatusBadge status={t.status} />
                   </td>
 
-                  <td className="px-5 py-2.5 text-right whitespace-nowrap"><button type="button" onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ticket ${t.code}`} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span>Open ticket</span><span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_forward</span></button></td>
+                  <td className="px-5 py-2.5 whitespace-nowrap"><button type="button" onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ticket ${t.code}`} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span>Open ticket</span><span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_forward</span></button></td>
                 </tr>
               );
             })}
@@ -408,7 +378,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[10, 25, 50]}
+        pageSizeOptions={[5, 10, 20, 25, 50, 75, 100]}
       />
     </div>
   );

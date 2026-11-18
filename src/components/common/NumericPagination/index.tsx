@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export interface NumericPaginationProps {
   totalItems: number;
@@ -16,9 +16,11 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 25, 50],
+  pageSizeOptions = [5, 10, 20, 25, 50, 75, 100],
   className = "",
 }) => {
+  const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
+  const pageSizeRef = useRef<HTMLDivElement>(null);
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
 
@@ -54,6 +56,24 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
   };
 
   const pageNumbers = getPageNumbers();
+
+  useEffect(() => {
+    if (!isPageSizeOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (pageSizeRef.current && !pageSizeRef.current.contains(event.target as Node)) {
+        setIsPageSizeOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsPageSizeOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isPageSizeOpen]);
 
   return (
     <div
@@ -126,23 +146,42 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
       </div>
 
       {/* Page size selector */}
-      <label className="flex items-center gap-2 text-xs font-medium text-slate-500">
-        <span>Rows per page:</span>
-        <span className="relative">
-          <select
-            value={pageSize}
-            onChange={(event) => {
-              onPageSizeChange(Number(event.target.value));
-              onPageChange(1);
-            }}
+      <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+        <span className="whitespace-nowrap">Rows per page</span>
+        <span className="relative inline-flex" ref={pageSizeRef}>
+          <button
+            type="button"
             aria-label="Rows per page"
-            className="h-8 appearance-none rounded-lg border border-slate-200 bg-white py-1 pl-3 pr-8 text-xs font-semibold text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            aria-haspopup="listbox"
+            aria-expanded={isPageSizeOpen}
+            onClick={() => setIsPageSizeOpen((open) => !open)}
+            className="inline-flex h-9 min-w-20 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 py-1 pl-3 pr-2 text-sm font-semibold text-slate-800 outline-none transition hover:border-slate-300 hover:bg-white focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
           >
-            {pageSizeOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          <span className="material-symbols-outlined pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 text-[16px] text-slate-400">expand_more</span>
+            <span>{pageSize}</span>
+            <span aria-hidden="true" className="material-symbols-outlined text-[18px] text-slate-500">{isPageSizeOpen ? "expand_less" : "expand_more"}</span>
+          </button>
+          {isPageSizeOpen && (
+            <div role="listbox" aria-label="Rows per page options" className="max-h-64 min-w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden absolute right-0 bottom-full z-50 mb-2">
+              {pageSizeOptions.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  role="option"
+                  aria-selected={opt === pageSize}
+                  aria-label={`${opt} per page`}
+                  onClick={() => {
+                    onPageSizeChange(opt);
+                    onPageChange(1);
+                    setIsPageSizeOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${opt === pageSize ? "bg-teal-600 text-white" : "text-slate-700 hover:bg-teal-50 hover:text-teal-900"}`}
+                >
+                  {opt}
+                  {opt === pageSize && <span aria-hidden="true" className="material-symbols-outlined text-base">check</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </span>
       </label>
     </div>

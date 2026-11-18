@@ -81,7 +81,6 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={statusOptions}
         selectedValues={statusFilter}
         onChange={setStatusFilter}
-        showBadges
         placeholder="Search status..."
       />}
 
@@ -91,7 +90,6 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={priorityOptions}
         selectedValues={priorityFilter}
         onChange={setPriorityFilter}
-        showBadges
         placeholder="Search priority..."
       />}
 
@@ -101,7 +99,6 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={channelOptions}
         selectedValues={channelFilter}
         onChange={setChannelFilter}
-        showBadges
         placeholder="Search channel..."
       />}
 
@@ -111,7 +108,6 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={deptComboboxOptions}
         selectedValues={departmentFilter}
         onChange={setDepartmentFilter}
-        showBadges
         placeholder="Search department..."
       />}
 
@@ -122,7 +118,6 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
           className="flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
         >
           <span className="material-symbols-outlined text-[14px]">filter_alt_off</span>
-          <span>Reset</span>
         </button>
       )}
     </div>
