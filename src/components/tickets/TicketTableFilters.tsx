@@ -17,6 +17,10 @@ export interface TicketTableFiltersProps {
   setDepartmentFilter: (departments: string[]) => void;
   departmentOptions: TicketDepartmentOption[];
   onClearAll?: () => void;
+  showStatus?: boolean;
+  showPriority?: boolean;
+  showChannelFilter?: boolean;
+  showDepartmentFilter?: boolean;
 }
 
 const statusOptions = [
@@ -53,6 +57,10 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
   setDepartmentFilter,
   departmentOptions,
   onClearAll,
+  showStatus = true,
+  showPriority = true,
+  showChannelFilter = true,
+  showDepartmentFilter = true,
 }) => {
   const deptComboboxOptions = departmentOptions.map((d) => ({
     value: d.id,
@@ -68,44 +76,44 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Status Combobox Filter */}
-      <ComboboxFilter
+      {showStatus && <ComboboxFilter
         label="Status"
         options={statusOptions}
         selectedValues={statusFilter}
         onChange={setStatusFilter}
         showBadges
         placeholder="Search status..."
-      />
+      />}
 
       {/* Priority Combobox Filter */}
-      <ComboboxFilter
+      {showPriority && <ComboboxFilter
         label="Priority"
         options={priorityOptions}
         selectedValues={priorityFilter}
         onChange={setPriorityFilter}
         showBadges
         placeholder="Search priority..."
-      />
+      />}
 
       {/* Channel Combobox Filter */}
-      <ComboboxFilter
+      {showChannelFilter && <ComboboxFilter
         label="Channel"
         options={channelOptions}
         selectedValues={channelFilter}
         onChange={setChannelFilter}
         showBadges
         placeholder="Search channel..."
-      />
+      />}
 
       {/* Department Combobox Filter */}
-      <ComboboxFilter
+      {showDepartmentFilter && <ComboboxFilter
         label="Department"
         options={deptComboboxOptions}
         selectedValues={departmentFilter}
         onChange={setDepartmentFilter}
         showBadges
         placeholder="Search department..."
-      />
+      />}
 
       {hasActiveFilters && onClearAll && (
         <button

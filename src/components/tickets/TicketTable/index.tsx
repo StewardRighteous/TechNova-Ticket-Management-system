@@ -4,12 +4,7 @@ import type {
   Team,
   Department,
 } from "../../../types/barrel";
-import {
-  PriorityBadge,
-  StatusBadge,
-  NumericPagination,
-  TableHeaderSection,
-} from "../../common/barrel";
+import { PriorityBadge, StatusBadge, NumericPagination } from "../../common/barrel";
 import { TicketTableFilters } from "../TicketTableFilters";
 import type { TicketTableFocus } from "../../../store/ticketStore";
 import { getOverdueTickets, isTicketSlaAtRisk } from "../../dashboard/dashboardMetrics";
@@ -222,47 +217,47 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <TableHeaderSection
-        title={activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}
-        searchQuery={searchInput}
-        onSearchChange={(s) => setSearchInput(s)}
-        searchPlaceholder="Filter by ID, issue, client..."
-        onClick={onCreateNew}
-      >
+      <div className="flex flex-col justify-between gap-4 bg-slate-900 px-5 py-5 text-white sm:flex-row sm:items-center sm:px-6">
+        <div>
+          <h2 className="text-lg font-bold tracking-tight">{activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}</h2>
+          <p className="mt-1 text-xs text-slate-300">Review, prioritize, and manage support requests.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[["TOTAL", tickets.length, "border-blue-400/30 bg-blue-500/15 text-blue-200"], ["OPEN", tickets.filter((ticket) => ticket.status === "Open").length, "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"], ["IN PROGRESS", tickets.filter((ticket) => ticket.status === "In Progress").length, "border-amber-400/30 bg-amber-500/15 text-amber-200"], ["RESOLVED", tickets.filter((ticket) => ticket.status === "Resolved" || ticket.status === "Closed").length, "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"]].map(([label, count, styles]) => <div key={String(label)} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
+        <div className="relative min-w-52 w-full sm:w-auto sm:flex-1 sm:max-w-xs">
+          <span aria-hidden="true" className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500">search</span>
+          <input type="search" id="ticket-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search tickets..." aria-label="Search tickets" className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-200" />
+        </div>
         {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span><button type="button" aria-label="Remove dashboard scope" onClick={onClearScope} className="rounded-full px-1 text-indigo-700 hover:bg-indigo-100">×</button></div>}
-        <span className="text-xs text-slate-500" aria-live="polite">{filtered.length} {filtered.length === 1 ? "ticket" : "tickets"}</span>
-        <label className="flex items-center gap-2 text-xs font-medium text-slate-600">Sort by <select aria-label="Sort tickets by" className="rounded-md border border-slate-200 bg-white px-2 py-1" value={sortField} onChange={(event) => setSortField(event.target.value as SortField)}>{[["time", "Date created"], ["code", "Ticket ID"], ["title", "Title"], ["company", "Company"], ["priority", "Priority"], ["status", "Status"]].map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><button type="button" aria-label={`Sort ${sortAsc ? "descending" : "ascending"}`} onClick={() => setSortAsc((ascending) => !ascending)} className="rounded border border-slate-200 px-2 py-1">{sortAsc ? "Ascending" : "Descending"}</button></label>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
         <TicketTableFilters
           channelFilter={channelFilter}
-          setChannelFilter={(c) => {
-            setChannelFilter(c);
-            setPage(1);
-          }}
+          setChannelFilter={(c) => { setChannelFilter(c); setPage(1); }}
           priorityFilter={priorityFilter}
-          setPriorityFilter={(p) => {
-            setPriorityFilter(p);
-            setPage(1);
-          }}
+          setPriorityFilter={(p) => { setPriorityFilter(p); setPage(1); }}
           statusFilter={statusFilter}
-          setStatusFilter={(status) => {
-            setStatusFilter(status);
-            setPage(1);
-          }}
+          setStatusFilter={(status) => { setStatusFilter(status); setPage(1); }}
           departmentFilter={departmentFilter}
-          setDepartmentFilter={(d) => {
-            setDepartmentFilter(d);
-            setPage(1);
-          }}
+          setDepartmentFilter={(d) => { setDepartmentFilter(d); setPage(1); }}
           departmentOptions={departments}
           onClearAll={clearAllFilters}
+          showStatus
+          showPriority
+          showChannelFilter={false}
+          showDepartmentFilter={false}
         />
-      </TableHeaderSection>
+        <button type="button" onClick={onCreateNew} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span aria-hidden="true" className="material-symbols-outlined text-base">add</span>New Ticket</button>
+        </div>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="ticket-list-table w-full border-collapse text-left text-xs">
-          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
             <tr>
-              <th aria-sort={sortField === "code" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-5 py-3">
+              <th aria-sort={sortField === "code" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-5 py-2.5">
                 <button type="button" onClick={() => handleSort("code")} className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   <span>ID</span>
@@ -276,8 +271,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 </div>
                 </button>
               </th>
-              <th className="px-4 py-3">Incident</th>
-              <th aria-sort={sortField === "priority" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-3">
+              <th className="px-4 py-2.5">Incident</th>
+              <th aria-sort={sortField === "priority" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-2.5">
                 <button type="button" onClick={() => handleSort("priority")} className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   <span>Priority</span>
@@ -292,7 +287,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 </button>
               </th>
               <th
-                className=" px-4 py-3"
+                className=" px-4 py-2.5"
           
               >
                 <div className="flex items-center gap-1">
@@ -301,10 +296,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 </div>
               </th>
         
-              <th className="px-4 py-3">Department</th>
+              <th className="px-4 py-2.5">Department</th>
               
           
-              <th aria-sort={sortField === "status" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-3">
+              <th aria-sort={sortField === "status" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-3 py-2.5">
                 <button type="button" onClick={() => handleSort("status")} className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   <span>Status</span>
@@ -318,7 +313,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 </div>
                 </button>
               </th>
-              <th className="px-5 py-3">Action</th>
+              <th className="px-5 py-2.5 text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -333,19 +328,16 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                     {t.code}
                   </td>
-                  <td className="max-w-sm px-4 py-3">
+                  <td className="max-w-sm px-4 py-2.5">
                     <button type="button" data-ticket-link={t.id} onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ${t.code}: ${t.title}`} title={t.title} className="line-clamp-2 text-left font-bold text-slate-900 transition-colors hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600">
                       {t.title}
                     </button>
-                    <div className="line-clamp-1 text-[11px] text-slate-500">
-                      {t.description}
-                    </div>
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap">
+                  <td className="px-3 py-2.5 whitespace-nowrap">
                     <PriorityBadge priority={t.priority} />
                   </td>
 
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <div className="font-semibold text-slate-900">
                       {t.companyName}
                     </div>
@@ -354,7 +346,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
               
 
-                  <td className="px-4 py-3 whitespace-normal">
+                  <td className="px-4 py-2.5 whitespace-normal">
                     <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700">
                       <span className="material-symbols-outlined text-[14px] text-slate-400">
                         corporate_fare
@@ -367,11 +359,11 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
                 
 
-                  <td className="px-3 py-3 whitespace-nowrap">
+                  <td className="px-3 py-2.5 whitespace-nowrap">
                     <StatusBadge status={t.status} />
                   </td>
 
-                  <td className="px-5 py-3 text-right whitespace-nowrap"><span className="text-xs text-slate-400">Open ticket</span></td>
+                  <td className="px-5 py-2.5 text-right whitespace-nowrap"><button type="button" onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ticket ${t.code}`} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span>Open ticket</span><span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_forward</span></button></td>
                 </tr>
               );
             })}

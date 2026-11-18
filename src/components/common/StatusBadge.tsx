@@ -10,7 +10,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
   switch (status) {
     case "Open":
-      colorStyles = "border border-amber-300 bg-amber-50 text-amber-900";
+      colorStyles = "border border-sky-300 bg-sky-50 text-sky-900";
       break;
     case "In Progress":
       colorStyles = "border border-indigo-300 bg-indigo-50 text-indigo-900";
@@ -34,7 +34,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full ${colorStyles} px-2 py-1 text-sm font-semibold`}
+      className={`inline-flex items-center gap-1.5 rounded-full ${colorStyles} px-2 py-1 text-xs font-semibold`}
     >
       {status}
     </span>
@@ -59,7 +59,7 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
     priority.toLowerCase().includes("normal") ||
     priority.toLowerCase().includes("medium")
   ) {
-    badgeClasses = "border border-blue-300 bg-blue-50 text-blue-900";
+    badgeClasses = "border border-slate-300 bg-slate-100 text-slate-900";
   } else if (
     priority.includes("P3") ||
     priority.toLowerCase().includes("low")
@@ -69,9 +69,9 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold ${badgeClasses}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses}`}
     >
-      {priority.slice(2)}
+      {priority.replace(/^P\d\s*/i, "")}
     </span>
   );
 };

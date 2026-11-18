@@ -66,7 +66,7 @@ const RouteContent: React.FC = () => {
       heading.tabIndex = -1;
       heading.focus({ preventScroll: true });
     }
-  }, [location.key, navigationType]);
+  }, [location.pathname, navigationType]);
 
   if (!isAuthenticated) return <LoginPage />;
   if (!ROLE_PERMISSIONS[activeRole].allowedTabs.includes(tab) || (tab === "settings" && !ROLE_PERMISSIONS[activeRole].canConfigureSettings)) return <AccessDenied destination="/dashboard" />;

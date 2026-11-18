@@ -24,7 +24,8 @@ export const RecentTickets: React.FC<{
   tickets: Ticket[];
   onOpen: (id: string) => void;
   onViewAll?: () => void;
-}> = ({ tickets, onOpen, onViewAll }) => (
+  hideLatestUpdates?: boolean;
+}> = ({ tickets, onOpen, onViewAll, hideLatestUpdates = false }) => (
   <section
     id="recent-tickets"
     className="scroll-mt-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs"
@@ -44,11 +45,11 @@ export const RecentTickets: React.FC<{
         >
           Latest updates
         </button>
-      ) : (
+      ) : !hideLatestUpdates ? (
         <span className="text-xs font-bold text-indigo-600">
           Latest updates
         </span>
-      )}
+      ) : null}
     </div>
     <div className="divide-y divide-slate-100">
       {tickets.map((ticket) => (
