@@ -74,28 +74,12 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
           setSearch(s);
           setPage(1);
         }}
-        searchPlaceholder="Filter engineer name or role..."
+        searchPlaceholder="Search employees by name, role, or email..."
         onClick={onCreateNew}
       >
         <ComboboxFilter label="Department" selectedValues={departmentFilter} onChange={(v) => { setDepartmentFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.departmentId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
         <ComboboxFilter label="Location" selectedValues={locationFilter} onChange={(v) => { setLocationFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.locationId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
-        <ComboboxFilter label="Role" singleSelect selectedValues={roleFilter === "all" ? [] : [roleFilter]} onChange={(v) => { setRoleFilter(v[0] || "all"); setPage(1); }} options={[...new Set(employees.map((e) => e.role))].map((v) => ({ value: v, label: v }))} />
-        <select
-          value={roleFilter}
-          onChange={(e) => {
-            setRoleFilter(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"
-        >
-          <option value="all">All Roles</option>
-          <option value="support_agent">Support Agent</option>
-          <option value="senior_support">Senior Support</option>
-          <option value="development_team">Dev Team</option>
-          <option value="qa">QA & Test</option>
-          <option value="account_manager">Account Manager</option>
-          <option value="operations_manager">Operations Manager</option>
-        </select>
+        <ComboboxFilter label="Role" singleSelect selectedValues={roleFilter === "all" ? [] : [roleFilter]} onChange={(v) => { setRoleFilter(v[0] || "all"); setPage(1); }} options={[...new Set(employees.map((e) => e.role))].map((v) => ({ value: v, label: ({support_agent:"Support Agent",senior_support:"Senior Support",development_team:"Development Team",qa:"QA & Test",account_manager:"Account Manager",operations_manager:"Operations Manager",management:"Management"}[v] || v) }))} />
         <select
           value={statusFilter}
           onChange={(e) => {
@@ -211,8 +195,9 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-left whitespace-nowrap">
-                    <button
-                      onClick={() => onViewEmployee(emp.id)}
+                      <button
+                      type="button"
+                      onClick={(event) => { event.stopPropagation(); onViewEmployee(emp.id); }}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
                     >
                       <span className="material-symbols-outlined text-[15px]">

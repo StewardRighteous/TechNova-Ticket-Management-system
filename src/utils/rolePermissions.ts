@@ -11,15 +11,40 @@ export function canAccessTicket(ticket: Ticket, role: RoleId, employeeId?: strin
   return filterTicketsByRole([ticket], role, employeeId, companyIds).length > 0;
 }
 
+const allowedTransitions: Record<Ticket["status"], Ticket["status"][]> = {
+  Open: ["In Progress", "Escalated", "Closed"],
+  "In Progress": ["Under Review", "Escalated", "Pending QA", "Resolved", "Closed"],
+  Escalated: ["In Progress", "Under Review", "Pending QA", "Resolved", "Closed"],
+  "Under Review": ["In Progress", "Escalated", "Pending QA", "Resolved", "Closed"],
+  "Pending QA": ["In Progress", "Under Review", "Resolved", "Closed"],
+  Resolved: ["In Progress", "Closed"],
+  Closed: [],
+};
+
+const roleTransitions: Record<RoleId, Ticket["status"][]> = {
+  operations_manager: ["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"],
+  management: ["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"],
+  support_agent: ["In Progress", "Escalated"],
+  senior_support: ["In Progress", "Escalated", "Under Review", "Pending QA", "Resolved"],
+  development_team: ["In Progress", "Under Review", "Resolved"],
+  qa: ["Pending QA", "Resolved"],
+  account_manager: ["Open"],
+};
+
 export function canChangeTicketStatus(role: RoleId, status: Ticket["status"]): boolean {
-  if (role === "operations_manager" || role === "management") return true;
-  const transitions: Partial<Record<RoleId, Ticket["status"][]>> = {
-    support_agent: ["Open", "In Progress", "Escalated"],
-    senior_support: ["In Progress", "Escalated", "Under Review", "Pending QA", "Resolved"],
-    development_team: ["In Progress", "Under Review", "Resolved"],
-    qa: ["Pending QA", "Resolved"],
-  };
-  return transitions[role]?.includes(status) ?? false;
+  return roleTransitions[role].includes(status);
+}
+
+export function canTransitionTicket(
+  role: RoleId,
+  from: Ticket["status"],
+  to: Ticket["status"],
+): boolean {
+  return from !== to && allowedTransitions[from].includes(to) && canChangeTicketStatus(role, to);
+}
+
+export function getAllowedTicketTransitions(role: RoleId, from: Ticket["status"]): Ticket["status"][] {
+  return allowedTransitions[from].filter((to) => canChangeTicketStatus(role, to));
 }
 
 export function canAccessCompany(company: Company, role: RoleId, employeeName?: string): boolean {

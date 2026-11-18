@@ -13,6 +13,7 @@ import { HighAttentionTicketsTable } from "../HighAttentionTicketsTable";
 import { computeExecutiveMetrics } from "../dashboardMetrics";
 import { RecentTickets, NotificationsCard } from "../activityCards";
 import { useNavigate } from "react-router-dom";
+import { notificationForViewer } from "../../../utils/notificationDisplay";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -30,6 +31,7 @@ export const DashboardView: React.FC = () => {
     currentUser,
     setSelectedTicketId,
     setTicketTableFocus,
+    markNotificationRead,
   } =
     useTicketStore();
 
@@ -47,7 +49,8 @@ export const DashboardView: React.FC = () => {
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
     .slice(0, 5);
 
-  const openTicket = (id: string) => {
+  const openTicket = (id: string, notificationId?: string) => {
+    if (notificationId) markNotificationRead(notificationId);
     setSelectedTicketId(id);
     navigate(`/tickets/${encodeURIComponent(id)}`);
   };
@@ -55,7 +58,7 @@ export const DashboardView: React.FC = () => {
   const openTicketSection = (focus: "active" | "overdue" | "sla-risk" | "resolved") => {
     setSelectedTicketId(null);
     setTicketTableFocus(focus);
-    navigate("/tickets");
+    navigate(`/tickets?scope=${focus}`);
   };
 
   const entityCards = [
@@ -98,6 +101,8 @@ export const DashboardView: React.FC = () => {
     const ticket = tickets.find((item) => item.id === notification.ticketId);
     return Boolean(ticket);
   });
+  const personaId = currentUser?.id ?? activeRole;
+  const notificationsForPersona = visibleNotifications.map((notification) => ({ ...notificationForViewer(notification, data, currentUser), read: notification.readBy ? notification.readBy.includes(personaId) : notification.read }));
 
   return (
     <div className="max-w-8xl space-y-5 p-6">
@@ -122,7 +127,7 @@ export const DashboardView: React.FC = () => {
           formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
           onActiveClick={() => openTicketSection("active")}
           onOverdueClick={() => openTicketSection("overdue")}
-          onSlaRiskClick={() => document.getElementById("high-attention-incidents")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          onSlaRiskClick={() => openTicketSection("sla-risk")}
           onResolvedClick={() => openTicketSection("resolved")}
         />
         <p className="mt-2 text-xs leading-5 text-slate-600">
@@ -133,7 +138,7 @@ export const DashboardView: React.FC = () => {
       <HighAttentionTicketsTable
         tickets={tickets}
         onSelectTicket={openTicket}
-        onExploreAll={() => navigate("/tickets")}
+        onExploreAll={() => { setSelectedTicketId(null); setTicketTableFocus("sla-risk"); navigate("/tickets?scope=sla-risk"); }}
       />
 
       <section aria-labelledby="dashboard-workspace-heading" className="space-y-4">
@@ -163,7 +168,7 @@ export const DashboardView: React.FC = () => {
 
       <div className="grid items-start gap-6 lg:grid-cols-[2fr_1fr]">
         <RecentTickets tickets={recent} onOpen={openTicket} />
-        <NotificationsCard notifications={visibleNotifications} onOpen={openTicket} onViewAll={() => navigate("/notifications")} />
+        <NotificationsCard notifications={notificationsForPersona} onOpen={openTicket} onViewAll={() => navigate("/notifications")} />
       </div>
     </div>
   );

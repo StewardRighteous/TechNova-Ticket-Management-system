@@ -35,8 +35,8 @@ export const CompaniesView: React.FC = () => {
           <p className="mt-2 text-sm text-slate-700">This company may not exist or may not be available to your role.</p>
           <button type="button" onClick={() => navigate("/companies")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to companies</button>
         </section>
-      ) : selectedCompany ? (
-        <>
+      ) : <>
+        {selectedCompany && <>
           <CompanyDetailHero
             company={selectedCompany}
             canEdit={activeRole === "operations_manager" || activeRole === "management"}
@@ -45,14 +45,13 @@ export const CompaniesView: React.FC = () => {
             tickets={roleTickets.filter((ticket) => ticket.companyId === selectedCompany.id && !["Resolved", "Closed"].includes(ticket.status))}
             onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
-        </>
-      ) : (
-        <CompanyTable
+        </>}
+        <div hidden={Boolean(activeCompanyId)}><CompanyTable
           companies={roleCompanies}
           onViewCompany={(id) => navigate(`/companies/${encodeURIComponent(id)}`)}
           onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/companies/new") : undefined}
-        />
-      )}
+        /></div>
+      </>}
     </div>
   );
 };

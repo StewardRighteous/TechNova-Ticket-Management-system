@@ -28,6 +28,7 @@ export interface TicketTimelineItem {
   action: string;
   timestamp: string;
   note: string;
+  kind?: "customer" | "workflow";
   fromAssigneeId?: string;
   toAssigneeId?: string;
   fromTeamId?: string;
@@ -200,6 +201,7 @@ export interface Notification {
   read: boolean;
   ticketId?: string;
   icon: string;
+  readBy?: string[];
 }
 
 export type ToastType = 'info' | 'success' | 'warning' | 'error';

@@ -122,5 +122,63 @@ describe("TicketStore - Core Domain Store, Local Persistence & Demo Reset", () =
 
     vi.useRealTimers();
   });
+
+  it("routes escalated and QA tickets atomically with one accurate activity entry", () => {
+    const store = useTicketStore.getState();
+    store.setActivePersona("operations_manager");
+    const ticket = store.data.tickets.find((item) => item.status === "In Progress")!;
+    const originalTimelineLength = ticket.timeline.length;
+
+    store.updateTicketStatus(ticket.id, "Escalated");
+    const escalated = useTicketStore.getState().data.tickets.find((item) => item.id === ticket.id)!;
+    expect(escalated.status).toBe("Escalated");
+    expect(escalated.currentStageRole).toBe("senior_support");
+    expect(escalated.assignedToId).toBe(useTicketStore.getState().data.employees.find((item) => item.role === "senior_support")?.id);
+    expect(escalated.timeline).toHaveLength(originalTimelineLength + 1);
+    expect(escalated.timeline.at(-1)?.action).toContain("Routed to Senior Support");
+
+    store.updateTicketStatus(ticket.id, "Pending QA");
+    const qaTicket = useTicketStore.getState().data.tickets.find((item) => item.id === ticket.id)!;
+    expect(qaTicket.status).toBe("Pending QA");
+    expect(qaTicket.currentStageRole).toBe("qa");
+    expect(qaTicket.timeline).toHaveLength(originalTimelineLength + 2);
+    expect(qaTicket.timeline.at(-1)?.action).toContain("Routed to QA");
+  });
+
+  it("rejects invalid transitions and resolution without details without changing the record", () => {
+    const store = useTicketStore.getState();
+    store.setActivePersona("operations_manager");
+    const ticket = store.data.tickets.find((item) => item.status === "Closed")!;
+    const before = structuredClone(ticket);
+    store.updateTicketStatus(ticket.id, "In Progress");
+    expect(useTicketStore.getState().data.tickets.find((item) => item.id === ticket.id)).toEqual(before);
+
+    const activeTicket = store.data.tickets.find((item) => item.status === "In Progress")!;
+    const activeBefore = structuredClone(activeTicket);
+    store.updateTicketStatus(activeTicket.id, "Resolved");
+    expect(useTicketStore.getState().data.tickets.find((item) => item.id === activeTicket.id)).toEqual(activeBefore);
+    store.updateTicketStatus(activeTicket.id, "Resolved", "Restarted the affected service and verified recovery.");
+    const resolved = useTicketStore.getState().data.tickets.find((item) => item.id === activeTicket.id)!;
+    expect(resolved.resolutionDetails).toBe("Restarted the affected service and verified recovery.");
+    expect(resolved.timeline.at(-1)?.note).toContain("Restarted the affected service");
+  });
+
+  it("rejects stale or mismatched company contacts when creating a ticket", () => {
+    const store = useTicketStore.getState();
+    store.setActivePersona("operations_manager");
+    const company = store.data.companies.find((item) => item.contacts?.length)!;
+    const otherCompany = store.data.companies.find((item) => item.id !== company.id && item.contacts?.length)!;
+    const template = store.data.tickets[0];
+    const { id: _id, code: _code, createdAt: _createdAt, updatedAt: _updatedAt, timeAgo: _timeAgo, timeline: _timeline, ...input } = template;
+    const beforeCount = store.data.tickets.length;
+
+    store.addTicket({ ...input, code: "", companyId: company.id, companyName: company.name, companyCode: company.code, contactId: otherCompany.contacts![0].id });
+    expect(useTicketStore.getState().data.tickets).toHaveLength(beforeCount);
+
+    store.addTicket({ ...input, code: "", companyId: company.id, companyName: company.name, companyCode: company.code, contactId: company.contacts![0].id, clientContact: "Stale display name" });
+    expect(useTicketStore.getState().data.tickets).toHaveLength(beforeCount + 1);
+    expect(useTicketStore.getState().data.tickets[0].clientContact).toBe(company.contacts![0].name);
+    expect(useTicketStore.getState().data.tickets[0].companyId).toBe(company.id);
+  });
 });
 

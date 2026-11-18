@@ -22,6 +22,7 @@ export function addTimelineNoteToTicket(
   currentEmp: Employee,
   note: string
 ): MockupDatabase {
+  if (!note.trim()) return db;
   const updatedTickets = db.tickets.map((t) => {
     if (t.id === ticketId) {
       return {
@@ -32,7 +33,7 @@ export function addTimelineNoteToTicket(
             id: `note-${Date.now()}`,
             authorId: currentEmp.id,
             body: note,
-            createdAt: 'Just now'
+            createdAt: new Date().toISOString()
           }
         ],
       };

@@ -27,7 +27,12 @@ interface TicketTableProps {
   initialStatusFilter?: string[];
   initialPriorityFilter?: string[];
   initialDepartmentFilter?: string[];
+  initialSortField?: string;
+  initialSortAsc?: boolean;
   initialFocus?: TicketTableFocus;
+  activeScope?: TicketTableFocus | null;
+  viewTitle?: string;
+  onClearScope?: () => void;
   onTableStateChange?: (state: {
     page: number;
     pageSize: number;
@@ -36,6 +41,8 @@ interface TicketTableProps {
     statusFilter: string[];
     priorityFilter: string[];
     departmentFilter: string[];
+    sortField?: string;
+    sortAsc?: boolean;
   }) => void;
 }
 
@@ -54,7 +61,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   initialStatusFilter,
   initialPriorityFilter,
   initialDepartmentFilter,
+  initialSortField,
+  initialSortAsc,
   initialFocus,
+  activeScope = null,
+  viewTitle,
+  onClearScope,
   onTableStateChange,
 }) => {
   const [searchInput, setSearchInput] = useState(initialSearch ?? "");
@@ -64,9 +76,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const [priorityFilter, setPriorityFilter] = useState<string[]>(initialPriorityFilter ?? []);
   const [departmentFilter, setDepartmentFilter] = useState<string[]>(initialDepartmentFilter ?? []);
 
-  const [sortField, setSortField] = useState<SortField>("time");
+  const [sortField, setSortField] = useState<SortField>((initialSortField as SortField) || "time");
   // The time comparator is newest first, so the initial direction is ascending.
-  const [sortAsc, setSortAsc] = useState<boolean>(true);
+  const [sortAsc, setSortAsc] = useState<boolean>(initialSortAsc ?? true);
   const [page, setPage] = useState<number>(initialPage ?? 1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize ?? 10);
 
@@ -89,6 +101,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
       statusFilter,
       priorityFilter,
       departmentFilter,
+      sortField,
+      sortAsc,
     });
   }, [
     page,
@@ -98,6 +112,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     statusFilter,
     priorityFilter,
     departmentFilter,
+    sortField,
+    sortAsc,
     onTableStateChange,
   ]);
 
@@ -182,6 +198,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 
     return true;
   });
+  const scopeFilteredCount = filtered.length;
 
   const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
@@ -198,16 +215,23 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   });
 
   const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  useEffect(() => {
+    const lastPage = Math.max(1, Math.ceil(filtered.length / pageSize));
+    if (page > lastPage) setPage(lastPage);
+  }, [filtered.length, page, pageSize]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <TableHeaderSection
-        title="All Tickets"
+        title={activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}
         searchQuery={searchInput}
         onSearchChange={(s) => setSearchInput(s)}
         searchPlaceholder="Filter by ID, issue, client..."
         onClick={onCreateNew}
       >
+        {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span><button type="button" aria-label="Remove dashboard scope" onClick={onClearScope} className="rounded-full px-1 text-indigo-700 hover:bg-indigo-100">×</button></div>}
+        <span className="text-xs text-slate-500" aria-live="polite">{filtered.length} {filtered.length === 1 ? "ticket" : "tickets"}</span>
+        <label className="flex items-center gap-2 text-xs font-medium text-slate-600">Sort by <select aria-label="Sort tickets by" className="rounded-md border border-slate-200 bg-white px-2 py-1" value={sortField} onChange={(event) => setSortField(event.target.value as SortField)}>{[["time", "Date created"], ["code", "Ticket ID"], ["title", "Title"], ["company", "Company"], ["priority", "Priority"], ["status", "Status"]].map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><button type="button" aria-label={`Sort ${sortAsc ? "descending" : "ascending"}`} onClick={() => setSortAsc((ascending) => !ascending)} className="rounded border border-slate-200 px-2 py-1">{sortAsc ? "Ascending" : "Descending"}</button></label>
         <TicketTableFilters
           channelFilter={channelFilter}
           setChannelFilter={(c) => {
@@ -235,7 +259,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
       </TableHeaderSection>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
+        <table className="ticket-list-table w-full border-collapse text-left text-xs">
           <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
             <tr>
               <th aria-sort={sortField === "code" ? (sortAsc ? "ascending" : "descending") : "none"} className="px-5 py-3">
@@ -309,10 +333,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                     {t.code}
                   </td>
-                  <td className="max-w-xs px-4 py-3">
-                    <div className="line-clamp-1 font-bold text-slate-900 transition-colors group-hover:text-indigo-600">
+                  <td className="max-w-sm px-4 py-3">
+                    <button type="button" data-ticket-link={t.id} onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ${t.code}: ${t.title}`} title={t.title} className="line-clamp-2 text-left font-bold text-slate-900 transition-colors hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600">
                       {t.title}
-                    </div>
+                    </button>
                     <div className="line-clamp-1 text-[11px] text-slate-500">
                       {t.description}
                     </div>
@@ -347,21 +371,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     <StatusBadge status={t.status} />
                   </td>
 
-                  <td className="px-5 py-3 text-right whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewTicket(t.id);
-                      }}
-                      className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 shadow-xs transition hover:bg-indigo-600 hover:text-white"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">
-                        visibility
-                      </span>
-                      <span>View</span>
-                    </button>
-                  </td>
+                  <td className="px-5 py-3 text-right whitespace-nowrap"><span className="text-xs text-slate-400">Open ticket</span></td>
                 </tr>
               );
             })}
@@ -375,21 +385,21 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     </span>
                     <div>
                       <p className="font-bold text-slate-800 text-sm">
-                        No matching tickets
+                        {tickets.length === 0 ? "No tickets in this queue yet" : "No matching tickets"}
                       </p>
                       <p className="text-slate-400 mt-0.5">
-                        No tickets match the selected search criteria or filter tags.
+                        {tickets.length === 0 ? "Tickets available to your role will appear here." : "No tickets match the selected search criteria or filter tags."}
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={clearAllFilters}
+                      onClick={tickets.length === 0 ? onClearScope : clearAllFilters}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50"
                     >
                       <span className="material-symbols-outlined text-[16px]">
                         restart_alt
                       </span>
-                      <span>Clear all filters</span>
+                      <span>{tickets.length === 0 ? "Return to all tickets" : "Clear all filters"}</span>
                     </button>
                   </div>
                 </td>
@@ -399,6 +409,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         </table>
       </div>
 
+      <p className="sr-only" role="status" aria-live="polite">{scopeFilteredCount} tickets match the current search and filters. Sorted by {sortField}, {sortAsc ? "ascending" : "descending"}.</p>
       <NumericPagination
         totalItems={filtered.length}
         currentPage={page}

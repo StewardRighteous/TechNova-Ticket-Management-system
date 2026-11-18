@@ -78,7 +78,7 @@ export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
       </section>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          ["Active Tickets", service.activeTickets],
+          ["Active Tickets", linkedTickets.length],
           ["Health / Uptime", service.uptime],
           [
             "Assigned Specialists",
@@ -187,7 +187,7 @@ export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
                 </h3>
                 <p className="mt-1 text-sm text-amber-900">
                   Escalate unresolved incidents approaching the{" "}
-                  {service.slaTarget} target to {service.lead} with diagnostic
+                  {service.slaTarget} response time target to {service.lead} with diagnostic
                   context and customer impact.
                 </p>
               </div>

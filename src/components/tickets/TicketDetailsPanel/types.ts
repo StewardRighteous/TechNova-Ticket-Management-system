@@ -17,6 +17,7 @@ export type Draft = Pick<
   | "title"
   | "description"
   | "companyId"
+  | "contactId"
   | "serviceId"
   | "priority"
   | "channel"

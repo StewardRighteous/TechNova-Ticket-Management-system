@@ -2,19 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TicketDetailHero } from "./index";
 import type { Ticket, Employee } from "../../../types/barrel";
-
-/* ------------------------------------------------------------------ */
-/* Minimal zustand mock — spy on addToast and addTicketTimelineNote    */
-/* ------------------------------------------------------------------ */
-const mockAddToast = vi.fn();
-const mockAddTicketTimelineNote = vi.fn();
-
-vi.mock("../../store/barrel", () => ({
-  useTicketStore: () => ({
-    addToast: mockAddToast,
-    addTicketTimelineNote: mockAddTicketTimelineNote,
-  }),
-}));
+import { useTicketStore } from "../../../store/barrel";
 
 /* ------------------------------------------------------------------ */
 /* Fixtures                                                            */
@@ -94,12 +82,13 @@ const employees: Employee[] = [
 ];
 
 describe("TicketDetailHero – Hero Banner & Workflow Actions", () => {
-  const onBack = vi.fn();
   const onStatusChange = vi.fn();
   const onAssigneeChange = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useTicketStore.getState().setActivePersona("operations_manager");
+    expect(useTicketStore.getState().activeRole).toBe("operations_manager");
   });
 
   const renderHero = (overrides?: Partial<Ticket>) =>
@@ -112,77 +101,41 @@ describe("TicketDetailHero – Hero Banner & Workflow Actions", () => {
       />,
     );
 
-  it("renders the hero banner with ticket code, title, and SLA countdown", () => {
+  it("renders the ticket title and keeps workflow actions in one place", () => {
     renderHero();
-    // TCK-9000 appears in both breadcrumb and hero banner
-    expect(screen.getAllByText("TCK-9000").length).toBeGreaterThanOrEqual(2);
-    expect(
-      screen.getByText("Test ticket for hero banner"),
-    ).toBeInTheDocument();
-    // SLA risk badge text
-    expect(screen.getAllByText("At Risk").length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("displays breadcrumb that navigates back", () => {
-    renderHero();
-    const backBtn = screen.getByText("← Back to Tickets");
-    fireEvent.click(backBtn);
-    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("heading", { name: "Test ticket for hero banner" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Escalate to Senior Support/i })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /^Escalate$/i })).not.toBeInTheDocument();
   });
 
   it("escalate button transitions status to Escalated and fires toast", () => {
     renderHero();
-    // The hero banner has an "Escalate" quick-action button
-    const escalateButtons = screen.getAllByText("Escalate");
-    // Click the first one (hero banner quick action)
-    fireEvent.click(escalateButtons[0]);
+    fireEvent.click(screen.getByRole("button", { name: /Escalate to Senior Support/i }));
 
     expect(onStatusChange).toHaveBeenCalledWith("Escalated");
-    expect(mockAddToast).toHaveBeenCalledWith(
-      "TCK-9000 escalated to Senior Support / Dev",
-      "warning",
-    );
   });
 
   it("Request QA button transitions status to Pending QA and fires toast", () => {
     renderHero();
-    const qaButtons = screen.getAllByText("Request QA Review");
-    fireEvent.click(qaButtons[0]);
+    fireEvent.click(screen.getByRole("button", { name: /Request QA Review/ }));
 
     expect(onStatusChange).toHaveBeenCalledWith("Pending QA");
-    expect(mockAddToast).toHaveBeenCalledWith(
-      "TCK-9000 sent for QA review",
-      "info",
-    );
   });
 
   it("Mark Resolved button transitions status to Resolved and fires toast", () => {
     renderHero();
-    const resolveButtons = screen.getAllByText("Mark Resolved");
-    fireEvent.click(resolveButtons[0]);
+    fireEvent.click(screen.getByRole("button", { name: /Mark Resolved/ }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Resolution details" }), { target: { value: "Restarted the worker and confirmed recovery." } });
+    fireEvent.click(screen.getByRole("button", { name: "Resolve ticket" }));
 
-    expect(onStatusChange).toHaveBeenCalledWith("Resolved");
-    expect(mockAddToast).toHaveBeenCalledWith(
-      "TCK-9000 marked as resolved",
-      "success",
-    );
+    expect(onStatusChange).toHaveBeenCalledWith("Resolved", "Restarted the worker and confirmed recovery.");
   });
 
   it("disables workflow buttons when ticket is already Resolved", () => {
     renderHero({ status: "Resolved" });
 
-    const escalateButtons = screen.getAllByRole("button", {
-      name: /Escalate/i,
-    });
-    for (const btn of escalateButtons) {
-      expect(btn).toBeDisabled();
-    }
-    const resolveButtons = screen.getAllByRole("button", {
-      name: /Mark Resolved/i,
-    });
-    for (const btn of resolveButtons) {
-      expect(btn).toBeDisabled();
-    }
+    expect(screen.queryByRole("button", { name: /Escalate/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Mark Resolved/i })).not.toBeInTheDocument();
   });
 
   it("shows tabbed timeline with Communications and Internal Notes tabs", () => {

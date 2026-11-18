@@ -17,7 +17,7 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
       </h4>
 
       <p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs leading-relaxed text-slate-700">
-        {ticket.description}
+        {ticket.description.replace(/\\n/g, "\n")}
       </p>
 
       {/* Dynamic diagnostic fields */}
@@ -48,7 +48,7 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
             Steps to Reproduce
           </h5>
           <p className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600 whitespace-pre-line">
-            {diag.stepsToReproduce}
+            {diag.stepsToReproduce.replace(/\\n/g, "\n")}
           </p>
         </div>
       )}

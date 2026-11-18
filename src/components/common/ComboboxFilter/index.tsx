@@ -30,6 +30,10 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => { if (isOpen) { setActiveIndex(0); searchRef.current?.focus(); } }, [isOpen]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -67,6 +71,13 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
     } else {
       onChange([...selectedValues, val]);
     }
+  };
+
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") { event.preventDefault(); setIsOpen(false); containerRef.current?.querySelector<HTMLButtonElement>("button")?.focus(); }
+    else if (event.key === "ArrowDown" && filteredOptions.length) { event.preventDefault(); setActiveIndex((index) => (index + 1) % filteredOptions.length); }
+    else if (event.key === "ArrowUp" && filteredOptions.length) { event.preventDefault(); setActiveIndex((index) => (index - 1 + filteredOptions.length) % filteredOptions.length); }
+    else if (event.key === "Enter" && filteredOptions[activeIndex]) { event.preventDefault(); toggleOption(filteredOptions[activeIndex].value); }
   };
 
   const clearAll = (e: React.MouseEvent) => {
@@ -152,9 +163,12 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
           {/* Search filter input */}
           <div className="relative mb-1 px-1">
             <input
+              ref={searchRef}
               type="text"
+              aria-label={`Search ${label} options`}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setActiveIndex(0); }}
+              onKeyDown={handleSearchKeyDown}
               placeholder={placeholder || `Search ${label}...`}
               className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-400 focus:bg-white"
             />
@@ -167,12 +181,12 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
                 No matching options
               </div>
             ) : (
-              filteredOptions.map((opt) => {
+              filteredOptions.map((opt, index) => {
                 const isSelected = selectedValues.includes(opt.value);
                 return (
                   <label
                     key={opt.value}
-                    className="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 select-none"
+                    className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 select-none ${index === activeIndex ? "bg-slate-50" : ""}`}
                   >
                     <div className="flex items-center gap-2">
                       <input

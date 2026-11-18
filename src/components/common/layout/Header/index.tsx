@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useTicketStore } from "../../../../store/barrel";
 import { ROLE_PERMISSIONS, canAccessCompany, canAccessEmployee, canAccessService, canAccessTicket } from "../../../../utils/rolePermissions";
 import { DemoPersonaGrid } from "../../../auth/DemoPersonaGrid";
+import { notificationForViewer } from "../../../../utils/notificationDisplay";
 
 
 export const Header: React.FC = () => {
@@ -16,6 +17,7 @@ export const Header: React.FC = () => {
     logout,
     loginAsEmployee,
     setSelectedTicketId,
+    markNotificationRead,
   } = useTicketStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,10 +35,12 @@ export const Header: React.FC = () => {
     const ticket = data.tickets.find((item) => item.id === notification.ticketId);
     return Boolean(ticket && canAccessTicket(ticket, activeRole, currentUser?.id, accountCompanyIds));
   });
+  const personaId = currentUser?.id ?? activeRole;
+  const personaNotifications = visibleNotifications.map((notification) => ({ ...notificationForViewer(notification, data, currentUser), read: notification.readBy ? notification.readBy.includes(personaId) : notification.read }));
   const createPage = location.pathname.match(/^\/(tickets|companies|services|employees)\/new$/);
   const isDashboard = location.pathname === "/dashboard" || location.pathname === "/";
   const createLabels: Record<string, string> = { tickets: "New ticket", companies: "New company", services: "New service", employees: "New employee" };
-  const detailPage = location.pathname.match(/^\/(tickets|companies|services|employees)\/([^/]+)$/);
+  const detailPage = createPage ? null : location.pathname.match(/^\/(tickets|companies|services|employees)\/([^/]+)$/);
   const detailId = detailPage ? decodeURIComponent(detailPage[2]) : "";
   const detailLabels: Record<string, string> = {
     tickets: (() => { const item = data.tickets.find((entry) => entry.id === detailId); return item && canAccessTicket(item, activeRole, currentUser?.id, accountCompanyIds) ? item.code : "Ticket details"; })(),
@@ -52,10 +56,10 @@ export const Header: React.FC = () => {
       }`}
     >
       {createPage || detailPage ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm font-semibold">
-        <button type="button" onClick={() => { const section = (createPage || detailPage)![1]; if (section === "tickets" && detailPage) setSelectedTicketId(null); navigate(`/${section}`); }} className="capitalize text-indigo-600 hover:text-indigo-800">{(createPage || detailPage)![1]}</button>
+        <button type="button" onClick={() => { const section = (createPage || detailPage)![1]; if (section === "tickets" && detailPage) setSelectedTicketId(null); const returnTo = section === "tickets" && detailPage ? (location.state as { returnTo?: string } | null)?.returnTo : undefined; navigate(returnTo || `/${section}`, { state: { ...((location.state as object | null) || {}), ticketScrollY: window.history.state?.usr?.ticketScrollY } }); }} className="capitalize text-indigo-600 hover:text-indigo-800">{(createPage || detailPage)![1]}</button>
         <span className="text-slate-300">›</span>
-        <span className="truncate text-slate-700">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</span>
-      </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{activeTab}</h1>}
+        <h1 className="truncate text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</h1>
+      </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{location.pathname === "/notifications" ? "Notifications" : location.pathname === "/tickets" ? "All Tickets" : activeTab}</h1>}
       <div className="flex items-center gap-4">
     
 
@@ -91,7 +95,7 @@ export const Header: React.FC = () => {
               type="button"
             >
               <span aria-hidden="true" className="material-symbols-outlined">notifications</span>
-              {visibleNotifications.some(
+              {personaNotifications.some(
                 (notification) => !notification.read,
               ) && (
                 <span className="absolute top-1 right-1 size-2 rounded-full bg-indigo-500 ring-2 ring-white" />
@@ -104,13 +108,13 @@ export const Header: React.FC = () => {
                     Notifications
                   </span>
                   <span className="text-[11px] text-slate-400">
-                    {visibleNotifications.length} recent
+                    {personaNotifications.filter((notification) => !notification.read).length} unread
                   </span>
                 </div>
-                {visibleNotifications.slice(0, 5).map((notification) => (
-                  <div
+                {personaNotifications.slice(0, 5).map((notification) => (
+                  <button type="button" onClick={() => { if (notification.ticketId) { markNotificationRead(notification.id); setSelectedTicketId(notification.ticketId); navigate(`/tickets/${encodeURIComponent(notification.ticketId)}`); setIsNotificationsOpen(false); } }} disabled={!notification.ticketId} aria-label={`${notification.read ? "Read" : "Unread"}: ${notification.title}`}
                     key={notification.id}
-                    className="flex gap-3 px-4 py-3 hover:bg-slate-50"
+                    className="flex w-full gap-3 px-4 py-3 text-left hover:bg-slate-50 disabled:cursor-default"
                   >
                     <span className="material-symbols-outlined text-[18px] text-indigo-500">
                       {notification.icon}
@@ -123,7 +127,7 @@ export const Header: React.FC = () => {
                         {notification.message}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 ))}
                 <button
                   type="button"

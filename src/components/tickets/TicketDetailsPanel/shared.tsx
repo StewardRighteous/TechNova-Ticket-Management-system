@@ -54,8 +54,9 @@ export const TextArea: React.FC<{
     {label}
     <textarea
       className={`${readonly ? readOnlyFieldClass : fieldClass} mt-1`}
-      rows={2}
-      value={value ?? ""}
+      rows={readonly ? Math.min(8, Math.max(3, (value ?? "").split(/\\n|\n/).length)) : 4}
+      style={readonly ? { minHeight: `${Math.min(12, Math.max(3, (value ?? "").split(/\\n|\n/).length)) * 1.5}rem` } : undefined}
+      value={readonly ? (value ?? "").replace(/\\n/g, "\n") : value ?? ""}
       onChange={(e) => set(e.target.value)}
       readOnly={readonly}
     />
@@ -76,7 +77,7 @@ export const Select: React.FC<{
         {label}
         <input
           className={`${readOnlyFieldClass} mt-1 capitalize`}
-          value={displayValue}
+          value={displayValue.replace(/\\n/g, "\n")}
           readOnly
         />
       </label>
@@ -109,7 +110,7 @@ export const Read: React.FC<{ label: string; value: string }> = ({
     {label}
     <input
       className={`${readOnlyFieldClass} mt-1 bg-slate-50`}
-      value={value}
+      value={value.replace(/\\n/g, "\n")}
       readOnly
     />
   </label>
@@ -145,6 +146,7 @@ export const ConfirmationDialog: React.FC<{
         </p>
         <div className="mt-6 flex justify-end gap-2">
           <button
+            autoFocus
             onClick={onClose}
             className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700"
           >

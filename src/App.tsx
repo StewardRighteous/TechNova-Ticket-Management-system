@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
 import { useTicketStore } from "./store/barrel";
 import { Layout } from "./components/common/layout/barrel";
 import { LoginPage } from "./components/auth/barrel";
@@ -35,10 +35,36 @@ const AccessDenied: React.FC<{ destination: string }> = ({ destination }) => (
 const RouteContent: React.FC = () => {
   const { isAuthenticated, activeRole, setActiveTab } = useTicketStore();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const path = location.pathname;
   const section = `/${path.split("/")[1] || "dashboard"}`;
   const tab = tabByPath[section] || "dashboard";
   React.useEffect(() => setActiveTab(tab), [setActiveTab, tab]);
+
+  const pageTitle = React.useMemo(() => {
+    if (path === "/" || path === "/dashboard") return "Dashboard";
+    if (path === "/notifications") return "Notifications";
+    const detail = path.match(/^\/(tickets|companies|employees|services)\/([^/]+)$/);
+    if (detail) {
+      const section = detail[1];
+      if (detail[2] === "new") return `New ${section.slice(0, -1)}`;
+      const id = decodeURIComponent(detail[2]);
+      if (section === "tickets") return dataTitle(useTicketStore.getState().data.tickets.find((item) => item.id === id)?.code, "Ticket details");
+      if (section === "companies") return dataTitle(useTicketStore.getState().data.companies.find((item) => item.id === id)?.name, "Company details");
+      if (section === "employees") return dataTitle(useTicketStore.getState().data.employees.find((item) => item.id === id)?.name, "Employee details");
+      return dataTitle(useTicketStore.getState().data.services.find((item) => item.id === id)?.name, "Service details");
+    }
+    return ({ "/tickets": "All Tickets", "/companies": "Companies", "/employees": "Employees", "/services": "Services", "/settings": "Settings" } as Record<string, string>)[path] || "Page unavailable";
+  }, [path]);
+  React.useEffect(() => { document.title = `${pageTitle} · TechNova`; }, [pageTitle]);
+  React.useEffect(() => {
+    if (navigationType === "POP") return;
+    const heading = document.querySelector("main h1, main h2");
+    if (heading instanceof HTMLElement) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }, [location.key, navigationType]);
 
   if (!isAuthenticated) return <LoginPage />;
   if (!ROLE_PERMISSIONS[activeRole].allowedTabs.includes(tab) || (tab === "settings" && !ROLE_PERMISSIONS[activeRole].canConfigureSettings)) return <AccessDenied destination="/dashboard" />;
@@ -61,11 +87,13 @@ const RouteContent: React.FC = () => {
       <Route path="/services/new" element={ROLE_PERMISSIONS[activeRole].canManageTeam ? <CreateServicePage /> : <Navigate to="/services" replace />} />
       <Route path="/services/:serviceId" element={<ServicesView />} />
       <Route path="/settings" element={<SettingsView />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<section role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-8"><h1 className="text-xl font-bold text-slate-900">Page not found</h1><p className="mt-2 text-sm text-slate-600">This address does not match a TechNova page.</p><Link to="/dashboard" className="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to dashboard</Link></section>} />
     </Routes>
     <ToastNotificationContainer />
   </Layout>;
 };
+
+function dataTitle(value: string | undefined, fallback: string): string { return value || fallback; }
 
 export const App: React.FC = () => <RouteContent />;
 export default App;

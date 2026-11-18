@@ -73,6 +73,7 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={statusOptions}
         selectedValues={statusFilter}
         onChange={setStatusFilter}
+        showBadges
         placeholder="Search status..."
       />
 
@@ -82,6 +83,7 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={priorityOptions}
         selectedValues={priorityFilter}
         onChange={setPriorityFilter}
+        showBadges
         placeholder="Search priority..."
       />
 
@@ -91,6 +93,7 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={channelOptions}
         selectedValues={channelFilter}
         onChange={setChannelFilter}
+        showBadges
         placeholder="Search channel..."
       />
 
@@ -100,6 +103,7 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         options={deptComboboxOptions}
         selectedValues={departmentFilter}
         onChange={setDepartmentFilter}
+        showBadges
         placeholder="Search department..."
       />
 

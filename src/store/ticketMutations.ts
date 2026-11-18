@@ -1,12 +1,17 @@
 import type { MockupDatabase, Ticket, RoleId, TicketStatus, Employee } from '../types/barrel';
 
+function activityId(): string {
+  return `tl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export function createNewTicket(
   ticketInput: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'timeAgo' | 'timeline'> & { initialNote?: string },
   activeRole: RoleId,
-  data: MockupDatabase
+  data: MockupDatabase,
+  creator?: Employee | null,
 ): { newTicket: Ticket; updatedData: MockupDatabase } {
-  const newId = `TCK-${Math.floor(1000 + Math.random() * 9000)}`;
-  const currentEmp = data.employees.find((e) => e.role === activeRole) || data.employees[0];
+  const newId = createUniqueTicketId(data.tickets);
+  const currentEmp = (creator && data.employees.find((employee) => employee.id === creator.id)) || data.employees.find((e) => e.role === activeRole) || data.employees[0];
   
   const newTicket: Ticket = {
     ...ticketInput,
@@ -17,21 +22,23 @@ export function createNewTicket(
     timeAgo: 'Just now',
     timeline: [
       {
-        id: `tl-${Date.now()}`,
+        id: activityId(),
         performedById: currentEmp.id,
         author: currentEmp.name,
         role: currentEmp.roleTitle,
         action: `Ticket Logged via ${ticketInput.channel.toUpperCase()}`,
-        timestamp: 'Just now',
+        timestamp: new Date().toISOString(),
+        kind: "customer",
         note: ticketInput.initialNote || 'Ticket registered in system.'
       },
       {
-        id: `tl-${Date.now()}-assignment`,
+        id: activityId(),
         performedById: currentEmp.id,
         author: currentEmp.name,
         role: currentEmp.roleTitle,
         action: `Assigned to ${ticketInput.assignedToName}`,
-        timestamp: 'Just now',
+        timestamp: new Date().toISOString(),
+        kind: "workflow",
         note: 'Initial ticket assignment.',
         toAssigneeId: ticketInput.assignedToId
       }
@@ -50,6 +57,14 @@ export function createNewTicket(
   return { newTicket, updatedData };
 }
 
+export function createUniqueTicketId(tickets: Ticket[]): string {
+  let newId: string;
+  do {
+    newId = `TCK-${Math.floor(1000 + Math.random() * 9000)}`;
+  } while (tickets.some((ticket) => ticket.id === newId || ticket.code === newId));
+  return newId;
+}
+
 export function updateTicketStatusInList(
   tickets: Ticket[],
   ticketId: string,
@@ -59,6 +74,7 @@ export function updateTicketStatusInList(
 ): Ticket[] {
   return tickets.map((t) => {
     if (t.id === ticketId) {
+      const timestamp = new Date().toISOString();
       return {
         ...t,
         status,
@@ -67,18 +83,52 @@ export function updateTicketStatusInList(
         timeline: [
           ...t.timeline,
           {
-            id: `tl-${Date.now()}`,
+            id: activityId(),
             performedById: currentEmp.id,
             author: currentEmp.name,
             role: currentEmp.roleTitle,
             action: `Status Changed to ${status}`,
-            timestamp: 'Just now',
+            timestamp,
+            kind: "workflow",
             note: note || `Ticket transitioned to ${status}.`
           }
         ]
       };
     }
     return t;
+  });
+}
+
+export function updateTicketWorkflowInList(
+  tickets: Ticket[],
+  ticketId: string,
+  updates: Partial<Pick<Ticket, "status" | "assignedToId" | "assignedToName" | "assignedToRole" | "currentStageRole" | "closedAt">>,
+  currentEmp: Employee,
+  action: string,
+  note: string,
+  fromAssigneeId?: string,
+): Ticket[] {
+  return tickets.map((ticket) => {
+    if (ticket.id !== ticketId) return ticket;
+    const changedAssignee = updates.assignedToId && updates.assignedToId !== ticket.assignedToId;
+    const timestamp = new Date().toISOString();
+    return {
+      ...ticket,
+      ...updates,
+      updatedAt: timestamp,
+      timeAgo: "Just now",
+      timeline: [...ticket.timeline, {
+        id: activityId(),
+        performedById: currentEmp.id,
+        author: currentEmp.name,
+        role: currentEmp.roleTitle,
+        action,
+        timestamp,
+        kind: "workflow",
+        note,
+        ...(changedAssignee ? { fromAssigneeId: fromAssigneeId ?? ticket.assignedToId, toAssigneeId: updates.assignedToId } : {}),
+      }],
+    };
   });
 }
 
@@ -104,7 +154,8 @@ export function updateTicketFieldsInList(
           author: currentEmp.name,
           role: currentEmp.roleTitle,
           action: 'Ticket details updated',
-          timestamp: 'Just now',
+          timestamp,
+          kind: 'workflow',
           note: 'Ticket details were updated.'
         }
       ]

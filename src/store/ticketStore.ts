@@ -14,14 +14,14 @@ import { clearSessionPersona, getSessionPersonaId, loadInitialState, persistStat
 import {
   createNewTicket,
   updateTicketFieldsInList,
-  updateTicketStatusInList,
+  updateTicketWorkflowInList,
 } from "./ticketMutations";
 import {
   authenticateByEmail,
   authenticateById,
   addTimelineNoteToTicket,
 } from "./authHelpers";
-import { ROLE_PERMISSIONS, canAccessTicket, canChangeTicketStatus } from "../utils/rolePermissions";
+import { ROLE_PERMISSIONS, canAccessTicket, canTransitionTicket } from "../utils/rolePermissions";
 
 export type TicketTableFocus = "active" | "overdue" | "sla-risk" | "resolved";
 
@@ -57,7 +57,7 @@ interface TicketStore {
       Ticket,
       "id" | "createdAt" | "updatedAt" | "timeAgo" | "timeline"
     > & { initialNote?: string },
-  ) => void;
+  ) => Ticket | null;
   updateTicketStatus: (
     ticketId: string,
     status: TicketStatus,
@@ -66,6 +66,7 @@ interface TicketStore {
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
   assignTicket: (ticketId: string, employeeId: string, note?: string) => void;
   addTicketTimelineNote: (ticketId: string, note: string) => void;
+  markNotificationRead: (notificationId: string) => void;
   addCompany: (company: Company) => void;
   addService: (service: ServiceLine) => void;
   addEmployee: (employee: Employee) => void;
@@ -190,29 +191,52 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
   addTicket: (ticketInput) => {
     const state = get();
-    if (!ROLE_PERMISSIONS[state.activeRole].canCreateTicket) return;
+    if (!ROLE_PERMISSIONS[state.activeRole].canCreateTicket) return null;
     const company = state.data.companies.find((item) => item.id === ticketInput.companyId);
     const service = state.data.services.find((item) => item.id === ticketInput.serviceId);
-    if (!company || !service) return;
+    const validContact = company?.contacts?.find((contact) => contact.id === ticketInput.contactId);
+    const legacyContact = !company?.contacts?.length && ticketInput.contactId === `legacy-${company?.id}`;
+    const employee = state.data.employees.find((item) => item.id === ticketInput.assignedToId);
+    if (!company || !service || (!validContact && !legacyContact) || !employee || !ticketInput.priority) return null;
+    const canonicalContactName = validContact?.name ?? company.contactName;
     const { newTicket, updatedData } = createNewTicket(
-      { ...ticketInput, companyName: company.name, companyCode: company.code, serviceName: service.name },
+      { ...ticketInput, clientContact: canonicalContactName, companyName: company.name, companyCode: company.code, serviceName: service.name, assignedToName: employee.name, assignedToRole: employee.roleTitle, currentStageRole: employee.role },
       state.activeRole,
       state.data,
+      state.currentUser,
     );
     persistState(updatedData);
     set({ data: updatedData, selectedTicketId: newTicket.id });
+    return newTicket;
   },
 
   updateTicketStatus: (ticketId, status, note) => {
     const state = get();
-    if (!canAccessTicketByState(state, ticketId) || !canChangeTicketStatus(state.activeRole, status)) return;
+    const ticket = state.data.tickets.find((item) => item.id === ticketId);
+    if (!ticket || !canAccessTicketByState(state, ticketId) || !canTransitionTicket(state.activeRole, ticket.status, status)) return;
+    if (status === "Resolved" && !note?.trim()) return;
     const currentEmp = state.currentUser || state.data.employees[0];
-    const updatedTickets = updateTicketStatusInList(
+    const routingRole = status === "Escalated" ? "senior_support" : status === "Pending QA" ? "qa" : undefined;
+    const targetEmp = routingRole ? state.data.employees.find((employee) => employee.role === routingRole) : undefined;
+    if (routingRole && !targetEmp) return;
+    const workflowUpdates: Partial<Ticket> = {
+      status,
+      ...(status === "Resolved" ? { resolutionDetails: note!.trim() } : {}),
+      ...(status === "Closed" ? { closedAt: new Date().toISOString() } : {}),
+      ...(targetEmp ? {
+        assignedToId: targetEmp.id,
+        assignedToName: targetEmp.name,
+        assignedToRole: targetEmp.roleTitle,
+        currentStageRole: targetEmp.role,
+      } : {}),
+    };
+    const updatedTickets = updateTicketWorkflowInList(
       state.data.tickets,
       ticketId,
-      status,
+      workflowUpdates,
       currentEmp,
-      note,
+      targetEmp ? `Routed to ${targetEmp.roleTitle} · ${status}` : `Status changed to ${status}`,
+      note || (targetEmp ? `Ticket routed to ${targetEmp.name} (${targetEmp.roleTitle}) and moved to ${status}.` : `Ticket transitioned to ${status}.`),
     );
     const updatedData = { ...state.data, tickets: updatedTickets };
     persistState(updatedData);
@@ -222,19 +246,29 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   updateTicket: (ticketId, updates) => {
     const state = get();
     if (!canAccessTicketByState(state, ticketId)) return;
-    if (updates.status && !canChangeTicketStatus(state.activeRole, updates.status)) return;
-    if ((updates.assignedToId || updates.assignedToName || updates.assignedToRole) && !ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
+    if (updates.status) return;
+    const existingTicket = state.data.tickets.find((item) => item.id === ticketId);
+    if (!existingTicket) return;
+    if (updates.assignedToId || updates.assignedToName || updates.assignedToRole || updates.currentStageRole) return;
     const safeUpdates = { ...updates };
     if (!safeUpdates.companyId) {
       delete safeUpdates.companyName;
       delete safeUpdates.companyCode;
     }
     if (!safeUpdates.serviceId) delete safeUpdates.serviceName;
-    if (safeUpdates.companyId) {
-      const company = state.data.companies.find((item) => item.id === safeUpdates.companyId);
+    if (safeUpdates.companyId || safeUpdates.contactId || safeUpdates.clientContact) {
+      const companyId = safeUpdates.companyId ?? existingTicket.companyId;
+      const company = state.data.companies.find((item) => item.id === companyId);
       if (!company) return;
+      const contactId = safeUpdates.contactId ?? existingTicket.contactId;
+      const contact = company.contacts?.find((item) => item.id === contactId);
+      if (company.contacts?.length && (!contact || (safeUpdates.clientContact && safeUpdates.clientContact !== contact.name))) return;
+      if (!company.contacts?.length && safeUpdates.clientContact && safeUpdates.clientContact !== company.contactName) return;
+      safeUpdates.companyId = company.id;
       safeUpdates.companyName = company.name;
       safeUpdates.companyCode = company.code;
+      safeUpdates.contactId = contactId ?? `legacy-${company.id}`;
+      safeUpdates.clientContact = contact?.name ?? company.contactName;
     }
     if (safeUpdates.serviceId) {
       const service = state.data.services.find((item) => item.id === safeUpdates.serviceId);
@@ -263,40 +297,18 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   assignTicket: (ticketId, employeeId, note) => {
     const state = get();
     if (!canAccessTicketByState(state, ticketId) || !ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
+    const existingTicket = state.data.tickets.find((item) => item.id === ticketId);
+    if (!existingTicket || existingTicket.assignedToId === employeeId) return;
     const currentEmp = state.currentUser || state.data.employees[0];
     const targetEmp = state.data.employees.find((e) => e.id === employeeId);
-    if (!targetEmp) return;
+    if (!targetEmp || !existingTicket || existingTicket.assignedToId === targetEmp.id) return;
 
-    const updatedTickets = state.data.tickets.map((t) => {
-      if (t.id === ticketId) {
-        return {
-          ...t,
-          assignedToId: targetEmp.id,
-          assignedToName: targetEmp.name,
-          assignedToRole: targetEmp.roleTitle,
-          currentStageRole: targetEmp.role,
-          updatedAt: new Date().toISOString(),
-          timeAgo: "Just now",
-          timeline: [
-            ...t.timeline,
-            {
-              id: `tl-${Date.now()}`,
-              performedById: currentEmp.id,
-              author: currentEmp.name,
-              role: currentEmp.roleTitle,
-              action: `Reassigned to ${targetEmp.name}`,
-              timestamp: "Just now",
-              note:
-                note ||
-                `Transferred responsibility to ${targetEmp.name} (${targetEmp.roleTitle}).`,
-              fromAssigneeId: t.assignedToId,
-              toAssigneeId: targetEmp.id,
-            },
-          ],
-        };
-      }
-      return t;
-    });
+    const updatedTickets = updateTicketWorkflowInList(state.data.tickets, ticketId, {
+      assignedToId: targetEmp.id,
+      assignedToName: targetEmp.name,
+      assignedToRole: targetEmp.roleTitle,
+      currentStageRole: targetEmp.role,
+    }, currentEmp, `Reassigned to ${targetEmp.name}`, note || `Transferred responsibility to ${targetEmp.name} (${targetEmp.roleTitle}).`);
 
     const updatedData = { ...state.data, tickets: updatedTickets };
     persistState(updatedData);
@@ -304,6 +316,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   },
 
   addTicketTimelineNote: (ticketId, note) => {
+    if (!note.trim()) return;
     const state = get();
     if (!canAccessTicketByState(state, ticketId)) return;
     const currentEmp = state.currentUser || state.data.employees[0];
@@ -313,6 +326,14 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       currentEmp,
       note,
     );
+    persistState(updatedData);
+    set({ data: updatedData });
+  },
+
+  markNotificationRead: (notificationId) => {
+    const state = get();
+    const personaId = state.currentUser?.id ?? state.activeRole;
+    const updatedData = { ...state.data, notifications: state.data.notifications.map((item) => item.id === notificationId ? { ...item, read: false, readBy: [...new Set([...(item.readBy ?? []), personaId])] } : item) };
     persistState(updatedData);
     set({ data: updatedData });
   },

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { Employee, TicketTimelineItem, InternalNote } from "../../types/barrel";
 
-type TimelineTab = "communications" | "internal";
+type TimelineTab = "communications" | "activity" | "internal";
 
 interface TabbedTimelineProps {
   timeline: TicketTimelineItem[];
@@ -17,12 +17,16 @@ export const TabbedTimeline: React.FC<TabbedTimelineProps> = ({
   employees = [],
 }) => {
   const [activeTab, setActiveTab] = useState<TimelineTab>("communications");
+  const customerEvents = timeline.filter((item) => item.kind !== "workflow");
+  const workflowEvents = timeline.filter((item) => item.kind === "workflow");
   const [noteBody, setNoteBody] = useState("");
+  const [posted, setPosted] = useState(false);
 
   const handlePostNote = () => {
     if (!noteBody.trim()) return;
     onAddInternalNote(noteBody.trim());
     setNoteBody("");
+    setPosted(true);
   };
 
   return (
@@ -33,29 +37,33 @@ export const TabbedTimeline: React.FC<TabbedTimelineProps> = ({
           active={activeTab === "communications"}
           onClick={() => setActiveTab("communications")}
           icon="forum"
-          label="Customer Communications"
-          count={timeline.length}
+          label="Customer Messages"
+          count={customerEvents.length}
+          id="activity-tab-communications"
+          controls="activity-panel-communications"
         />
+        <TabTrigger active={activeTab === "activity"} onClick={() => setActiveTab("activity")} icon="history" label="Workflow Activity" count={workflowEvents.length} id="activity-tab-workflow" controls="activity-panel-workflow" />
         <TabTrigger
           active={activeTab === "internal"}
           onClick={() => setActiveTab("internal")}
           icon="lock"
           label="Internal Notes"
           count={internalNotes.length}
+          id="activity-tab-internal"
+          controls="activity-panel-internal"
         />
       </div>
 
       {/* Panel */}
-      <div className="p-5">
-        {activeTab === "communications" ? (
-          <CommunicationsPanel timeline={timeline} />
-        ) : (
+      <div className="p-5" role="tabpanel" id={`activity-panel-${activeTab}`} aria-labelledby={`activity-tab-${activeTab}`}>
+        {activeTab === "communications" ? <CommunicationsPanel timeline={customerEvents} /> : activeTab === "activity" ? <CommunicationsPanel timeline={workflowEvents} /> : (
           <InternalNotesPanel
             notes={internalNotes}
             employees={employees}
             noteBody={noteBody}
             setNoteBody={setNoteBody}
             onPost={handlePostNote}
+            posted={posted}
           />
         )}
       </div>
@@ -73,10 +81,16 @@ const TabTrigger: React.FC<{
   icon: string;
   label: string;
   count: number;
-}> = ({ active, onClick, icon, label, count }) => (
+  id: string;
+  controls: string;
+}> = ({ active, onClick, icon, label, count, id, controls }) => (
   <button
     role="tab"
+    id={id}
+    aria-controls={controls}
     aria-selected={active}
+    tabIndex={active ? 0 : -1}
+    onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const target = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]"); if (!target?.length) return; const index = event.key === "Home" ? 0 : event.key === "End" ? target.length - 1 : event.key === "ArrowRight" ? (active ? 1 : 0) : (active ? target.length - 1 : 0); target[index]?.click(); target[index]?.focus(); } }}
     onClick={onClick}
     className={`inline-flex flex-1 items-center justify-center gap-2 border-b-2 px-4 py-3.5 text-xs font-bold transition-colors ${
       active
@@ -114,7 +128,7 @@ const CommunicationsPanel: React.FC<{
   }
 
   return (
-    <div className="space-y-4 flex flex-col flex-col-reverse">
+    <div className="space-y-4">
       {timeline.map((item, idx) => (
         <div
           key={item.id || idx}
@@ -131,7 +145,7 @@ const CommunicationsPanel: React.FC<{
               </span>
             </div>
             <span className="font-mono text-[11px] text-slate-400">
-              {item.timestamp}
+            {new Date(item.timestamp).toString() !== "Invalid Date" ? new Date(item.timestamp).toLocaleString() : item.timestamp}
             </span>
           </div>
           {item.action.toLowerCase().includes("opened") && (
@@ -173,7 +187,8 @@ const InternalNotesPanel: React.FC<{
   noteBody: string;
   setNoteBody: (v: string) => void;
   onPost: () => void;
-}> = ({ notes, employees, noteBody, setNoteBody, onPost }) => (
+  posted: boolean;
+}> = ({ notes, employees, noteBody, setNoteBody, onPost, posted }) => (
   <div className="space-y-5">
     {notes.length === 0 ? (
       <p className="rounded-xl bg-slate-50 p-6 text-center text-xs text-slate-400">
@@ -191,7 +206,7 @@ const InternalNotesPanel: React.FC<{
                 {employees.find((employee) => employee.id === n.authorId)?.name ?? n.authorId}
               </span>
               <span className="font-mono text-[10px] text-slate-400">
-                {n.createdAt}
+                {new Date(n.createdAt).toLocaleString()}
               </span>
             </div>
             <p className="mt-1 text-xs leading-relaxed text-slate-700">
@@ -233,6 +248,7 @@ const InternalNotesPanel: React.FC<{
       <p className="mt-1 text-[10px] text-slate-400">
         Press Ctrl+Enter to post
       </p>
+      {posted && <p role="status" className="mt-2 text-xs font-medium text-emerald-700">Internal note posted.</p>}
     </div>
   </div>
 );

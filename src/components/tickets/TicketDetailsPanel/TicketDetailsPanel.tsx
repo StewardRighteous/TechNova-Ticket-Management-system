@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { Ticket } from "../../../types/barrel";
 import { createDraft } from "./draft";
 import { TicketDetailsEditForm } from "./TicketDetailsEditForm";
@@ -12,15 +12,27 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
   onSave,
 }) => {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<Draft>(() => createDraft(ticket));
+  const [draft, setDraft] = useState<Draft>(() => createDraft(ticket, companies));
   const [confirmation, setConfirmation] = useState<"save" | "cancel" | null>(
     null,
   );
   const [activeTab, setActiveTab] = useState<TicketDetailsTab>("overview");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    setDraft(createDraft(ticket, companies));
+    setEditing(false);
+  }, [ticket, companies]);
+  const tabs: [TicketDetailsTab, string][] = [["overview", "Overview"], ["context", "Context"], ["client", "Client"], ["diagnostics", "Diagnostics"], ["reproduction", "Reproduction"]];
+  const moveTab = (event: React.KeyboardEvent, index: number) => {
+    const target = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
+    if (target >= 0) { event.preventDefault(); setActiveTab(tabs[target][0]); tabRefs.current[target]?.focus(); }
+  };
+  const isDirty = JSON.stringify(draft) !== JSON.stringify(createDraft(ticket, companies));
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));
   const cancel = () => {
-    setDraft(createDraft(ticket));
+    setDraft(createDraft(ticket, companies));
     setEditing(false);
   };
   const save = () => {
@@ -55,18 +67,17 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
           aria-label="Ticket detail tabs"
         >
           {(
-            [
-              ["overview", "Overview"],
-              ["context", "Context"],
-              ["client", "Client"],
-              ["diagnostics", "Diagnostics"],
-              ["reproduction", "Reproduction"],
-            ] as const
-          ).map(([key, label]) => (
+            tabs
+          ).map(([key, label], index) => (
             <button
               key={key}
               role="tab"
+              id={`ticket-tab-${key}`}
+              aria-controls={`ticket-panel-${key}`}
               aria-selected={activeTab === key}
+              tabIndex={activeTab === key ? 0 : -1}
+              ref={(node) => { tabRefs.current[index] = node; }}
+              onKeyDown={(event) => moveTab(event, index)}
               onClick={() => setActiveTab(key)}
               className={`rounded-lg px-3 py-2 text-xs font-semibold ${activeTab === key ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
             >
@@ -77,22 +88,23 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
         {editing ? (
           <div className="flex gap-2">
             <button
-              onClick={() => setConfirmation("cancel")}
+              ref={cancelButtonRef}
+              onClick={() => isDirty ? setConfirmation("cancel") : cancel()}
               className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"
             >
               Cancel
             </button>
             <button
-              onClick={() => setConfirmation("save")}
+              onClick={save}
               className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
             >
               Save
             </button>
           </div>
         ) : (
-          <button
+              <button
             onClick={() => {
-              setDraft(createDraft(ticket));
+              setDraft(createDraft(ticket, companies));
               setEditing(true);
             }}
             className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700"
@@ -102,6 +114,7 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
         )}
       </div>
 
+      <div role="tabpanel" id={`ticket-panel-${activeTab}`} aria-labelledby={`ticket-tab-${activeTab}`}>
       {editing ? (
         <TicketDetailsEditForm
           draft={draft}
@@ -123,12 +136,13 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
           readonly={true}
         />
       )}
+      </div>
       {confirmation && (
         <ConfirmationDialog
           action={confirmation}
           onConfirm={() => {
             if (confirmation === "save") save();
-            else cancel();
+            else { cancel(); requestAnimationFrame(() => cancelButtonRef.current?.focus()); }
             setConfirmation(null);
           }}
           onClose={() => setConfirmation(null)}

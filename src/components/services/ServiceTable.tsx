@@ -238,9 +238,9 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                 </td>
                 <td className="px-4 py-3.5 whitespace-nowrap">
                   <div>
-                    <span className="block font-bold text-slate-900 transition-colors group-hover:text-indigo-600">
+                    <button type="button" onClick={(event) => { event.stopPropagation(); onViewService(srv.id); }} className="block text-left font-bold text-slate-900 transition-colors group-hover:text-indigo-600 focus-visible:outline-2 focus-visible:outline-indigo-600">
                       {srv.name}
-                    </span>
+                    </button>
                   </div>
                 </td>
                 <td className="px-4 py-3.5 whitespace-nowrap">

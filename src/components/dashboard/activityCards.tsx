@@ -44,7 +44,7 @@ export const RecentTickets: React.FC<{
 
 export const NotificationsCard: React.FC<{
   notifications: Notification[];
-  onOpen: (id: string) => void;
+  onOpen: (id: string, notificationId: string) => void;
   onViewAll: () => void;
 }> = ({ notifications, onOpen, onViewAll }) => (
   <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
@@ -62,12 +62,12 @@ export const NotificationsCard: React.FC<{
     </div>
     <div className="divide-y divide-slate-100">
       {notifications.slice(0, 5).map((notification) => (
-        <button key={notification.id} type="button" onClick={() => notification.ticketId && onOpen(notification.ticketId)} disabled={!notification.ticketId} className="flex w-full gap-2.5 px-4 py-2.5 text-left transition hover:bg-slate-50 disabled:cursor-default">
+        <button key={notification.id} type="button" onClick={() => notification.ticketId && onOpen(notification.ticketId, notification.id)} disabled={!notification.ticketId} className="flex w-full gap-2.5 px-4 py-2.5 text-left transition hover:bg-slate-50 disabled:cursor-default">
           <span className="material-symbols-outlined mt-0.5 text-[18px] text-indigo-500">{notification.icon}</span>
           <span className="min-w-0 flex-1">
             <span className="flex items-start justify-between gap-2">
               <span className="truncate text-xs font-bold text-slate-800">{notification.title}</span>
-              {!notification.read && <span className="mt-1 size-1.5 shrink-0 rounded-full bg-indigo-500" />}
+              <span className="text-[10px] font-medium text-slate-500">{notification.read ? "Read" : "Unread"}</span>
             </span>
             <span className="mt-1 block text-xs text-slate-500 line-clamp-2">{notification.message}</span>
             <span className="mt-1 block text-[10px] font-medium text-slate-400">{relativeTime(notification.createdAt)}</span>

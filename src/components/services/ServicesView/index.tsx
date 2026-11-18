@@ -24,8 +24,8 @@ export const ServicesView: React.FC = () => {
           <p className="mt-2 text-sm text-slate-700">This service may not exist or may not be available to your role.</p>
           <button type="button" onClick={() => navigate('/services')} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to services</button>
         </section>
-      ) : selectedService ? (
-        <>
+      ) : <>
+        {selectedService && <>
           <ServiceDetailHero
           service={selectedService}
           canEdit={activeRole === "operations_manager" || activeRole === "management"}
@@ -34,9 +34,8 @@ export const ServicesView: React.FC = () => {
           onUpdateService={handleUpdateService}
           onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
-        </>
-      ) : (
-        <ServiceTable
+        </>}
+        <div hidden={Boolean(activeServiceId)}><ServiceTable
           services={data.services}
           onViewService={(id) => navigate(`/services/${encodeURIComponent(id)}`)}
           onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/services/new") : undefined}
@@ -46,8 +45,8 @@ export const ServicesView: React.FC = () => {
           initialDepartmentFilter={tableState.departmentFilter}
           initialStatusFilter={tableState.statusFilter}
           onTableStateChange={setTableState}
-        />
-      )}
+        /></div>
+      </>}
     </div>
   );
 };

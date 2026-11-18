@@ -17,19 +17,26 @@ export const CreateCompanyPage: React.FC = () => {
   const [accountManager, setAccountManager] = useState(data.employees.find((item) => item.role === "account_manager")?.name || data.employees[0]?.name || "");
   const [preferredChannel, setPreferredChannel] = useState<Company["preferredChannel"]>("email");
   const [subscribedServices, setSubscribedServices] = useState<string[]>([]);
+  const [error, setError] = useState("");
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const normalizedCode = code.trim().toUpperCase();
+    if (!name.trim() || !contactName.trim() || !contactRole.trim() || !contactEmail.trim() || !contactPhone.trim()) { setError("Complete all required fields."); return; }
+    if (data.companies.some((item) => item.code.toLowerCase() === normalizedCode || item.contactEmail.toLowerCase() === contactEmail.trim().toLowerCase())) { setError("Company code or contact email already exists."); return; }
+    if (!normalizedCode) { setError("Enter a company name that produces a usable company code."); return; }
+    setError("");
     const company: Company = { id: `comp-${crypto.randomUUID()}`, name: name.trim(), code: code.trim().toUpperCase(), tier, contactName: contactName.trim(), contactRole: contactRole.trim(), contactEmail: contactEmail.trim(), contactPhone: contactPhone.trim(), contacts: [{ id: `contact-${crypto.randomUUID()}`, name: contactName.trim(), email: contactEmail.trim(), phone: contactPhone.trim() }], preferredChannel, activeContracts: 0, activeTickets: 0, slaResponseTime: "4h", accountManager, subscribedServices, status: "Active" };
     addCompany(company);
     addToast("Company created successfully.", "success");
     navigate(`/companies/${encodeURIComponent(company.id)}`);
   };
 
-  return <EntityCreatePage title="Add a company" description="Create a customer profile for ticket intake and account tracking." onCancel={() => navigate("/companies")} onSubmit={submit}>
+  return <EntityCreatePage title="Add a company" description="Create a customer profile for ticket intake and account tracking." onCancel={() => { if (name || contactName || contactEmail) { if (window.confirm("Discard this company draft?")) navigate("/companies"); } else navigate("/companies"); }} onSubmit={submit}>
+    {error && <p role="alert" className="sm:col-span-2 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
     <FormField label="Company name"><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Acme Corporation" /></FormField>
-    <FormField label="Company code"><input className={formControlClassName} required value={code} readOnly placeholder="Generated from company name" /></FormField>
-    <FormField label="Account tier"><select className={formControlClassName} value={tier} onChange={(event) => setTier(event.target.value)}>{[...new Set(["Standard", "Premium", "Enterprise", ...data.companies.map((item) => item.tier)])].map((item) => <option key={item}>{item}</option>)}</select></FormField>
+    <FormField label="Company code"><input className={formControlClassName} required value={code} readOnly aria-describedby="company-code-help" placeholder="Generated from company name" /><p id="company-code-help" className="mt-1 text-xs text-slate-500">Generated from the company name; must be unique.</p></FormField>
+    <FormField label="Account tier · required"><select className={formControlClassName} value={tier} onChange={(event) => setTier(event.target.value)}>{["Standard Business", "Premium", "Enterprise"].map((item) => <option key={item}>{item}</option>)}</select></FormField>
     <FormField label="Account manager"><select className={formControlClassName} value={accountManager} onChange={(event) => setAccountManager(event.target.value)}>{data.employees.map((item) => <option key={item.id}>{item.name}</option>)}</select></FormField>
     <FormField label="Primary contact"><input className={formControlClassName} required value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="e.g. Jamie Lee" /></FormField>
     <FormField label="Contact role"><input className={formControlClassName} required value={contactRole} onChange={(event) => setContactRole(event.target.value)} placeholder="e.g. IT manager" /></FormField>

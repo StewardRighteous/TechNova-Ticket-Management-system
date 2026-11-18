@@ -54,7 +54,8 @@ export const OwnershipCard: React.FC<OwnershipCardProps> = ({
         <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
           SLA & Diagnostics
         </h4>
-        <MetaRow label="SLA Status" value={`${ticket.slaRisk} (${ticket.slaDeadline})`} />
+        <MetaRow label="SLA status" value={ticket.slaRisk} />
+        <MetaRow label="SLA time" value={ticket.slaDeadline} />
         <MetaRow label="Environment" value={ticket.environment} />
         {ticket.diagnosticData?.browser && (
           <MetaRow label="Browser" value={ticket.diagnosticData.browser} />

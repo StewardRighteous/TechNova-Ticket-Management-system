@@ -48,6 +48,7 @@ export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
           </span>
           <input
             type="search"
+            id="ticket-search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}

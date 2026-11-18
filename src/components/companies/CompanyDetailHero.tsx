@@ -91,7 +91,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-slate-200 bg-slate-900 p-6 shadow-sm sm:p-8">
-        <div className="flex items-center justify-between gap-3"><div><h1 className="text-2xl font-bold text-white">{company.name}</h1><span className="mt-2 inline-block rounded-full bg-indigo-400/20 px-3 py-1 text-xs font-semibold text-indigo-100">{company.tier} · {company.status}</span></div><div className="flex gap-2"><button type="button" onClick={() => setWorkspaceTab("contacts")} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-900">Add Contact</button><button type="button" onClick={() => setWorkspaceTab("tickets")} className="rounded-lg bg-indigo-500 px-3 py-2 text-xs font-bold text-white">Log Interaction</button></div></div>
+        <div className="flex items-center justify-between gap-3"><div><h1 className="text-2xl font-bold text-white">{company.name}</h1><span className="mt-2 inline-block rounded-full bg-indigo-400/20 px-3 py-1 text-xs font-semibold text-indigo-100">{company.tier} · {company.status}</span></div><div className="flex gap-2"><button type="button" onClick={() => setWorkspaceTab("contacts")} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-900">View contacts</button><button type="button" onClick={() => setWorkspaceTab("tickets")} className="rounded-lg bg-indigo-500 px-3 py-2 text-xs font-bold text-white">View ticket activity</button></div></div>
         <div className="mt-5 border-b border-slate-200" />
         <div className="mt-3 grid grid-cols-1 gap-1 sm:grid-cols-3">
           {[
@@ -100,7 +100,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
             ["SLA response time", company.slaResponseTime],
             ["Primary contact", company.contactName],
             ["Active contracts", company.activeContracts],
-            ["Active tickets", company.activeTickets],
+            ["Active tickets", tickets.length],
           ].map(([label, value]) => (
             <div className="inline-flex gap-1 items-baseline" key={label}>
               <p className=" text-[10px] font-semibold tracking-wide text-slate-200 capitalize">
@@ -118,7 +118,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
           ))}
         </div>
         <div className="p-5">
-          {workspaceTab === 'contacts' && <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-[10px] tracking-wider text-slate-500 uppercase"><tr><th className="pb-3">Contact</th><th className="pb-3">Role</th><th className="pb-3">Email</th><th className="pb-3">Phone</th></tr></thead><tbody className="divide-y divide-slate-100">{(company.contacts?.length ? company.contacts : [{ id: 'primary', name: company.contactName, email: company.contactEmail, phone: company.contactPhone, accountIdentifier: company.contactRole }]).map((contact) => <tr key={contact.id}><td className="py-3 font-semibold text-slate-900">{contact.name}</td><td className="py-3 text-slate-600">{contact.accountIdentifier || '—'}</td><td className="py-3 text-slate-600">{contact.email}</td><td className="py-3 text-slate-600">{contact.phone}</td></tr>)}</tbody></table></div>}
+          {workspaceTab === 'contacts' && <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-[10px] tracking-wider text-slate-500 uppercase"><tr><th className="pb-3">Contact</th><th className="pb-3">Role</th><th className="pb-3">Email</th><th className="pb-3">Phone</th></tr></thead><tbody className="divide-y divide-slate-100">{(company.contacts?.length ? company.contacts : [{ id: 'primary', name: company.contactName, email: company.contactEmail, phone: company.contactPhone }]).map((contact) => <tr key={contact.id}><td className="py-3 font-semibold text-slate-900">{contact.name}</td><td className="py-3 text-slate-600">{company.contactRole || '—'}</td><td className="py-3 text-slate-600">{contact.email}</td><td className="py-3 text-slate-600">{contact.phone}</td></tr>)}</tbody></table></div>}
           {workspaceTab === 'tickets' && <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-[10px] tracking-wider text-slate-500 uppercase"><tr><th className="pb-3">Ticket</th><th className="pb-3">Title</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{tickets.length ? tickets.map((ticket) => <tr key={ticket.id}><td className="py-3"><button className="font-bold text-indigo-700 hover:underline" onClick={() => onOpenTicket?.(ticket.id)}>{ticket.code}</button></td><td className="py-3 text-slate-700">{ticket.title}</td><td className="py-3 text-slate-600">{ticket.status}</td></tr>) : <tr><td className="py-4 text-slate-500" colSpan={3}>No active tickets.</td></tr>}</tbody></table></div>}
           {workspaceTab === 'contracts' && <div className="grid gap-3 sm:grid-cols-2">{company.subscribedServices.map((service) => <div key={service} className="rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="font-bold text-slate-900">{service}</p><p className="mt-1 text-xs text-slate-500">Active service · SLA {company.slaResponseTime}</p></div>)}</div>}
         </div>

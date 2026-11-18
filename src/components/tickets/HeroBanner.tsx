@@ -1,104 +1,29 @@
 import React from "react";
 import type { Ticket } from "../../types/barrel";
+import { PriorityBadge, StatusBadge } from "../common/barrel";
 
-interface HeroBannerProps {
-  ticket: Ticket;
-  onEscalate?: () => void;
-  onRequestQa?: () => void;
-  onResolve?: () => void;
-}
+interface HeroBannerProps { ticket: Ticket }
 
-export const HeroBanner: React.FC<HeroBannerProps> = ({
-  ticket,
-  onEscalate,
-  onRequestQa,
-  onResolve,
-}) => {
-  const isTerminal =
-    ticket.status === "Resolved" || ticket.status === "Closed";
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6  text-white shadow-lg sm:p-8">
-      {/* Decorative grid */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
-        <div className="h-full w-full bg-[length:24px_24px] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)]" />
-      </div>
-      <div className="flex items-center justify-between gap-6">
-        {/* Title */}
-        <h1 className="relative text-xl font-bold leading-snug tracking-tight text-white">
-          {ticket.title}
-        </h1>
-        {/* Quick Action row */}
-        <div className="relative flex flex-wrap items-center gap-2">
-          {onEscalate && <QuickActionButton
-            icon="trending_up"
-            label="Escalate"
-            variant="rose"
-            disabled={isTerminal || ticket.status === "Escalated"}
-            onClick={onEscalate}
-          />}
-          {onRequestQa && <QuickActionButton
-            icon="fact_check"
-            label="Request QA Review"
-            variant="purple"
-            disabled={isTerminal || ticket.status === "Pending QA"}
-            onClick={onRequestQa}
-          />}
-          {onResolve && <QuickActionButton
-            icon="check_circle"
-            label="Mark Resolved"
-            variant="emerald"
-            disabled={isTerminal}
-            onClick={onResolve}
-          />}
-      </div>
-      </div>
+export const HeroBanner: React.FC<HeroBannerProps> = ({ ticket }) => {
+  const sectionLinks = [
+    ["Issue", "ticket-issue"], ["Activity", "ticket-activity"],
+    ["Details", "ticket-details"], ...(ticket.attachments?.length ? [["Files", "ticket-attachments"]] : []),
+  ];
+  return <section aria-labelledby="ticket-summary-title" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-mono text-sm font-bold text-indigo-700">{ticket.code || "Ticket"}</span>
+      <StatusBadge status={ticket.status} />
+      <PriorityBadge priority={ticket.priority} />
+      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${ticket.slaRisk === "Breached" ? "bg-rose-50 text-rose-700" : ticket.slaRisk === "At Risk" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"}`}>SLA · {ticket.slaRisk || "Not set"}{ticket.slaDeadline && ticket.slaDeadline !== ticket.slaRisk ? ` · ${ticket.slaDeadline}` : ""}</span>
     </div>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-
-type Variant = "rose" | "purple" | "emerald";
-
-const variantStyles: Record<
-  Variant,
-  { base: string; hover: string; disabled: string }
-> = {
-  rose: {
-    base: "bg-rose-500/15 text-rose-200 border-rose-400/30",
-    hover: "hover:bg-rose-500/30",
-    disabled: "opacity-40 cursor-not-allowed",
-  },
-  purple: {
-    base: "bg-purple-500/15 text-purple-200 border-purple-400/30",
-    hover: "hover:bg-purple-500/30",
-    disabled: "opacity-40 cursor-not-allowed",
-  },
-  emerald: {
-    base: "bg-emerald-500/15 text-emerald-200 border-emerald-400/30",
-    hover: "hover:bg-emerald-500/30",
-    disabled: "opacity-40 cursor-not-allowed",
-  },
-};
-
-const QuickActionButton: React.FC<{
-  icon: string;
-  label: string;
-  variant: Variant;
-  disabled?: boolean;
-  onClick: () => void;
-}> = ({ icon, label, variant, disabled = false, onClick }) => {
-  const v = variantStyles[variant];
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors ${v.base} ${disabled ? v.disabled : v.hover}`}
-    >
-      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">{icon}</span>
-      <span>{label}</span>
-    </button>
-  );
+    <h1 id="ticket-summary-title" className="mt-3 break-words text-xl font-bold leading-snug tracking-tight text-slate-900">{ticket.title || "Untitled ticket"}</h1>
+    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+      <p><span className="text-slate-500">Assigned to</span> <strong>{ticket.assignedToName || "Unassigned"}</strong></p>
+      <p><span className="text-slate-500">Customer</span> <strong>{ticket.companyName || "No customer"}</strong></p>
+      <p><span className="text-slate-500">Service</span> <strong>{ticket.serviceName || "No service"}</strong></p>
+    </div>
+    <nav aria-label="Ticket sections" className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+      {sectionLinks.map(([label, id]) => <a key={id} href={`#${id}`} className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-indigo-600">{label}</a>)}
+    </nav>
+  </section>;
 };

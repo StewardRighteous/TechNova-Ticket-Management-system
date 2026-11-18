@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTicketStore } from "../../store/barrel";
+import { loadWorkspacePreferences, saveWorkspacePreferences, type WorkspacePreferences } from "../../utils/workspacePreferences";
 
 interface ToggleProps {
   checked: boolean;
@@ -46,23 +47,18 @@ export const SettingsView: React.FC = () => {
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const resetTriggerRef = React.useRef<HTMLButtonElement>(null);
   const cancelResetRef = React.useRef<HTMLButtonElement>(null);
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    browserNotifications: false,
-    compactMode: false,
-    defaultView: "all",
-    refreshInterval: "5",
-    language: "english",
-  });
+  const [settings, setSettings] = useState<WorkspacePreferences>(() => loadWorkspacePreferences(currentUser?.id));
+  const [preferencesSaved, setPreferencesSaved] = useState(true);
 
-  const toggle = (
-    key: "emailNotifications" | "browserNotifications" | "compactMode",
-  ) => setSettings((current) => ({ ...current, [key]: !current[key] }));
+  React.useEffect(() => {
+    setSettings(loadWorkspacePreferences(currentUser?.id));
+    setPreferencesSaved(true);
+  }, [currentUser?.id]);
 
-  const updateSelect = (
-    key: "defaultView" | "refreshInterval" | "language",
-    value: string,
-  ) => setSettings((current) => ({ ...current, [key]: value }));
+  const updatePreferences = (next: WorkspacePreferences) => {
+    setSettings(next);
+    setPreferencesSaved(saveWorkspacePreferences(currentUser?.id, next));
+  };
 
   const selectClass =
     "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
@@ -95,34 +91,14 @@ export const SettingsView: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6 sm:p-8">
+      <p className="sr-only" aria-live="polite">{preferencesSaved ? "Preferences saved for this persona." : "Preferences could not be saved in this browser."}</p>
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3">
           <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase">
             Notifications
           </h2>
         </div>
-        <div className="divide-y divide-slate-100">
-          <SettingRow
-            title="Email notifications"
-            description="Receive updates when tickets are assigned to you or change status."
-          >
-            <Toggle
-              checked={settings.emailNotifications}
-              label="Toggle email notifications"
-              onChange={() => toggle("emailNotifications")}
-            />
-          </SettingRow>
-          <SettingRow
-            title="Browser notifications"
-            description="Show an in-app alert for urgent tickets and new mentions."
-          >
-            <Toggle
-              checked={settings.browserNotifications}
-              label="Toggle browser notifications"
-              onChange={() => toggle("browserNotifications")}
-            />
-          </SettingRow>
-        </div>
+        <p className="px-5 py-5 text-sm leading-6 text-slate-600">This local demo has no email delivery or browser push service. Ticket alerts appear in the in-app notification bell and Notifications page.</p>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -139,9 +115,7 @@ export const SettingsView: React.FC = () => {
             <select
               aria-label="Default ticket view"
               className={selectClass}
-              onChange={(event) =>
-                updateSelect("defaultView", event.target.value)
-              }
+              onChange={(event) => updatePreferences({ ...settings, defaultView: event.target.value as WorkspacePreferences["defaultView"] })}
               value={settings.defaultView}
             >
               <option value="all">All tickets</option>
@@ -151,19 +125,15 @@ export const SettingsView: React.FC = () => {
           </SettingRow>
           <SettingRow
             title="Refresh interval"
-            description="Control how often the ticket list checks for new activity."
+            description="Ticket data is stored in this browser and does not sync with a server. Refresh the page to reload its saved data."
           >
             <select
-              aria-label="Refresh interval"
+              aria-label="Refresh behavior"
               className={selectClass}
-              onChange={(event) =>
-                updateSelect("refreshInterval", event.target.value)
-              }
-              value={settings.refreshInterval}
+              onChange={() => undefined}
+              value="manual"
+              disabled
             >
-              <option value="1">Every minute</option>
-              <option value="5">Every 5 minutes</option>
-              <option value="15">Every 15 minutes</option>
               <option value="manual">Manual only</option>
             </select>
           </SettingRow>
@@ -174,7 +144,7 @@ export const SettingsView: React.FC = () => {
             <Toggle
               checked={settings.compactMode}
               label="Toggle compact layout"
-              onChange={() => toggle("compactMode")}
+              onChange={() => updatePreferences({ ...settings, compactMode: !settings.compactMode })}
             />
           </SettingRow>
         </div>
@@ -188,16 +158,16 @@ export const SettingsView: React.FC = () => {
         </div>
         <SettingRow
           title="Language"
-          description="Set the language used for labels and navigation in the workspace."
+          description="This demo is currently available in English (US). Language switching is not configured."
         >
           <select
-            aria-label="Language"
+            aria-label="Workspace language"
             className={selectClass}
-            onChange={(event) => updateSelect("language", event.target.value)}
-            value={settings.language}
+            onChange={() => undefined}
+            value="english"
+            disabled
           >
             <option value="english">English (US)</option>
-            <option value="english-uk">English (UK)</option>
           </select>
         </SettingRow>
       </section>

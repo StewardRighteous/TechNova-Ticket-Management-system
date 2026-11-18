@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeDetailHero } from "./EmployeeDetailHero";
-import { filterEmployeesByRole } from "../../utils/barrel";
+import { filterEmployeesByRole, filterTicketsByRole } from "../../utils/barrel";
 
 export const EmployeesView: React.FC = () => {
   const { data, activeRole, updateEmployee, addToast } = useTicketStore();
@@ -11,6 +11,7 @@ export const EmployeesView: React.FC = () => {
   const { employeeId: activeEmployeeId } = useParams<{ employeeId: string }>();
 
   const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
+  const roleTickets = filterTicketsByRole(data.tickets, activeRole, data.employees.find((employee) => employee.role === activeRole)?.id);
   const selectedEmployee = roleEmployees.find((e) => e.id === activeEmployeeId);
 
   const handleUpdateEmployee = (
@@ -27,24 +28,26 @@ export const EmployeesView: React.FC = () => {
           <p className="mt-2 text-sm text-slate-700">This employee may not exist or may not be available to your role.</p>
           <button type="button" onClick={() => navigate("/employees")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to employees</button>
         </section>
-      ) : selectedEmployee ? (
-        <>
+      ) : <>
+        {selectedEmployee && <>
           <EmployeeDetailHero
             employee={selectedEmployee}
-            tickets={data.tickets}
+            tickets={roleTickets.filter((ticket) => ticket.assignedToId === selectedEmployee?.id && !["Resolved", "Closed"].includes(ticket.status))}
+            teams={data.teams}
+            departments={data.departments}
+            locations={data.locations}
             onBack={() => navigate("/employees")}
             onUpdateEmployee={handleUpdateEmployee}
             onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
-        </>
-      ) : (
-        <EmployeeTable
+        </>}
+        <div hidden={Boolean(activeEmployeeId)}><EmployeeTable
           employees={roleEmployees}
           activeRoleId={activeRole}
           onViewEmployee={(id) => navigate(`/employees/${encodeURIComponent(id)}`)}
           onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/employees/new") : undefined}
-        />
-      )}
+        /></div>
+      </>}
     </div>
   );
 };

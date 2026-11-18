@@ -4,7 +4,7 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { DashboardView } from "./index";
 import { useTicketStore } from "../../../store/barrel";
 
-const CurrentPath = () => <output data-testid="current-path">{useLocation().pathname}</output>;
+const CurrentPath = () => <output data-testid="current-path">{useLocation().pathname}{useLocation().search}</output>;
 
 describe("DashboardView Integration", () => {
   beforeEach(() => {
@@ -52,5 +52,12 @@ describe("DashboardView Integration", () => {
       expect(state.selectedTicketId).toBe("TCK-1089");
       expect(screen.getByTestId("current-path")).toHaveTextContent("/tickets/TCK-1089");
     }
+  });
+
+  it("opens a shareable SLA-risk scope from the high-attention registry link", () => {
+    render(<MemoryRouter><DashboardView /><CurrentPath /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: /open ticket registry/i }));
+    expect(screen.getByTestId("current-path")).toHaveTextContent("/tickets?scope=sla-risk");
+    expect(useTicketStore.getState().ticketTableFocus).toBe("sla-risk");
   });
 });

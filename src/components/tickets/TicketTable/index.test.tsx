@@ -77,7 +77,7 @@ const mockDepartments: Department[] = [
 ];
 
 describe("TicketTable with Table-First Registry Controls", () => {
-  it("renders ticket columns: ID, title, company, contact, priority, channel, department, and subtle SLA indicator", () => {
+  it("renders identifying ticket fields and a uniquely named title open action", () => {
     const handleView = vi.fn();
     const handleCreate = vi.fn();
 
@@ -95,12 +95,12 @@ describe("TicketTable with Table-First Registry Controls", () => {
     expect(screen.getByText("TCK-101")).toBeInTheDocument();
     expect(screen.getByText("Server Crash Issue")).toBeInTheDocument();
     expect(screen.getByText("Acme Corp")).toBeInTheDocument();
-    expect(screen.getByText("Marcus Reed")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open TCK-101: Server Crash Issue" })).toBeInTheDocument();
     expect(screen.getByText("Engineering & Development")).toBeInTheDocument();
 
     // Subtle SLA indicator
-    expect(screen.getByText(/At Risk/)).toBeInTheDocument();
-    expect(screen.getByText("Breached")).toBeInTheDocument();
+    expect(screen.getByText("In Progress")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /View/ })).not.toBeInTheDocument();
   });
 
   it("filters tickets with debounced search bar and combobox filters", async () => {
@@ -174,8 +174,13 @@ describe("TicketTable with Table-First Registry Controls", () => {
 
     const pagination = screen.getByTestId("numeric-pagination");
     expect(pagination).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "10 per page" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "25 per page" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "50 per page" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Rows per page" })).toBeInTheDocument();
+  });
+
+  it("opens the ticket when the accessible title control is activated", () => {
+    const onViewTicket = vi.fn();
+    render(<TicketTable tickets={mockTickets} onViewTicket={onViewTicket} onCreateNew={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open TCK-101: Server Crash Issue" }));
+    expect(onViewTicket).toHaveBeenCalledWith("t1");
   });
 });
