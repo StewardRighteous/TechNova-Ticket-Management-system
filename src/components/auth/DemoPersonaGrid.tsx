@@ -1,10 +1,11 @@
-import React from 'react';
-import type { Employee, RoleId } from '../../types/barrel';
+import React from "react";
+import type { Employee, RoleId } from "../../types/barrel";
 
 interface DemoPersonaGridProps {
   employees: Employee[];
   roles: { id: RoleId; name: string; description: string }[];
   onSelectPersona: (empId: string) => void;
+  onContinue: () => void;
   selectedEmployeeId?: string;
   heading?: string;
 }
@@ -13,31 +14,61 @@ export const DemoPersonaGrid: React.FC<DemoPersonaGridProps> = ({
   employees,
   roles,
   onSelectPersona,
+  onContinue,
   selectedEmployeeId,
-  heading = 'Choose a demo persona',
+  heading = "Choose a demo persona",
 }) => {
   return (
-    <section className="mt-6 border-t border-slate-200 pt-5" aria-label={heading}>
-      <div className="mb-3">
-        <h2 className="text-sm font-bold text-slate-900">{heading}</h2>
-        <p className="mt-1 text-xs leading-5 text-slate-600">Explore the workspace with a sample account. Each persona has different access.</p>
+    <section className="mt-2" aria-label={heading}>
+      <div className="mb-4">
+        <h2 className=" text-center text-[22px] font-bold tracking-tight text-[#111d39]">
+          {heading}
+        </h2>
+        <p className="text-center text-sm text-slate-500">
+          Select a profile to continue as that team member.
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {employees.map((emp) => (
           <button
             key={emp.id}
             type="button"
             onClick={() => onSelectPersona(emp.id)}
+            aria-label={`Select ${emp.name}, ${roles.find((role) => role.id === emp.role)?.name || emp.roleTitle}`}
             aria-pressed={selectedEmployeeId === emp.id}
-            className={`flex min-h-20 flex-col rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${selectedEmployeeId === emp.id ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50'}`}
+            className={`flex min-h-[76px] flex-col items-stretch justify-center gap-1 rounded-lg border p-3 text-left transition focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none ${selectedEmployeeId === emp.id ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500" : "border-slate-300 bg-white hover:border-indigo-400 hover:bg-slate-50"}`}
           >
-            <span className="text-sm font-semibold text-slate-900">{emp.name}</span>
-            <span className="mt-0.5 text-xs font-semibold text-indigo-700">{roles.find((role) => role.id === emp.role)?.name || emp.roleTitle}</span>
-            <span className="mt-1 text-xs leading-4 text-slate-600">{roles.find((role) => role.id === emp.role)?.description || 'Explore the workspace with this role.'}</span>
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm leading-5 font-bold break-words whitespace-normal text-slate-900">
+                  {emp.name}
+                </span>
+                <span className="mt-0.5 block text-xs leading-4 font-medium break-words whitespace-normal text-slate-500">
+                  {roles.find((role) => role.id === emp.role)?.name ||
+                    emp.roleTitle}
+                </span>
+                <span className="sr-only">
+                  You will sign in as {emp.name} with the{" "}
+                  {roles.find((role) => role.id === emp.role)?.name ||
+                    emp.roleTitle}{" "}
+                  role.
+                </span>
+              </span>
+            </span>
           </button>
         ))}
       </div>
+  
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={!selectedEmployeeId}
+          className="mt-3 w-full rounded-lg bg-[#102345] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#18345f] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Continue as selected <span aria-hidden="true">→</span>
+        </button>
+
     </section>
   );
 };
