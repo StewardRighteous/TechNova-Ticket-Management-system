@@ -49,9 +49,9 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
   return (
     <section
       id="high-attention-incidents"
-      className="scroll-mt-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
     >
-      <div className="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 border-b border-slate-100 bg-slate-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined rounded-lg bg-rose-50 p-2 text-[20px] text-rose-600">
             crisis_alert
@@ -61,9 +61,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
               <h2 className="text-base font-bold text-slate-900">
                 High-attention queue
               </h2>
-              <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">
-                {highAttentionTickets.length} active tickets: SLA breached or at risk, plus urgent or high-priority tickets that may still be on target.
-              </p>
+           
             </div>
           </div>
         </div>
@@ -83,16 +81,21 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
+        <table className="w-full table-fixed border-collapse text-left text-xs">
+          <colgroup>
+            <col className="w-[29%]" />
+            <col className="w-[22%]" />
+            <col className="w-[24%]" />
+            <col className="w-[12%]" />
+            <col className="w-[13%]" />
+          </colgroup>
           <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
             <tr>
-              <th className="px-5 py-3">Ticket</th>
-              <th className="px-3 py-3">Client</th>
-              <th className="px-4 py-3">Incident Title</th>
-              <th className="px-3 py-3">Priority</th>
-              <th className="px-3 py-3">SLA Status</th>
-              <th className="px-3 py-3">Assignee</th>
-              <th className="px-5 py-3 ">Action</th>
+              <th className="px-3 py-2.5">Ticket / Incident</th>
+              <th className="px-3 py-2.5">Client / Priority</th>
+              <th className="px-3 py-2.5">SLA Status</th>
+              <th className="px-3 py-2.5">Assignee</th>
+              <th className="px-3 py-2.5 text-left">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -102,35 +105,27 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                 onClick={() => onSelectTicket(ticket.id)}
                 className="group cursor-pointer transition hover:bg-rose-50/40"
               >
-                <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
-                  {ticket.code}
+                <td className="max-w-0 px-3 py-2.5">
+                  <div className="font-mono text-[10px] font-bold text-slate-500">{ticket.code}</div>
+                  <span className="mt-0.5 block truncate font-semibold text-slate-900 group-hover:text-rose-700 transition-colors" title={ticket.title}>{ticket.title}</span>
                 </td>
-                <td className="px-3 py-3 font-semibold whitespace-nowrap text-slate-800">
-                  {ticket.companyName}
-                </td>
-                <td className="max-w-xs px-4 py-3">
-                  <span className="block truncate font-bold text-slate-900 group-hover:text-rose-700 transition-colors">
-                    {ticket.title}
-                  </span>
-                </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${ticket.priority === "P1 Urgent" ? "border-rose-200 bg-rose-50 text-rose-700" : ticket.priority === "P2 Normal" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+                <td className="max-w-0 px-3 py-2.5">
+                  <div className="truncate font-semibold text-slate-800" title={ticket.companyName}>{ticket.companyName}</div>
+                  <span className={`mt-1 inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${ticket.priority === "P1 Urgent" ? "border-rose-200 bg-rose-50 text-rose-700" : ticket.priority === "P2 Normal" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
                     {ticket.priority}
                   </span>
                 </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  {renderSlaBadge(ticket.slaRisk, ticket.slaDeadline)}
+                <td className="px-3 py-2.5">
+                  <div className="whitespace-nowrap">{renderSlaBadge(ticket.slaRisk, ticket.slaDeadline)}</div>
                 </td>
-                <td className="px-3 py-3 whitespace-nowrap text-slate-700">
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    <span className="material-symbols-outlined text-[14px] text-slate-400">
-                      person
-                    </span>
-                    <span className="font-medium">{ticket.assignedToName}</span>
+                <td className="px-3 py-2.5">
+                  <div className="flex min-w-0 items-center gap-1 text-[10px] text-slate-600">
+                    <span className="material-symbols-outlined shrink-0 text-[13px] text-slate-400">person</span>
+                    <span className="">{ticket.assignedToName}</span>
                   </div>
                 </td>
-      
-                <td className="px-5 py-3 text-right whitespace-nowrap">
+
+                <td className="px-3 py-2.5 text-left whitespace-nowrap">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -149,7 +144,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
             ))}
             {highAttentionTickets.length === 0 && (
               <tr>
-                <td colSpan={10} className="p-8 text-center text-xs text-slate-500">
+                <td colSpan={5} className="p-8 text-center text-xs text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[32px] text-emerald-500">
                       check_circle

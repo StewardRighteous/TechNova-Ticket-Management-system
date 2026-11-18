@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useTicketStore } from "../../../../store/barrel";
 import { ROLE_PERMISSIONS, canAccessCompany, canAccessEmployee, canAccessService, canAccessTicket } from "../../../../utils/rolePermissions";
-import { DemoPersonaGrid } from "../../../auth/DemoPersonaGrid";
 import { notificationForViewer } from "../../../../utils/notificationDisplay";
 
 
@@ -15,7 +14,6 @@ export const Header: React.FC = () => {
     data,
     isSidebarCollapsed,
     logout,
-    loginAsEmployee,
     setSelectedTicketId,
     markNotificationRead,
   } = useTicketStore();
@@ -23,8 +21,28 @@ export const Header: React.FC = () => {
   const location = useLocation();
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isPersonaSwitcherOpen, setIsPersonaSwitcherOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isProfileDropdownOpen) return;
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (event.target instanceof Node && !profileMenuRef.current?.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsProfileDropdownOpen(false);
+    };
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isProfileDropdownOpen]);
   const currentRoleInfo =
     data.roles.find((r) => r.id === activeRole) || data.roles[0];
   const activeEmployee = currentUser || data.employees[0];
@@ -141,7 +159,7 @@ export const Header: React.FC = () => {
           </div>
         )}
 
-        <div className="relative">
+        <div className="relative" ref={profileMenuRef}>
             <button
               aria-label="User profile"
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -159,9 +177,7 @@ export const Header: React.FC = () => {
                 <span className="text-xs leading-none font-bold text-slate-800">
                   {activeEmployee.name}
                 </span>
-                <span className="py-0.2 rounded bg-indigo-100 px-1.5 text-[10px] font-semibold text-indigo-800">
-                  Online
-                </span>
+             
               </div>
               <span className="text-[11px] font-medium text-indigo-600">
                 {currentRoleInfo.name}
@@ -173,8 +189,8 @@ export const Header: React.FC = () => {
           </button>
 
           {isProfileDropdownOpen && (
-            <div className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 max-h-[75vh] w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-slate-100 bg-white p-3 shadow-xl duration-150">
-              <div className="border-b border-slate-100 px-3 py-2">
+            <div className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 max-h-[75vh] w-full min-w-0 overflow-y-auto rounded-xl border border-slate-100 bg-white p-2 shadow-xl duration-150">
+              <div className="border-b border-slate-100 px-2 py-1.5">
                 <span className="block text-xs font-bold text-slate-900">
                   {activeEmployee.name}
                 </span>
@@ -183,36 +199,13 @@ export const Header: React.FC = () => {
                 </span>
               </div>
 
-              <button
-                type="button"
-                aria-expanded={isPersonaSwitcherOpen}
-                onClick={() => setIsPersonaSwitcherOpen((open) => !open)}
-                className="mt-2 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              >
-                <span>Switch demo persona</span>
-                <span aria-hidden="true" className="material-symbols-outlined text-base">{isPersonaSwitcherOpen ? "expand_less" : "expand_more"}</span>
-              </button>
-              {isPersonaSwitcherOpen && (
-                <DemoPersonaGrid
-                  employees={data.employees}
-                  roles={data.roles}
-                  selectedEmployeeId={activeEmployee.id}
-                  heading="Choose a persona"
-                  onSelectPersona={(employeeId) => {
-                    loginAsEmployee(employeeId);
-                    setIsPersonaSwitcherOpen(false);
-                    setIsProfileDropdownOpen(false);
-                  }}
-                />
-              )}
-
-              <div className="border-slate-100 px-2 pt-2">
+              <div className="px-1 pt-1.5">
                 <button
                   onClick={() => {
                     setIsProfileDropdownOpen(false);
                     logout();
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
                 >
                   <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
                     logout

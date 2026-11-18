@@ -1,12 +1,6 @@
 import React from "react";
 import { useTicketStore } from "../../../store/barrel";
-import {
-  filterCompaniesByRole,
-  filterEmployeesByRole,
-  filterServicesByRole,
-  filterTicketsByRole,
-  ROLE_PERMISSIONS,
-} from "../../../utils/barrel";
+import { filterTicketsByRole } from "../../../utils/barrel";
 import { ExecutiveKpiRibbon } from "../ExecutiveKpiRibbon";
 import { VolumeBreakdownCards } from "../VolumeBreakdownCards";
 import { HighAttentionTicketsTable } from "../HighAttentionTicketsTable";
@@ -32,14 +26,15 @@ export const DashboardView: React.FC = () => {
     setSelectedTicketId,
     setTicketTableFocus,
     markNotificationRead,
-  } =
-    useTicketStore();
+  } = useTicketStore();
 
   const tickets = filterTicketsByRole(
     data.tickets,
     activeRole,
     currentUser?.id,
-    data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id),
+    data.companies
+      .filter((company) => company.accountManager === currentUser?.name)
+      .map((company) => company.id),
   );
 
   const referenceNow = new Date();
@@ -55,120 +50,116 @@ export const DashboardView: React.FC = () => {
     navigate(`/tickets/${encodeURIComponent(id)}`);
   };
 
-  const openTicketSection = (focus: "active" | "overdue" | "sla-risk" | "resolved") => {
+  const openTicketSection = (
+    focus: "active" | "overdue" | "sla-risk" | "resolved",
+  ) => {
     setSelectedTicketId(null);
     setTicketTableFocus(focus);
     navigate(`/tickets?scope=${focus}`);
   };
 
-  const entityCards = [
-    {
-      label: "Tickets",
-      value: metrics.totalTickets,
-      icon: "confirmation_number",
-      tab: "tickets",
-      caption: "All requests, including resolved and closed",
-      iconClass: "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600",
-    },
-    {
-      label: "Companies",
-      value: filterCompaniesByRole(data.companies, activeRole, currentUser?.name).length,
-      icon: "business",
-      tab: "companies",
-      caption: "Client companies managed",
-      iconClass: "bg-sky-50 text-sky-600 group-hover:bg-sky-600",
-    },
-    {
-      label: "Employees",
-      value: filterEmployeesByRole(data.employees, activeRole).length,
-      icon: "groups",
-      tab: "employees",
-      caption: "Team members in your role",
-      iconClass: "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600",
-    },
-    {
-      label: "Services",
-      value: filterServicesByRole(data.services, activeRole).length,
-      icon: "design_services",
-      tab: "services",
-      caption: "Contracted service lines",
-      iconClass: "bg-violet-50 text-violet-600 group-hover:bg-violet-600",
-    },
-  ] as const;
-  const allowedEntityCards = entityCards.filter(({ tab }) => ROLE_PERMISSIONS[activeRole].allowedTabs.includes(tab));
   const visibleNotifications = data.notifications.filter((notification) => {
     if (!notification.ticketId) return true;
     const ticket = tickets.find((item) => item.id === notification.ticketId);
     return Boolean(ticket);
   });
   const personaId = currentUser?.id ?? activeRole;
-  const notificationsForPersona = visibleNotifications.map((notification) => ({ ...notificationForViewer(notification, data, currentUser), read: notification.readBy ? notification.readBy.includes(personaId) : notification.read }));
+  const notificationsForPersona = visibleNotifications.map((notification) => ({
+    ...notificationForViewer(notification, data, currentUser),
+    read: notification.readBy
+      ? notification.readBy.includes(personaId)
+      : notification.read,
+  }));
 
   return (
-    <div className="max-w-8xl space-y-5 p-6">
-      <section className="rounded-xl border border-slate-200 bg-white px-5 py-4">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">
-          {getGreeting()}, {currentUser?.name || "Team"}
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Your service requests and the work that needs attention first.
-        </p>
-      </section>
-
-      <section aria-labelledby="dashboard-operations-heading">
-        <div className="mb-3">
-          <h2 id="dashboard-operations-heading" className="text-sm font-bold text-slate-900">Operational health</h2>
-          <p className="mt-0.5 text-xs text-slate-600">Role-scoped ticket totals, calculated from the current time.</p>
-        </div>
-        <ExecutiveKpiRibbon
-          totalActive={metrics.totalActive}
-          overdueCount={metrics.overdueCount}
-          slaAtRiskOrBreachedCount={metrics.slaAtRiskOrBreachedCount}
-          formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
-          onActiveClick={() => openTicketSection("active")}
-          onOverdueClick={() => openTicketSection("overdue")}
-          onSlaRiskClick={() => openTicketSection("sla-risk")}
-          onResolvedClick={() => openTicketSection("resolved")}
-        />
-        <p className="mt-2 text-xs leading-5 text-slate-600">
-          Resolution average uses all resolved and closed tickets. Resolved tickets use their last update; closed tickets use their close time, or last update when no close time is recorded.
-        </p>
-      </section>
-
-      <HighAttentionTicketsTable
-        tickets={tickets}
-        onSelectTicket={openTicket}
-        onExploreAll={() => { setSelectedTicketId(null); setTicketTableFocus("sla-risk"); navigate("/tickets?scope=sla-risk"); }}
-      />
-
-      <section aria-labelledby="dashboard-workspace-heading" className="space-y-4">
-        <div>
-          <h2 id="dashboard-workspace-heading" className="text-sm font-bold text-slate-900">Browse workspace</h2>
-          <p className="mt-0.5 text-xs text-slate-600">Directory totals and ticket breakdowns.</p>
-        </div>
-        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {allowedEntityCards.map(({ label, value, icon, tab, caption, iconClass }) => (
-            <button key={label} type="button" onClick={() => navigate(`/${tab}`)} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-300 hover:shadow-sm">
-              <div className="relative flex items-start justify-between">
-                <div>
-                  <span className="text-xs font-semibold text-slate-600">{label}</span>
-                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-                </div>
-                <span aria-hidden="true" className={`material-symbols-outlined rounded-lg p-2 text-xl ${iconClass}`}>{icon}</span>
+    <div className="dashboard-page mx-auto max-w-[1600px] space-y-3 p-3">
+      <section className="dashboard-overview-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="dashboard-welcome flex flex-col gap-5 px-5 py-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex items-center gap-4">
+            <span className="material-symbols-outlined rounded-xl bg-indigo-500/30 p-3 text-3xl text-indigo-100">
+              layers
+            </span>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+                {getGreeting()}, {currentUser?.name?.split(" ")[0] || "Team"}
+              </h1>
+              <p className="mt-1 text-sm text-slate-300">
+                Support operations at a glance
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 sm:pr-1">
+            <div className="flex min-w-36 items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5">
+              <span className="material-symbols-outlined rounded-lg bg-indigo-500/30 p-2 text-indigo-100">
+                confirmation_number
+              </span>
+              <div>
+                <strong className="block text-xl leading-6">
+                  {metrics.totalTickets}
+                </strong>
+                <span className="text-xs text-slate-300">Tickets</span>
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
-                <p className="text-xs text-slate-600">{caption}</p>
-                <span aria-hidden="true" className="material-symbols-outlined text-base text-slate-400">arrow_forward</span>
+            </div>
+            <div className="flex min-w-36 items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5">
+              <span className="material-symbols-outlined rounded-lg bg-rose-500/20 p-2 text-rose-200">
+                warning
+              </span>
+              <div>
+                <strong className="block text-xl leading-6">
+                  {metrics.slaAtRiskOrBreachedCount}
+                </strong>
+                <span className="text-xs text-slate-300">High attention</span>
               </div>
-            </button>
-          ))}
+            </div>
+          </div>
+        </div>
+
+        <section
+          aria-labelledby="dashboard-operations-heading"
+          className="p-2"
+        >
+          <h2 id="dashboard-operations-heading" className="sr-only">
+            Operational health
+          </h2>
+          <ExecutiveKpiRibbon
+            totalActive={metrics.totalActive}
+            overdueCount={metrics.overdueCount}
+            slaAtRiskOrBreachedCount={metrics.slaAtRiskOrBreachedCount}
+            formattedAvgResolutionTime={metrics.formattedAvgResolutionTime}
+            onActiveClick={() => openTicketSection("active")}
+            onOverdueClick={() => openTicketSection("overdue")}
+            onSlaRiskClick={() => openTicketSection("sla-risk")}
+            onResolvedClick={() => openTicketSection("resolved")}
+          />
         </section>
-        <VolumeBreakdownCards tickets={tickets} teams={data.teams} departments={data.departments} />
+
       </section>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[2fr_1fr]">
-        <RecentTickets tickets={recent} onOpen={openTicket} />
-        <NotificationsCard notifications={notificationsForPersona} onOpen={openTicket} onViewAll={() => navigate("/notifications")} />
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(280px,0.9fr)]">
+        <div className="space-y-3">
+          <HighAttentionTicketsTable
+            tickets={tickets}
+            onSelectTicket={openTicket}
+            onExploreAll={() => {
+              setSelectedTicketId(null);
+              setTicketTableFocus("sla-risk");
+              navigate("/tickets?scope=sla-risk");
+            }}
+          />
+          <RecentTickets tickets={recent} onOpen={openTicket} />
+        </div>
+        <div className="space-y-3">
+          <VolumeBreakdownCards
+            tickets={tickets}
+            teams={data.teams}
+            departments={data.departments}
+          />
+          <NotificationsCard
+            notifications={notificationsForPersona}
+            onOpen={openTicket}
+            onViewAll={() => navigate("/notifications")}
+          />
+        </div>
       </div>
     </div>
   );

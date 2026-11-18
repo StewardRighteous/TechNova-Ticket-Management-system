@@ -96,3 +96,55 @@
   padding-top: 0.4rem !important;
   padding-bottom: 0.4rem !important;
 }
+
+@layer components {
+  .dashboard-page {
+    background: radial-gradient(ellipse at 70% 0%, #eef2ff 0%, transparent 45%);
+  }
+
+  .dashboard-welcome {
+    min-height: 96px;
+    background: radial-gradient(ellipse at 58% 120%, rgb(67 56 202 / 35%), transparent 30%), linear-gradient(105deg, #111a3c, #171e49 58%, #101a35);
+  }
+
+  .dashboard-overview-card > section {
+    background: linear-gradient(180deg, #fff, #fbfcff);
+  }
+
+  #high-attention-incidents,
+  .dashboard-page .grid > section {
+    border-color: #d8e0ef;
+    border-radius: 1rem;
+    box-shadow: 0 2px 5px rgb(15 23 42 / 7%);
+  }
+
+  .dashboard-overview-card #high-attention-incidents {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  #high-attention-incidents > div:first-child {
+    padding: 0.85rem 1rem;
+  }
+
+  #high-attention-incidents > div:first-child p {
+    display: none;
+  }
+
+  #high-attention-incidents table th {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  #high-attention-incidents table td {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-welcome > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-welcome > div:last-child > div { min-width: 0; padding: 0.5rem; }
+    .dashboard-page { padding: 0.75rem; }
+  }
+}
