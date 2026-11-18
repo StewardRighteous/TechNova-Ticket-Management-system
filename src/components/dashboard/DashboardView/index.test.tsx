@@ -23,8 +23,7 @@ describe("DashboardView Integration", () => {
   it("renders Volume Breakdown Cards for channels and departments", () => {
     render(<MemoryRouter><DashboardView /></MemoryRouter>);
 
-    expect(screen.getByText("Tickets by Intake Channel")).toBeInTheDocument();
-    expect(screen.getByText("Tickets by Department")).toBeInTheDocument();
+    expect(screen.getByText("Ticket source")).toBeInTheDocument();
     expect(screen.getByText("WhatsApp")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Phone")).toBeInTheDocument();
@@ -34,7 +33,7 @@ describe("DashboardView Integration", () => {
     render(<MemoryRouter><DashboardView /><CurrentPath /></MemoryRouter>);
 
     expect(
-      screen.getByText("High-attention queue"),
+      screen.getByText("Attention Needed"),
     ).toBeInTheDocument();
 
     // From mockup data, check an actionable ticket like TCK-1089 in the High-Attention table

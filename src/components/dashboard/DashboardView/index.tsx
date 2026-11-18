@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTicketStore } from "../../../store/barrel";
 import { filterTicketsByRole } from "../../../utils/barrel";
 import { ExecutiveKpiRibbon } from "../ExecutiveKpiRibbon";
@@ -6,7 +6,7 @@ import { VolumeBreakdownCards } from "../VolumeBreakdownCards";
 import { HighAttentionTicketsTable } from "../HighAttentionTicketsTable";
 import { computeExecutiveMetrics } from "../dashboardMetrics";
 import { RecentTickets, NotificationsCard } from "../activityCards";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { notificationForViewer } from "../../../utils/notificationDisplay";
 
 const getGreeting = () => {
@@ -19,6 +19,7 @@ const getGreeting = () => {
 
 export const DashboardView: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     data,
     activeRole,
@@ -27,6 +28,11 @@ export const DashboardView: React.FC = () => {
     setTicketTableFocus,
     markNotificationRead,
   } = useTicketStore();
+
+  useEffect(() => {
+    if (location.hash !== "#recent-tickets") return;
+    document.getElementById("recent-tickets")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location.hash]);
 
   const tickets = filterTicketsByRole(
     data.tickets,
@@ -74,41 +80,35 @@ export const DashboardView: React.FC = () => {
   return (
     <div className="dashboard-page mx-auto max-w-[1600px] space-y-3 p-3">
       <section className="dashboard-overview-card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="dashboard-welcome flex flex-col gap-5 px-5 py-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined rounded-xl bg-indigo-500/30 p-3 text-3xl text-indigo-100">
-              layers
-            </span>
+        <div className="dashboard-welcome flex flex-col gap-2 px-4 py-2 text-white sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex items-center">
             <div>
-              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+              <h1 className="text-[20px] font-bold tracking-tight">
                 {getGreeting()}, {currentUser?.name?.split(" ")[0] || "Team"}
               </h1>
-              <p className="mt-1 text-sm text-slate-300">
-                Support operations at a glance
-              </p>
             </div>
           </div>
-          <div className="flex gap-3 sm:pr-1">
-            <div className="flex min-w-36 items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5">
+          <div className="flex gap-2 sm:pr-1">
+            <div className="flex min-w-32 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5">
               <span className="material-symbols-outlined rounded-lg bg-indigo-500/30 p-2 text-indigo-100">
                 confirmation_number
               </span>
               <div>
-                <strong className="block text-xl leading-6">
+              <strong className="block text-lg leading-5">
                   {metrics.totalTickets}
                 </strong>
-                <span className="text-xs text-slate-300">Tickets</span>
+              <span className="text-[11px] text-slate-300">Tickets</span>
               </div>
             </div>
-            <div className="flex min-w-36 items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5">
+            <div className="flex min-w-32 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5">
               <span className="material-symbols-outlined rounded-lg bg-rose-500/20 p-2 text-rose-200">
                 warning
               </span>
               <div>
-                <strong className="block text-xl leading-6">
+              <strong className="block text-lg leading-5">
                   {metrics.slaAtRiskOrBreachedCount}
                 </strong>
-                <span className="text-xs text-slate-300">High attention</span>
+              <span className="text-[11px] text-slate-300">High attention</span>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export const DashboardView: React.FC = () => {
 
         <section
           aria-labelledby="dashboard-operations-heading"
-          className="p-2"
+          className="bg-slate-50/80 p-2 sm:p-2.5"
         >
           <h2 id="dashboard-operations-heading" className="sr-only">
             Operational health
@@ -146,7 +146,7 @@ export const DashboardView: React.FC = () => {
               navigate("/tickets?scope=sla-risk");
             }}
           />
-          <RecentTickets tickets={recent} onOpen={openTicket} />
+          <RecentTickets tickets={recent} onOpen={openTicket} onViewAll={() => navigate("/latest-updates")} />
         </div>
         <div className="space-y-3">
           <VolumeBreakdownCards

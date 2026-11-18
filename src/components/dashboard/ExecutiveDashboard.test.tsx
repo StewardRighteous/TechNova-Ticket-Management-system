@@ -148,12 +148,12 @@ describe("Executive Dashboard UI Components", () => {
       />,
     );
 
-    expect(screen.getByText("Tickets by Intake Channel")).toBeInTheDocument();
+    expect(screen.getByText("Ticket source")).toBeInTheDocument();
     expect(screen.getByText("WhatsApp")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Phone")).toBeInTheDocument();
 
-    expect(screen.getByText("Tickets by Department")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Department" }));
     expect(screen.getByText("Engineering & Development")).toBeInTheDocument();
     expect(screen.getByText("Global Support Operations")).toBeInTheDocument();
   });
@@ -168,7 +168,7 @@ describe("Executive Dashboard UI Components", () => {
     );
 
     expect(
-      screen.getByText("High-attention queue"),
+      screen.getByText("Attention Needed"),
     ).toBeInTheDocument();
 
     // Tickets listed

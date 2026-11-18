@@ -14,6 +14,7 @@ import { ServicesView } from "./components/services/barrel";
 import { CreateServicePage } from "./components/services/CreateServicePage";
 import { SettingsView } from "./components/settings/barrel";
 import { NotificationsView } from "./components/notifications/NotificationsView";
+import { LatestUpdatesView } from "./components/dashboard/LatestUpdatesView";
 import { ToastNotificationContainer } from "./components/common/barrel";
 import { ROLE_PERMISSIONS } from "./utils/barrel";
 
@@ -44,6 +45,7 @@ const RouteContent: React.FC = () => {
   const pageTitle = React.useMemo(() => {
     if (path === "/" || path === "/dashboard") return "Dashboard";
     if (path === "/notifications") return "Notifications";
+    if (path === "/latest-updates") return "Latest updates";
     const detail = path.match(/^\/(tickets|companies|employees|services)\/([^/]+)$/);
     if (detail) {
       const section = detail[1];
@@ -74,6 +76,7 @@ const RouteContent: React.FC = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<DashboardView />} />
       <Route path="/notifications" element={<NotificationsView />} />
+      <Route path="/latest-updates" element={<LatestUpdatesView />} />
       <Route path="/tickets" element={<TicketRegistryView />} />
       <Route path="/tickets/new" element={ROLE_PERMISSIONS[activeRole].canCreateTicket ? <CreateTicketPage /> : <Navigate to="/tickets" replace />} />
       <Route path="/tickets/:ticketId" element={<TicketRegistryView />} />

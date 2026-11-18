@@ -16,17 +16,16 @@ const channelThemes: Record<InboundChannel, { icon: string; bg: string; border: 
 };
 
 export const VolumeBreakdownCards: React.FC<VolumeBreakdownCardsProps> = ({ tickets, teams = [], departments = [] }) => {
-  const [activeTab, setActiveTab] = useState<"department" | "channel">("department");
+  const [activeTab, setActiveTab] = useState<"department" | "channel">("channel");
   const channelBreakdown = computeChannelBreakdown(tickets);
   const deptBreakdown = computeDepartmentBreakdown(tickets, teams, departments);
   const isChannel = activeTab === "channel";
-
   return (
-    <section className="h-full min-h-[250px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+    <section className="h-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`material-symbols-outlined rounded-lg p-1.5 text-[18px] ${isChannel ? "bg-indigo-50 text-indigo-600" : "bg-sky-50 text-sky-600"}`}>{isChannel ? "hub" : "corporate_fare"}</span>
-          <h2 className="truncate text-sm font-bold text-slate-900">Tickets by {isChannel ? "Intake Channel" : "Department"}</h2>
+          <h2 className="truncate text-sm font-bold text-slate-900">Incoming Tickets</h2>
         </div>
         <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">{isChannel ? `${tickets.length} total` : `${deptBreakdown.length} units`}</span>
       </div>
@@ -45,6 +44,7 @@ export const VolumeBreakdownCards: React.FC<VolumeBreakdownCardsProps> = ({ tick
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${channelThemes[item.channel].barColor} transition-all`} style={{ width: `${item.percentage}%` }} /></div>
           </div>)}
+          {channelBreakdown.length === 0 && <p className="py-4 text-center text-xs text-slate-400">No incoming tickets yet.</p>}
         </div>
       ) : (
         <div role="tabpanel" className="space-y-4 pt-4">
@@ -61,3 +61,4 @@ export const VolumeBreakdownCards: React.FC<VolumeBreakdownCardsProps> = ({ tick
     </section>
   );
 };
+

@@ -103,8 +103,12 @@
   }
 
   .dashboard-welcome {
-    min-height: 96px;
+    min-height: 72px;
     background: radial-gradient(ellipse at 58% 120%, rgb(67 56 202 / 35%), transparent 30%), linear-gradient(105deg, #111a3c, #171e49 58%, #101a35);
+  }
+
+  .dashboard-overview-card > section[aria-labelledby="dashboard-operations-heading"] {
+    background: #f8fafc;
   }
 
   .dashboard-overview-card > section {

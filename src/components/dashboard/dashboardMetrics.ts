@@ -178,14 +178,17 @@ export const getHighAttentionTickets = (tickets: Ticket[]): Ticket[] => {
       return active && (isCritical || isSlaRisk);
     })
     .sort((a, b) => {
-      // Prioritize Breached first, then At Risk, then others
-      const score = (t: Ticket) => {
-        let s = 0;
-        if (t.slaRisk === "Breached") s += 4;
-        if (t.slaRisk === "At Risk") s += 2;
-        if (t.priority.includes("P1")) s += 1;
-        return s;
+      const riskRank = (ticket: Ticket) => {
+        if (ticket.slaRisk === "Breached") return 0;
+        if (ticket.slaRisk === "At Risk") return 1;
+        return 2;
       };
-      return score(b) - score(a);
+      const priorityRank = (ticket: Ticket) => {
+        if (ticket.priority.includes("P1") || ticket.priority.toLowerCase().includes("urgent")) return 0;
+        if (ticket.priority.includes("P2") || ticket.priority.toLowerCase().includes("high")) return 1;
+        return 2;
+      };
+
+      return riskRank(a) - riskRank(b) || priorityRank(a) - priorityRank(b);
     });
 };
