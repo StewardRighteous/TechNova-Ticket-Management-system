@@ -107,6 +107,7 @@ export interface Ticket {
 export interface CustomerContact {
   id: string;
   name: string;
+  role?: string;
   email: string;
   phone: string;
   accountIdentifier?: string;

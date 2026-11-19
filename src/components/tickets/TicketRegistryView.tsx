@@ -165,6 +165,7 @@ export const TicketRegistryView: React.FC = () => {
           activeScope={validFocus}
           viewTitle={viewTitle}
           onClearScope={() => { const params = new URLSearchParams(searchParams); params.delete("scope"); setSearchParams(params, { replace: true }); }}
+          onReturnToAllTickets={() => navigate("/tickets?view=all")}
           onTableStateChange={updateUrlState}
         />
       )}

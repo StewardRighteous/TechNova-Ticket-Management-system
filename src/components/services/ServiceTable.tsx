@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import type { ServiceLine } from "../../types/barrel";
-import {
-  ComboboxFilter,
-  NumericPagination,
-  TableHeaderSection,
-} from "../common/barrel";
+import { ComboboxFilter, NumericPagination } from "../common/barrel";
 
 interface ServiceTableProps {
   services: ServiceLine[];
@@ -24,8 +20,6 @@ interface ServiceTableProps {
   }) => void;
 }
 
-type SortField = "name" | "code" | "lead" | "sla" | "tickets" | "uptime";
-
 export const ServiceTable: React.FC<ServiceTableProps> = ({
   services,
   onViewService,
@@ -42,8 +36,6 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
     initialDepartmentFilter,
   );
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [page, setPage] = useState<number>(initialPage);
   const [pageSize, setPageSize] = useState<number>(initialPageSize);
 
@@ -66,14 +58,6 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
     });
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else {
-      setSortField(field);
-      setSortAsc(true);
-    }
-  };
-
   const filtered = services.filter((s) => {
     if (departmentFilter.length && !departmentFilter.includes(s.department))
       return false;
@@ -88,21 +72,12 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
     );
   });
 
-  const sorted = [...filtered].sort((a, b) => {
-    let comparison = 0;
-    if (sortField === "name") comparison = a.name.localeCompare(b.name);
-    else if (sortField === "code") comparison = a.code.localeCompare(b.code);
-    else if (sortField === "lead") comparison = a.lead.localeCompare(b.lead);
-    else if (sortField === "sla")
-      comparison = a.slaTarget.localeCompare(b.slaTarget);
-    else if (sortField === "uptime")
-      comparison = a.uptime.localeCompare(b.uptime);
-    else if (sortField === "tickets")
-      comparison = a.activeTickets - b.activeTickets;
-    return sortAsc ? comparison : -comparison;
-  });
-
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  React.useEffect(() => {
+    setPage((current) =>
+      Math.min(current, Math.max(1, Math.ceil(filtered.length / pageSize))),
+    );
+  }, [filtered.length, pageSize]);
   const departmentOptions = [
     ...new Set(services.map((service) => service.department)),
   ].map((value) => ({ value, label: value }));
@@ -112,96 +87,115 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <TableHeaderSection
-        title="All Services"
-        searchQuery={search}
-        onSearchChange={(value) => {
-          setSearch(value);
-          setPage(1);
-          updateState({ search: value, page: 1 });
-        }}
-        searchPlaceholder="Filter services or lead..."
-        onClick={onCreateNew}
-        children={
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-6 py-3">
-            <ComboboxFilter
-              label="Department"
-              options={departmentOptions}
-              selectedValues={departmentFilter}
-              onChange={(values) => {
-                setDepartmentFilter(values);
-                setPage(1);
-                updateState({ departmentFilter: values, page: 1 });
-              }}
-              singleSelect
-            />
-            <ComboboxFilter
-              label="Status"
-              options={statusOptions}
-              selectedValues={statusFilter}
-              onChange={(values) => {
-                setStatusFilter(values);
-                setPage(1);
-                updateState({ statusFilter: values, page: 1 });
-              }}
-              singleSelect
-            />
-            {departmentFilter.length || statusFilter.length ? (
-              <button
-                type="button"
-                className="text-xs font-semibold text-slate-500 hover:text-slate-900"
-                onClick={() => {
-                  setDepartmentFilter([]);
-                  setStatusFilter([]);
-                  setPage(1);
-                  updateState({
-                    departmentFilter: [],
-                    statusFilter: [],
-                    page: 1,
-                  });
-                }}
-              >
-                Clear filters
-              </button>
-            ) : null}
+      <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold tracking-tight">All Services</h2>
+            <p className="mt-1 text-xs text-slate-300">
+              Browse and manage service lines.
+            </p>
           </div>
-        }
-      />
+          <div className="rounded-xl border border-blue-400/30 bg-blue-500/15 px-4 py-2 text-center text-blue-200">
+            <div className="text-[10px] font-bold tracking-wide">
+              TOTAL SERVICES
+            </div>
+            <div className="mt-0.5 text-xl leading-none font-bold">
+              {services.length}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
+        <div className="relative max-w-xs min-w-60">
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500"
+          >
+            search
+          </span>
+          <input
+            type="search"
+            id="service-search"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+              updateState({ search: event.target.value, page: 1 });
+            }}
+            placeholder="Filter services or lead..."
+            aria-label="Filter services or lead"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+          />
+        </div>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <ComboboxFilter
+            label="Department"
+            options={departmentOptions}
+            selectedValues={departmentFilter}
+            onChange={(values) => {
+              setDepartmentFilter(values);
+              setPage(1);
+              updateState({ departmentFilter: values, page: 1 });
+            }}
+            singleSelect
+          />
+          {departmentFilter.length || statusFilter.length ? (
+            <button
+              type="button"
+              className="text-xs font-semibold text-slate-500 hover:text-slate-900"
+              onClick={() => {
+                setDepartmentFilter([]);
+                setStatusFilter([]);
+                setPage(1);
+                updateState({
+                  departmentFilter: [],
+                  statusFilter: [],
+                  page: 1,
+                });
+              }}
+            >
+              Clear filters
+            </button>
+          ) : null}
+        </div>
+        {onCreateNew && (
+          <button
+            type="button"
+            onClick={onCreateNew}
+            className="flex shrink-0 items-center gap-1 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-700"
+          >
+            <span
+              aria-hidden="true"
+              className="material-symbols-outlined text-[16px]"
+            >
+              add
+            </span>{" "}
+            New
+          </button>
+        )}
+      </div>
 
-      <div className="space-x-1 overflow-x-auto">
+      <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
             <tr>
-              <th
-                className="cursor-pointer px-6 py-3"
-                onClick={() => handleSort("code")}
-              >
+              <th className="px-5 py-2.5">
                 <div className="flex items-center gap-1">
                   <span>Service Code</span>
                 </div>
               </th>
-              <th
-                className="cursor-pointer px-4 py-3"
-                onClick={() => handleSort("name")}
-              >
+              <th className="px-4 py-2.5">
                 <div className="flex items-center gap-1">
                   <span>Service Name</span>
-                  <span className="material-symbols-outlined text-[15px] opacity-70">
-                    {sortField === "name"
-                      ? sortAsc
-                        ? "arrow_drop_up"
-                        : "arrow_drop_down"
-                      : "unfold_more"}
-                  </span>
                 </div>
               </th>
-              <th className="px-4 py-3">
+              <th className="px-4 py-2.5">
                 <div className="flex items-center gap-1">
                   <span>Department</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70"></span>
                 </div>
               </th>
-              <th className="px-4 py-3">
+              <th className="px-4 py-2.5">
                 <div className="flex items-center gap-1">
                   <span>Service Lead</span>
                   <span className="material-symbols-outlined text-[15px] opacity-70"></span>
@@ -209,36 +203,35 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
               </th>
 
               <th
-                className="cursor-pointer px-4 py-3"
-                onClick={() => handleSort("tickets")}
+                className="px-4 py-2.5"
               >
                 <div className="flex items-center gap-1">
                   <span>Active Tickets</span>
-                  <span className="material-symbols-outlined text-[15px] opacity-70">
-                    {sortField === "tickets"
-                      ? sortAsc
-                        ? "arrow_drop_up"
-                        : "arrow_drop_down"
-                      : "unfold_more"}
-                  </span>
                 </div>
               </th>
-              <th className="px-6 py-3 text-left">Action</th>
+              <th className="px-5 py-2.5 text-left">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
             {paginated.map((srv) => (
               <tr
                 key={srv.id}
-                className="group cursor-pointer transition-colors hover:bg-indigo-50/40"
+                className="group cursor-pointer transition-colors hover:bg-teal-50/50"
                 onClick={() => onViewService(srv.id)}
               >
-                <td className="px-6 py-3.5 font-mono font-bold whitespace-nowrap text-slate-500">
+                <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                   {srv.code}
                 </td>
-                <td className="px-4 py-3.5 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); onViewService(srv.id); }} className="block text-left font-bold text-slate-900 transition-colors group-hover:text-indigo-600 focus-visible:outline-2 focus-visible:outline-indigo-600">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onViewService(srv.id);
+                      }}
+                      className="block text-left font-bold text-slate-900 transition-colors group-hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-600"
+                    >
                       {srv.name}
                     </button>
                   </div>
@@ -272,13 +265,13 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                     {srv.activeTickets} Tickets
                   </span>
                 </td>
-                <td className="px-6 py-3.5 text-left whitespace-nowrap">
+                <td className="px-5 py-3 text-left whitespace-nowrap">
                   <button
                     onClick={(event) => {
                       event.stopPropagation();
                       onViewService(srv.id);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-600 hover:text-white"
                   >
                     <span className="material-symbols-outlined text-[15px]">
                       visibility
@@ -288,6 +281,18 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-5 py-12 text-center text-sm text-slate-500"
+                >
+                  {services.length === 0
+                    ? "No services available."
+                    : "No matching services. Try adjusting your search or filters."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -305,7 +310,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
           setPage(1);
           updateState({ pageSize: value, page: 1 });
         }}
-        pageSizeOptions={[5, 10, 25]}
+        pageSizeOptions={[5, 10, 20, 25, 50]}
       />
     </div>
   );

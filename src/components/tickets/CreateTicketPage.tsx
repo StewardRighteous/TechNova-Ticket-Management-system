@@ -101,7 +101,7 @@ export const CreateTicketPage: React.FC = () => {
     addToast(`${created.code} created successfully.`, "success");
   };
 
-  if (savedTicket) return <section className="m-5 max-w-2xl rounded-2xl border border-emerald-200 bg-white p-8 shadow-sm" aria-labelledby="ticket-created-heading">
+  if (savedTicket) return <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center p-5"><section className="w-full max-w-2xl rounded-2xl border border-emerald-200 bg-white p-8 shadow-sm" aria-labelledby="ticket-created-heading">
     <p className="text-sm font-semibold text-emerald-700">Ticket saved</p>
     <h1 id="ticket-created-heading" className="mt-2 text-2xl font-bold text-slate-900">{savedTicket.code}</h1>
     <p className="mt-2 text-sm text-slate-700">“{savedTicket.title}” is in the ticket queue.</p>
@@ -109,28 +109,34 @@ export const CreateTicketPage: React.FC = () => {
       <button type="button" onClick={() => navigate(`/tickets/${encodeURIComponent(savedTicket.id)}`, { state: { receipt: true } })} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Open saved ticket</button>
       <button type="button" onClick={() => navigate("/tickets")} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Back to ticket queue</button>
     </div>
-  </section>;
+  </section></div>;
 
-  return <div className="w-full space-y-5 p-5">
-    <form onSubmit={submit} className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <header className="border-b border-slate-100 pb-4">
-        <p className="text-xs font-bold tracking-wide text-indigo-600 uppercase">Step {step} of 2</p>
-        <h2 ref={headingRef} tabIndex={-1} className="mt-1 text-xl font-bold text-slate-900 focus:outline-none">{step === 1 ? "Ticket and customer details" : "Category and diagnostics"}</h2>
-        <p className="mt-1 text-sm text-slate-500">{step === 1 ? "Choose the customer, service, priority, and owner." : "Add the issue details that help the assigned team resolve it."}</p>
-      </header>
+  return <div className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 sm:py-5">
+    <div className="mx-auto mb-4 flex max-w-xl items-center" aria-label={`Step ${step} of 2`}>
+      <div className="flex flex-col items-center">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">1</span>
+        <span className={`mt-1 text-xs font-semibold ${step === 1 ? "text-slate-900" : "text-slate-500"}`}>Ticket details</span>
+      </div>
+      <span className={`mb-5 h-1 flex-1 ${step === 2 ? "bg-indigo-600" : "bg-slate-200"}`} />
+      <div className="flex flex-col items-center">
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${step === 2 ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-600"}`}>2</span>
+        <span className={`mt-1 text-xs font-semibold ${step === 2 ? "text-slate-900" : "text-slate-500"}`}>Diagnostics</span>
+      </div>
+    </div>
+    <form onSubmit={submit} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <h2 ref={headingRef} tabIndex={-1} className="sr-only focus:outline-none">{step === 1 ? "Create a ticket · Ticket details" : "Ticket diagnostics"}</h2>
 
       {step === 1 ? <div className="space-y-5">
-        <ChannelSelector channel={channel} setChannel={setChannel} />
-        <FormField label="Ticket title · required"><input className={formControlClassName} required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField>
-        <FormField label="Find a company or contact"><input className={formControlClassName} value={companySearch} onChange={(event) => { setCompanySearch(event.target.value); setCompanyId(""); setContactId(""); }} placeholder="Search name, email, or company code" /></FormField>
-        <FormField label="Company · required"><select className={formControlClassName} value={companyId} onChange={(event) => { setCompanyId(event.target.value); setContactId(""); }} required><option value="">Select a company</option>{matchingCompanies.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select>{companySearch.trim() && matchingCompanies.length === 0 && <p className="mt-1 text-sm text-amber-700" role="status">No matching company or contact. Try another name, email, or company code.</p>}</FormField>
-        <FormField label="Customer contact · required"><select className={formControlClassName} value={contactId} onChange={(event) => setContactId(event.target.value)} required disabled={!company}><option value="">{company ? "Select a contact" : "Choose a company first"}</option>{contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.name} · {contact.email}</option>)}</select></FormField>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Priority · required"><select className={formControlClassName} value={priority} onChange={(event) => setPriority(event.target.value as TicketPriority | "")} required><option value="">Select priority</option>{["P1 Urgent", "P2 Normal", "P3 Low", "P4 Trivial"].map((item) => <option key={item}>{item}</option>)}</select><p className="mt-1 text-xs text-slate-500">Choose urgency based on customer impact; P1 is reserved for critical incidents.</p></FormField>
+        <div className="grid gap-x-6 gap-y-5 lg:grid-cols-2">
+          <div className="lg:col-span-2"><ChannelSelector channel={channel} setChannel={setChannel} /></div>
+          <div className="lg:col-span-2"><FormField label="Ticket title · required"><input className={formControlClassName} required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField></div>
+          <FormField label="Company · required"><select className={formControlClassName} value={companyId} onChange={(event) => { setCompanyId(event.target.value); setContactId(""); }} required><option value="">Select a company</option>{matchingCompanies.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select>{companySearch.trim() && matchingCompanies.length === 0 && <p className="mt-1 text-sm text-amber-700" role="status">No matching company or contact. Try another name, email, or company code.</p>}<details className="group mt-2"><summary className="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-indigo-700 underline decoration-indigo-200 underline-offset-4">Find by name, email, or code <span aria-hidden="true">⌄</span></summary><div className="mt-2"><FormField label="Search company or contact"><input className={formControlClassName} value={companySearch} onChange={(event) => { setCompanySearch(event.target.value); setCompanyId(""); setContactId(""); }} placeholder="Name, email, or company code" /></FormField></div></details></FormField>
+          <FormField label="Customer contact · required"><select className={formControlClassName} value={contactId} onChange={(event) => setContactId(event.target.value)} required disabled={!company}><option value="">{company ? "Select a contact" : "Choose a company first"}</option>{contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.name} · {contact.email}</option>)}</select></FormField>
+          <FormField label="Priority · required"><select className={formControlClassName} value={priority} onChange={(event) => setPriority(event.target.value as TicketPriority | "")} required><option value="">Select priority</option>{["P1 Urgent", "P2 Normal", "P3 Low", "P4 Trivial"].map((item) => <option key={item}>{item}</option>)}</select><p className="mt-1 text-xs text-slate-500">P1 is reserved for critical incidents.</p></FormField>
           <FormField label="Service · required"><select className={formControlClassName} value={serviceId} onChange={(event) => setServiceId(event.target.value)} required><option value="">Select a service</option>{data.services.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></FormField>
-          <FormField label="Assign to · required"><select className={formControlClassName} value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} required><option value="">Select an owner</option>{data.employees.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.roleTitle}</option>)}</select>{assignee && <p className="mt-1 text-xs text-slate-600">This ticket will be assigned to <strong>{assignee.name}</strong> ({assignee.roleTitle}).</p>}</FormField>
+          <div className="lg:col-span-2"><FormField label="Assign to · required"><select className={formControlClassName} value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} required><option value="">Select an owner</option>{data.employees.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.roleTitle}</option>)}</select>{assignee && <p className="mt-1 text-xs text-slate-600">Assigned to <strong>{assignee.name}</strong> ({assignee.roleTitle}).</p>}</FormField></div>
         </div>
-      </div> : <div className="space-y-5">
+      </div> : <div className="space-y-3">
         <FormField label="Incident category"><select className={formControlClassName} value={category} onChange={(event) => { setCategory(event.target.value as IncidentCategory); setCategoryValue(""); }}><option>Technical/Bug</option><option>Login</option><option>Billing</option><option>Feature Request</option></select></FormField>
         {category === "Technical/Bug" ? <div className="space-y-4 rounded-xl bg-slate-50 p-4">
           <FormField label="Error message"><input className={formControlClassName} value={diagnostics.errorMessage || ""} onChange={(event) => updateDiagnostic("errorMessage", event.target.value)} /></FormField>
@@ -145,12 +151,12 @@ export const CreateTicketPage: React.FC = () => {
         <FormField label="Internal note (optional)"><input className={formControlClassName} value={initialNote} onChange={(event) => setInitialNote(event.target.value)} /></FormField>
       </div>}
 
-      <footer className="flex justify-between border-t border-slate-100 pt-4">
-        {step === 2 ? <button type="button" onClick={() => setStep(1)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Back</button> : <button type="button" onClick={leaveIntake} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button>}
+      <footer className="flex flex-wrap items-end justify-between gap-3 border-t border-slate-100 pt-3">
+        {step === 2 ? <button type="button" onClick={() => setStep(1)} className="rounded-lg border border-violet-300 px-4 py-2 text-sm font-semibold text-violet-700">Back</button> : <button type="button" onClick={leaveIntake} className="rounded-lg border border-violet-300 px-4 py-2 text-sm font-semibold text-violet-700">Cancel</button>}
         <div className="flex flex-col items-end gap-2">
           {step === 1 && (!title.trim() || !company || !contacts.some((contact) => contact.id === contactId) || !service || !assignee || !priority) && <p className="text-right text-xs text-amber-800" role="status">Complete the title, company, contact, priority, service, and owner to continue.</p>}
           {step === 2 && !description.trim() && <p className="text-right text-xs text-amber-800" role="status">Add a problem description to create this ticket.</p>}
-          {step === 1 ? <button type="button" disabled={!title.trim() || !company || !contacts.some((contact) => contact.id === contactId) || !service || !assignee || !priority} onClick={() => setStep(2)} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Next: diagnostics</button> : <button type="submit" disabled={submitting || attachmentsLoading || !description.trim() || !company || !contacts.some((contact) => contact.id === contactId) || !service || !assignee || !priority} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Saving ticket…" : "Create ticket"}</button>}
+          {step === 1 ? <button type="button" disabled={!title.trim() || !company || !contacts.some((contact) => contact.id === contactId) || !service || !assignee || !priority} onClick={() => setStep(2)} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Continue to diagnostics <span aria-hidden="true">→</span></button> : <button type="submit" disabled={submitting || attachmentsLoading || !description.trim() || !company || !contacts.some((contact) => contact.id === contactId) || !service || !assignee || !priority} className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Saving ticket…" : "Create ticket"}</button>}
         </div>
       </footer>
     </form>

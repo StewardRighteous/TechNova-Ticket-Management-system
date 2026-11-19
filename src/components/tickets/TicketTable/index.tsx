@@ -28,6 +28,7 @@ interface TicketTableProps {
   activeScope?: TicketTableFocus | null;
   viewTitle?: string;
   onClearScope?: () => void;
+  onReturnToAllTickets?: () => void;
   onTableStateChange?: (state: {
     page: number;
     pageSize: number;
@@ -62,6 +63,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   activeScope = null,
   viewTitle,
   onClearScope,
+  onReturnToAllTickets,
   onTableStateChange,
 }) => {
   const [searchInput, setSearchInput] = useState(initialSearch ?? "");
@@ -355,7 +357,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     </div>
                     <button
                       type="button"
-                      onClick={tickets.length === 0 ? onClearScope : clearAllFilters}
+                      onClick={tickets.length === 0 ? onReturnToAllTickets : clearAllFilters}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50"
                     >
                       <span className="material-symbols-outlined text-[16px]">

@@ -12,15 +12,15 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
 }) => {
   return (
     <div>
-      <label className="mb-1 block font-bold text-slate-700">Channel</label>
-      <div className="grid grid-cols-3 gap-2">
+      <label className="mb-1 block text-sm font-bold text-slate-700">Channel <span className="text-red-600">*</span></label>
+      <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-lg">
         <button
           type="button"
           onClick={() => setChannel("whatsapp")}
-          className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 font-semibold transition-all ${
+          className={`flex items-center justify-center gap-1.5 border px-3 py-2.5 text-sm font-semibold transition-all ${
             channel === "whatsapp"
-              ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-              : "border-slate-200 text-slate-600"
+              ? "border-indigo-500 bg-indigo-600 text-white"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           }`}
         >
           <span className="material-symbols-outlined text-[16px]">chat</span>{" "}
@@ -29,10 +29,10 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         <button
           type="button"
           onClick={() => setChannel("email")}
-          className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 font-semibold transition-all ${
+          className={`flex items-center justify-center gap-1.5 border-y border-r px-3 py-2.5 text-sm font-semibold transition-all ${
             channel === "email"
-              ? "border-blue-500 bg-blue-50 text-blue-800"
-              : "border-slate-200 text-slate-600"
+              ? "border-indigo-500 bg-indigo-600 text-white"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           }`}
         >
           <span className="material-symbols-outlined text-[16px]">mail</span>{" "}
@@ -41,10 +41,10 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         <button
           type="button"
           onClick={() => setChannel("phone")}
-          className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 font-semibold transition-all ${
+          className={`flex items-center justify-center gap-1.5 border-y border-r px-3 py-2.5 text-sm font-semibold transition-all ${
             channel === "phone"
-              ? "border-purple-500 bg-purple-50 text-purple-800"
-              : "border-slate-200 text-slate-600"
+              ? "border-indigo-500 bg-indigo-600 text-white"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           }`}
         >
           <span className="material-symbols-outlined text-[16px]">call</span>{" "}

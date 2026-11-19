@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import type { Department, Employee, Location, Team, Ticket } from "../../types/barrel";
+import { ComboboxFilter } from "../common/ComboboxFilter";
 
 interface EmployeeDetailHeroProps {
   employee: Employee;
@@ -11,216 +12,144 @@ interface EmployeeDetailHeroProps {
   departments?: Department[];
   locations?: Location[];
 }
-type Tab = "profile" | "work";
-const fields: Record<
-  Tab,
-  { key: keyof Employee; label: string; type?: string; readOnly?: boolean }[]
-> = {
-  profile: [
-    { key: "id", label: "Employee ID", readOnly: true },
-    { key: "name", label: "Full name" },
-    { key: "role", label: "Role" },
-    { key: "roleTitle", label: "Role title" },
-    { key: "email", label: "Email", type: "email" },
-    { key: "phone", label: "Phone", type: "tel" },
-    { key: "avatar", label: "Avatar icon" },
-  ],
-  work: [
-    { key: "departmentId", label: "Department" },
-    { key: "teamId", label: "Team" },
-    { key: "locationId", label: "Location" },
-    { key: "status", label: "Status" },
-    { key: "capacityMax", label: "Maximum capacity", type: "number" },
-    {
-      key: "activeTicketsCount",
-      label: "Assigned tickets",
-      type: "number",
-      readOnly: true,
-    },
-    { key: "skills", label: "Skills" },
-    { key: "permissions", label: "Permissions" },
-  ],
-};
-const textValue = (value: unknown) =>
-  Array.isArray(value) ? value.join(", ") : String(value ?? "—");
+
+type WorkspaceTab = "tickets" | "profile";
+type TicketFilter = "status" | "priority" | "service" | "company";
+const textValue = (value: unknown) => Array.isArray(value) ? value.join(", ") : String(value ?? "—");
 
 export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
   employee,
   tickets,
+  onBack,
   onUpdateEmployee,
   onOpenTicket,
-  teams = [], departments = [], locations = [],
+  teams = [],
+  departments = [],
+  locations = [],
 }) => {
   const [draft, setDraft] = useState<Employee>(employee);
   const [editing, setEditing] = useState(false);
-  const [tab, setTab] = useState<Tab>("profile");
-  const [workspaceTab, setWorkspaceTab] = useState<"tickets" | "profile">("tickets");
-  const [confirmation, setConfirmation] = useState<"save" | "cancel" | null>(
-    null,
-  );
+  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("tickets");
+  const [ticketFilters, setTicketFilters] = useState<Record<TicketFilter, string[]>>({ status: [], priority: [], service: [], company: [] });
+  const [confirmation, setConfirmation] = useState<"save" | "cancel" | null>(null);
   useEffect(() => setDraft(employee), [employee]);
-  const updateField = (key: keyof Employee, value: string) =>
-    setDraft((current) => ({
-      ...current,
-      [key]:
-        key === "capacityMax"
-          ? Number(value)
-          : key === "skills" || key === "permissions"
-            ? value
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean)
-            : value,
-    }));
+
+  const updateField = (key: keyof Employee, value: string) => setDraft((current) => ({
+    ...current,
+    [key]: key === "capacityMax" ? Number(value) : key === "skills" || key === "permissions"
+      ? value.split(",").map((item) => item.trim()).filter(Boolean)
+      : value,
+  }));
   const completeAction = () => {
     if (confirmation === "save") onUpdateEmployee(draft);
     else if (confirmation === "cancel") setDraft(employee);
     setConfirmation(null);
     setEditing(false);
   };
-  const summary = [
-    ["Role", employee.roleTitle],
-    ["Email", employee.email],
-    ["Phone", employee.phone],
-    ["Status", employee.status],
-    ["Department", departments.find((item) => item.id === employee.departmentId)?.name || "Not assigned"],
-    ["Capacity", `${tickets.length} / ${employee.capacityMax} active tickets`],
-    ["SLA compliance", `${tickets.filter((t) => t.assignedToId === employee.id && t.slaRisk !== "Breached").length}/${Math.max(1, tickets.filter((t) => t.assignedToId === employee.id).length)} on target`],
-    ["Location", locations.find((item) => item.id === employee.locationId)?.name || "Remote"],
-  ];
+
+  const department = departments.find((item) => item.id === employee.departmentId)?.name || "Not assigned";
+  const team = teams.find((item) => item.id === employee.teamId)?.name || "Not assigned";
+  const location = locations.find((item) => item.id === employee.locationId)?.name || "Remote / distributed";
+  const totalAssigned = employee.activeTicketsCount;
+  const onTarget = tickets.filter((ticket) => ticket.slaRisk !== "Breached").length;
+  const allAssignedCount = Math.max(totalAssigned, tickets.length);
+  const filterOptions: Record<TicketFilter, { value: string; label: string }[]> = {
+    status: [...new Set(tickets.map((ticket) => ticket.status))].sort().map((value) => ({ value, label: value })),
+    priority: [...new Set(tickets.map((ticket) => ticket.priority))].sort().map((value) => ({ value, label: value })),
+    service: [...new Set(tickets.map((ticket) => ticket.serviceName))].sort().map((value) => ({ value, label: value })),
+    company: [...new Set(tickets.map((ticket) => ticket.companyName))].sort().map((value) => ({ value, label: value })),
+  };
+  const visibleTickets = tickets.filter((ticket) =>
+    (!ticketFilters.status.length || ticketFilters.status.includes(ticket.status)) &&
+    (!ticketFilters.priority.length || ticketFilters.priority.includes(ticket.priority)) &&
+    (!ticketFilters.service.length || ticketFilters.service.includes(ticket.serviceName)) &&
+    (!ticketFilters.company.length || ticketFilters.company.includes(ticket.companyName))
+  );
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl bg-slate-900 p-6 text-white shadow-lg sm:p-8">
-        <div className="flex flex-col gap-5 border-b border-slate-700 pb-6 lg:flex-row lg:items-start lg:justify-between">
-          <h1 className="text-2xl font-bold sm:text-3xl">{employee.name}</h1>
-        </div>
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {summary.map(([label, value]) => (
-            <div key={label} className="inline-flex gap-1 items-baseline">
-              <p className="text-xs font-semibold tracking-wide text-slate-400 capitalize">
-                {label}:
-              </p>
-              <p className="mt-1 text-sm font-semibold text-white">{value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex gap-1 border-b border-slate-200 px-4 pt-3"><button type="button" onClick={() => setWorkspaceTab("tickets")} className={`border-b-2 px-3 py-3 text-xs font-bold ${workspaceTab === "tickets" ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500"}`}>Assigned Tickets</button><button type="button" onClick={() => setWorkspaceTab("profile")} className={`border-b-2 px-3 py-3 text-xs font-bold ${workspaceTab === "profile" ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500"}`}>Profile & Skills</button></div>
-        {workspaceTab === "tickets" && <div className="p-5"><p className="mb-3 text-xs text-slate-600">Active assigned work · {tickets.length} tickets</p><div className="mb-4 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600" style={{ width: `${Math.min(100, tickets.length / Math.max(1, employee.capacityMax) * 100)}%` }} /></div><table className="w-full text-left text-xs"><thead className="text-[10px] uppercase text-slate-500"><tr><th className="pb-3">Ticket</th><th className="pb-3">Title</th><th className="pb-3">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{tickets.map((ticket) => <tr key={ticket.id}><td className="py-3"><button type="button" onClick={() => onOpenTicket?.(ticket.id)} className="font-bold text-indigo-700 hover:underline">{ticket.code}</button></td><td className="py-3">{ticket.title}</td><td className="py-3">{ticket.status}</td></tr>)}</tbody></table>{!tickets.length && <p className="py-4 text-xs text-slate-500">No active assigned tickets.</p>}</div>}
-        {workspaceTab === "profile" && <div className="grid gap-4 p-5 text-xs text-slate-600 sm:grid-cols-2"><div><p className="font-bold text-slate-900">Contact</p><p>{employee.email} · {employee.phone}</p></div><div><p className="font-bold text-slate-900">Team & permissions</p><p>{teams.find((item) => item.id === employee.teamId)?.name || "Unassigned"} · {(employee.permissions || []).join(", ") || "Standard access"}</p></div><div className="sm:col-span-2"><p className="font-bold text-slate-900">Skills</p><div className="mt-2 flex flex-wrap gap-2">{employee.skills.map((skill) => <span key={skill} className="rounded-full bg-indigo-50 px-2 py-1 text-indigo-700">{skill}</span>)}</div></div></div>}
-      </section>
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              Employee details
-            </h2>
-            <p className="mt-1 text-xs text-slate-500">
-              Review and manage the complete employee profile.
-            </p>
-          </div>
-          {!editing ? (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                edit
-              </span>{" "}
-              Edit
-            </button>
-          ) : (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmation("cancel")}
-                className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmation("save")}
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
-              >
-                Save
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="mt-5 flex gap-2">
-          {(["profile", "work"] as Tab[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setTab(item)}
-              className={`rounded-lg px-3 py-2 text-xs font-semibold capitalize ${tab === item ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-100"}`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {fields[tab].map((field) => (
-            <label
-              key={field.key}
-              className="text-xs font-semibold text-slate-500"
-            >
-              {field.label}
-              {editing && !field.readOnly ? (
-                <input
-                  type={field.type || "text"}
-                  value={textValue(draft[field.key])}
-                  onChange={(event) =>
-                    updateField(field.key, event.target.value)
-                  }
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                />
-              ) : (
-                <span className="mt-2 block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-700">
-                  {textValue(draft[field.key])}
-                </span>
-              )}
-            </label>
-          ))}
-        </div>
-      </section>
-      {confirmation && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900">
-              {confirmation === "save" ? "Save changes?" : "Discard changes?"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-500">
-              {confirmation === "save"
-                ? "Your employee details will be updated."
-                : "Your unsaved changes will be lost."}
-            </p>
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmation(null)}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Go back
-              </button>
-              <button
-                type="button"
-                onClick={completeAction}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold text-white ${confirmation === "save" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-rose-600 hover:bg-rose-700"}`}
-              >
-                {confirmation === "save" ? "Save changes" : "Discard"}
-              </button>
+    <div className="space-y-3.5">
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/10 text-teal-200" aria-hidden="true"><span className="material-symbols-outlined block translate-x-[1px] translate-y-[1px] text-[23px] leading-none">person</span></span>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold text-white">{employee.name}</h1>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-200">
+                <span>{employee.roleTitle}</span><span aria-hidden="true">·</span>
+                <span className={`rounded-full px-2 py-0.5 font-semibold ${employee.status === "Available" ? "bg-teal-400/20 text-teal-100" : employee.status === "Busy" ? "bg-amber-300/20 text-amber-100" : "bg-white/15 text-slate-200"}`}>{employee.status}</span>
+              </div>
             </div>
           </div>
+          <button type="button" onClick={() => setWorkspaceTab("tickets")} className="shrink-0 self-center rounded-lg bg-teal-500 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-600">View ticket activity</button>
         </div>
-      )}
+        <div className="grid grid-cols-2 border-t border-white/15 sm:grid-cols-4">
+          {[
+            ["Email", employee.email, "mail"],
+            ["Phone", employee.phone, "call"],
+            ["Team", team, "groups"],
+            ["Active tickets", `${tickets.length} / ${employee.capacityMax}`, "confirmation_number"],
+          ].map(([label, value, icon]) => (
+            <div key={label} className="flex min-w-0 items-center gap-2 border-r border-white/10 px-3 py-2.5 last:border-r-0 sm:px-4">
+              <span className="material-symbols-outlined text-[17px] text-teal-200">{icon}</span>
+              <div className="min-w-0"><p className="text-[10px] text-slate-300">{label}</p><p className="truncate text-xs font-semibold text-white">{value}</p></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div role="tablist" aria-label="Employee workspace" className="flex border-b border-slate-200 px-3 sm:px-4">
+          {([ ["tickets", "Assigned Tickets"], ["profile", "Profile & Skills"] ] as [WorkspaceTab, string][]).map(([tab, label]) => (
+            <button key={tab} type="button" role="tab" aria-selected={workspaceTab === tab} onClick={() => setWorkspaceTab(tab)} className={`border-b-2 px-3 py-3 text-xs font-bold transition-colors sm:px-4 ${workspaceTab === tab ? "border-teal-600 text-teal-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{label}</button>
+          ))}
+        </div>
+
+        {workspaceTab === "tickets" ? <div className="p-4 sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div><h2 className="text-base font-bold text-slate-900">{visibleTickets.length} of {tickets.length} active {tickets.length === 1 ? "ticket" : "tickets"}</h2><p className="mt-0.5 text-xs text-slate-500">Assigned work and current status</p></div>
+            <div className="flex flex-wrap items-end justify-end gap-2">
+              <div className="w-40 self-center"><div className="mb-1 flex justify-between text-[11px] text-slate-500"><span>Capacity</span><span>{tickets.length} / {employee.capacityMax}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-teal-600" style={{ width: `${Math.min(100, tickets.length / Math.max(1, employee.capacityMax) * 100)}%` }} /></div></div>
+            {([ ["status", "Status"], ["priority", "Priority"], ["service", "Service"], ["company", "Company"] ] as [TicketFilter, string][]).map(([key, label]) => <ComboboxFilter key={key} label={label} options={filterOptions[key]} selectedValues={ticketFilters[key]} onChange={(values) => setTicketFilters((current) => ({ ...current, [key]: values }))} singleSelect placeholder={`Filter by ${label.toLowerCase()}`} />)}
+            {Object.values(ticketFilters).some((values) => values.length > 0) && <button type="button" onClick={() => setTicketFilters({ status: [], priority: [], service: [], company: [] })} className="mb-0.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Clear filters</button>}
+            </div>
+          </div>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[850px] text-left text-xs"><thead className="border-b border-slate-200 text-[10px] font-bold tracking-wide text-slate-500 uppercase"><tr><th className="pb-2 pr-3">Ticket</th><th className="pb-2 pr-3">Subject</th><th className="pb-2 pr-3">Company</th><th className="pb-2 pr-3">Service</th><th className="pb-2 pr-3">Status</th><th className="pb-2 pr-3">Priority</th><th className="pb-2">SLA</th></tr></thead>
+              <tbody className="divide-y divide-slate-100">{visibleTickets.map((ticket) => <tr key={ticket.id}>
+                <td className="py-2.5 pr-3"><button type="button" onClick={() => onOpenTicket?.(ticket.id)} className="font-bold text-teal-700 hover:underline">{ticket.code}</button></td>
+                <td className="max-w-sm py-2.5 pr-3 text-slate-800">{ticket.title}</td>
+                <td className="max-w-[180px] truncate py-2.5 pr-3 text-slate-600">{ticket.companyName}</td>
+                <td className="max-w-[160px] truncate py-2.5 pr-3 text-slate-600">{ticket.serviceName}</td>
+                <td className="py-2.5 pr-3 text-slate-600">{ticket.status}</td>
+                <td className="py-2.5 pr-3 text-slate-600">{ticket.priority}</td>
+                <td className="py-2.5 text-slate-600">{ticket.slaRisk}</td>
+              </tr>)}
+                {!visibleTickets.length && <tr><td colSpan={7} className="py-8 text-center text-xs text-slate-500">{tickets.length ? "No tickets match these filters." : "No active assigned tickets."}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div> : <div className="p-4 sm:p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div><h2 className="text-base font-bold text-slate-900">Employee profile</h2><p className="mt-0.5 text-xs text-slate-500">Contact, team, skills and access.</p></div>
+            {!editing ? <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"><span className="material-symbols-outlined text-[15px]">edit</span>Edit</button> : <div className="flex gap-2"><button type="button" onClick={() => setConfirmation("cancel")} className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button><button type="button" onClick={() => setConfirmation("save")} className="rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-700">Save</button></div>}
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 p-3"><h3 className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-900"><span className="material-symbols-outlined text-base text-teal-700">contact_page</span>Contact</h3>
+              {editing ? <div className="grid gap-2 sm:grid-cols-2"><label className="text-[11px] font-semibold text-slate-500">Email<input type="email" value={draft.email} onChange={(event) => updateField("email", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label><label className="text-[11px] font-semibold text-slate-500">Phone<input type="tel" value={draft.phone} onChange={(event) => updateField("phone", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label></div> : <><p className="truncate text-xs text-slate-700">{employee.email}</p><p className="mt-1 text-xs text-slate-700">{employee.phone}</p></>}
+            </div>
+            <div className="rounded-lg border border-slate-200 p-3"><h3 className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-900"><span className="material-symbols-outlined text-base text-teal-700">groups</span>Team & permissions</h3>
+              {editing ? <div className="grid gap-2 sm:grid-cols-2"><label className="text-[11px] font-semibold text-slate-500">Team<input value={draft.teamId} onChange={(event) => updateField("teamId", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label><label className="text-[11px] font-semibold text-slate-500">Department<input value={draft.departmentId} onChange={(event) => updateField("departmentId", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label><label className="text-[11px] font-semibold text-slate-500">Status<input value={draft.status} onChange={(event) => updateField("status", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label><label className="text-[11px] font-semibold text-slate-500">Permissions<input value={textValue(draft.permissions)} onChange={(event) => updateField("permissions", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label></div> : <><p className="text-xs text-slate-700">{team}{department !== "Not assigned" ? ` · ${department}` : ""}</p><div className="mt-2 flex flex-wrap gap-1.5">{(employee.permissions || []).length ? employee.permissions?.map((permission) => <span key={permission} className="rounded-full bg-violet-50 px-2 py-1 text-[10px] font-medium text-violet-700">{permission}</span>) : <span className="text-xs text-slate-500">Standard access</span>}</div></>}
+            </div>
+            <div className="rounded-lg border border-slate-200 p-3 md:col-span-2"><h3 className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-900"><span className="material-symbols-outlined text-base text-teal-700">psychology</span>Skills</h3>
+              {editing ? <label className="block text-[11px] font-semibold text-slate-500">Skills<input value={textValue(draft.skills)} onChange={(event) => updateField("skills", event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label> : <div className="flex flex-wrap gap-1.5">{employee.skills.length ? employee.skills.map((skill) => <span key={skill} className="rounded-full bg-teal-50 px-2.5 py-1 text-[10px] font-medium text-teal-800">{skill}</span>) : <span className="text-xs text-slate-500">No skills listed</span>}</div>}
+            </div>
+            <div className="flex flex-wrap gap-x-6 gap-y-2 px-1 text-xs text-slate-600 md:col-span-2"><span><strong className="text-slate-800">Capacity:</strong> {tickets.length} / {editing ? <input aria-label="Maximum capacity" type="number" min="0" value={draft.capacityMax} onChange={(event) => updateField("capacityMax", event.target.value)} className="w-16 rounded border border-slate-200 px-1 py-0.5" /> : employee.capacityMax} active</span><span><strong className="text-slate-800">SLA:</strong> {onTarget} / {Math.max(1, allAssignedCount)} on target</span><span><strong className="text-slate-800">Location:</strong> {editing ? <input aria-label="Location" value={draft.locationId} onChange={(event) => updateField("locationId", event.target.value)} className="w-36 rounded border border-slate-200 px-1 py-0.5" /> : location}</span></div>
+          </div>
+        </div>}
+      </section>
+
+      {confirmation && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" role="dialog" aria-modal="true"><div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"><h3 className="text-lg font-bold text-slate-900">{confirmation === "save" ? "Save changes?" : "Discard changes?"}</h3><p className="mt-2 text-sm text-slate-500">{confirmation === "save" ? "Your employee details will be updated." : "Your unsaved changes will be lost."}</p><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setConfirmation(null)} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">Go back</button><button type="button" onClick={completeAction} className={`rounded-lg px-3 py-2 text-sm font-semibold text-white ${confirmation === "save" ? "bg-teal-600 hover:bg-teal-700" : "bg-rose-600 hover:bg-rose-700"}`}>{confirmation === "save" ? "Save changes" : "Discard"}</button></div></div></div>}
     </div>
   );
 };

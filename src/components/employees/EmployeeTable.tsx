@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Employee } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination, TableHeaderSection } from "../common/barrel";
+import { ComboboxFilter, NumericPagination } from "../common/barrel";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -8,8 +8,6 @@ interface EmployeeTableProps {
   onViewEmployee: (employeeId: string) => void;
   onCreateNew?: () => void;
 }
-
-type SortField = "name" | "role" | "capacity" | "status";
 
 export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   employees,
@@ -20,26 +18,18 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState<string[]>([]);
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else {
-      setSortField(field);
-      setSortAsc(true);
-    }
-  };
 
   const filtered = employees.filter((e) => {
     if (roleFilter !== "all" && e.role !== roleFilter) return false;
     if (statusFilter !== "all" && e.status !== statusFilter) return false;
-    if (departmentFilter.length && !departmentFilter.includes(e.departmentId || "Unassigned")) return false;
-    if (locationFilter.length && !locationFilter.includes(e.locationId || "Unassigned")) return false;
+    if (
+      locationFilter.length &&
+      !locationFilter.includes(e.locationId || "Unassigned")
+    )
+      return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -51,79 +41,160 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
     return true;
   });
 
-  const sorted = [...filtered].sort((a, b) => {
-    let cmp = 0;
-    if (sortField === "name") cmp = a.name.localeCompare(b.name);
-    else if (sortField === "role") cmp = a.roleTitle.localeCompare(b.roleTitle);
-    else if (sortField === "capacity")
-      cmp =
-        a.activeTicketsCount / a.capacityMax -
-        b.activeTicketsCount / b.capacityMax;
-    else if (sortField === "status") cmp = a.status.localeCompare(b.status);
-    return sortAsc ? cmp : -cmp;
-  });
-
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  React.useEffect(() => {
+    setPage((current) =>
+      Math.min(current, Math.max(1, Math.ceil(filtered.length / pageSize))),
+    );
+  }, [filtered.length, pageSize]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <TableHeaderSection
-        title="All Employees"
-        searchQuery={search}
-        onSearchChange={(s) => {
-          setSearch(s);
-          setPage(1);
-        }}
-        searchPlaceholder="Search employees by name, role, or email..."
-        onClick={onCreateNew}
-      >
-        <ComboboxFilter label="Department" selectedValues={departmentFilter} onChange={(v) => { setDepartmentFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.departmentId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
-        <ComboboxFilter label="Location" selectedValues={locationFilter} onChange={(v) => { setLocationFilter(v); setPage(1); }} options={[...new Set(employees.map((e) => e.locationId || "Unassigned"))].map((v) => ({ value: v, label: v }))} />
-        <ComboboxFilter label="Role" singleSelect selectedValues={roleFilter === "all" ? [] : [roleFilter]} onChange={(v) => { setRoleFilter(v[0] || "all"); setPage(1); }} options={[...new Set(employees.map((e) => e.role))].map((v) => ({ value: v, label: ({support_agent:"Support Agent",senior_support:"Senior Support",development_team:"Development Team",qa:"QA & Test",account_manager:"Account Manager",operations_manager:"Operations Manager",management:"Management"}[v] || v) }))} />
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"
-          aria-label="Filter employees by status"
-        >
-          <option value="all">All Status</option>
-          <option value="Available">Available</option>
-          <option value="Busy">Busy</option>
-          <option value="Off Shift">Off Shift</option>
-        </select>
-      </TableHeaderSection>
-
-      <div className="space-x-1 overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
-            <tr>
-              <th
-                className="flex cursor-pointer items-center gap-1 overflow-hidden px-4 py-3"
-                onClick={() => handleSort("name")}
+      <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          <div>
+            <h2 className="text-lg font-bold tracking-tight">All Employees</h2>
+            <p className="mt-1 text-xs text-slate-300">
+              Manage your team and availability.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 lg:w-[min(100%,20rem)]">
+            {[
+              [
+                "TOTAL MEMBERS",
+                employees.length,
+                "border-blue-400/30 bg-blue-500/15 text-blue-200",
+              ],
+              [
+                "AVAILABLE",
+                employees.filter((employee) => employee.status === "Available")
+                  .length,
+                "border-emerald-400/30 bg-emerald-500/15 text-emerald-200",
+              ],
+              [
+                "BUSY",
+                employees.filter((employee) => employee.status === "Busy")
+                  .length,
+                "border-amber-400/30 bg-amber-500/15 text-amber-200",
+              ],
+            ].map(([label, count, tone]) => (
+              <div
+                key={label}
+                className={`rounded-lg border px-2 py-1.5 text-center ${tone}`}
               >
-                <span>Staff Member</span>
-                <span className="material-symbols-outlined text-[15px] opacity-70">
-                  {sortField === "name"
-                    ? sortAsc
-                      ? "arrow_drop_up"
-                      : "arrow_drop_down"
-                    : "unfold_more"}
-                </span>
-              </th>
-              <th className="px-4 py-3">
+                <div className="text-[9px] font-bold tracking-wide">
+                  {label}
+                </div>
+                <div className="mt-0.5 text-lg leading-none font-bold">
+                  {count}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
+        <div className="relative max-w-xs min-w-60 flex-1">
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500"
+          >
+            search
+          </span>
+          <input
+            type="search"
+            id="employee-search"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search employees by name, role, or email..."
+            aria-label="Search employees by name, role, or email"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+          />
+        </div>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
+          <ComboboxFilter
+            label="Location"
+            selectedValues={locationFilter}
+            onChange={(v) => {
+              setLocationFilter(v);
+              setPage(1);
+            }}
+            options={[
+              ...new Set(employees.map((e) => e.locationId || "Unassigned")),
+            ].map((v) => ({ value: v, label: v }))}
+          />
+          <ComboboxFilter
+            label="Role"
+            singleSelect
+            selectedValues={roleFilter === "all" ? [] : [roleFilter]}
+            onChange={(v) => {
+              setRoleFilter(v[0] || "all");
+              setPage(1);
+            }}
+            options={[...new Set(employees.map((e) => e.role))].map((v) => ({
+              value: v,
+              label:
+                {
+                  support_agent: "Support Agent",
+                  senior_support: "Senior Support",
+                  development_team: "Development Team",
+                  qa: "QA & Test",
+                  account_manager: "Account Manager",
+                  operations_manager: "Operations Manager",
+                  management: "Management",
+                }[v] || v,
+            }))}
+          />
+          <ComboboxFilter
+            label="Status"
+            singleSelect
+            selectedValues={statusFilter === "all" ? [] : [statusFilter]}
+            onChange={(values) => {
+              setStatusFilter(values[0] || "all");
+              setPage(1);
+            }}
+            options={["Available", "Busy", "Off Shift"].map((value) => ({
+              value,
+              label: value,
+            }))}
+          />
+        </div>
+        {onCreateNew && (
+          <button
+            type="button"
+            onClick={onCreateNew}
+            className="flex shrink-0 items-center gap-1 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-700"
+          >
+            <span
+              aria-hidden="true"
+              className="material-symbols-outlined text-[16px]"
+            >
+              add
+            </span>{" "}
+            New
+          </button>
+        )}
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
+            <tr>
+              <th className="px-5 py-2.5">Staff Member</th>
+              <th className="px-4 py-2.5">
                 <span> Staff Role </span>
               </th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">
+              <th className="px-4 py-2.5">Email</th>
+              <th className="px-4 py-2.5">
                 <span>Phone</span>
               </th>
-              <th className="px-4 py-3">
+              <th className="px-4 py-2.5">
                 <span>Status</span>
               </th>
-              <th className="px-4 py-3 text-left">Action</th>
+              <th className="px-5 py-2.5 text-left">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -133,23 +204,23 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
               return (
                 <tr
                   key={emp.id}
-                  className="group cursor-pointer transition-colors hover:bg-indigo-50/40"
+                  className="group cursor-pointer transition-colors hover:bg-teal-50/50"
                   onClick={() => onViewEmployee(emp.id)}
                 >
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-5 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white shadow-sm">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white shadow-sm">
                         <span className="material-symbols-outlined text-[17px]">
                           {emp.avatar}
                         </span>
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900">
+                          <span className="font-bold text-slate-900 group-hover:text-teal-700">
                             {emp.name}
                           </span>
                           {isCurrent && (
-                            <span className="py-0.2 rounded bg-indigo-600 px-1.5 text-[9px] font-bold text-white">
+                            <span className="rounded bg-teal-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
                               YOU
                             </span>
                           )}
@@ -187,18 +258,23 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
                         emp.status === "Available"
-                          ? "border text-emerald-800"
-                          : "border text-amber-800"
+                          ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
+                          : emp.status === "Busy"
+                            ? "border border-amber-300 bg-amber-50 text-amber-800"
+                            : "border border-slate-300 bg-slate-50 text-slate-700"
                       }`}
                     >
                       {emp.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-left whitespace-nowrap">
-                      <button
+                  <td className="px-5 py-3 text-left whitespace-nowrap">
+                    <button
                       type="button"
-                      onClick={(event) => { event.stopPropagation(); onViewEmployee(emp.id); }}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onViewEmployee(emp.id);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-600 hover:text-white"
                     >
                       <span className="material-symbols-outlined text-[15px]">
                         visibility
@@ -209,6 +285,18 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                 </tr>
               );
             })}
+            {filtered.length === 0 && (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-5 py-12 text-center text-sm text-slate-500"
+                >
+                  {employees.length === 0
+                    ? "No employees available."
+                    : "No matching employees. Try adjusting your search or filters."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -219,7 +307,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10, 25]}
+        pageSizeOptions={[5, 10, 20, 25, 50]}
       />
     </div>
   );
