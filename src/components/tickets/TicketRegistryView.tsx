@@ -25,6 +25,8 @@ export const TicketRegistryView: React.FC = () => {
     updateTicketStatus,
     assignTicket,
     updateTicket,
+    removeTicket,
+    addToast,
   } = useTicketStore();
   const preferredView = loadWorkspacePreferences(currentUser?.id).defaultView;
 
@@ -138,19 +140,30 @@ export const TicketRegistryView: React.FC = () => {
           companies={data.companies}
           services={data.services}
           onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
+          onDelete={() => {
+            removeTicket(selectedTicket.id);
+            addToast(`${selectedTicket.code} deleted`, "success");
+            navigate(`/tickets${location.search}`, { replace: true });
+          }}
           onStatusChange={(status, note) =>
             updateTicketStatus(selectedTicket.id, status, note)
           }
           onAssigneeChange={(empId, note) =>
             assignTicket(selectedTicket.id, empId, note)
           }
+          onViewEmployee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
+          onViewCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
+          onOpenClientNotification={() => navigate(`/tickets/${encodeURIComponent(selectedTicket.id)}/notify-client`)}
         />
       ) : (
       <TicketTable
           tickets={visibleTickets}
           teams={data.teams}
           departments={data.departments}
+          employees={data.employees}
           onViewTicket={handleViewTicket}
+          onViewCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
+          onViewAssignee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
           onCreateNew={() => navigate("/tickets/new")}
           initialPage={Number(searchParams.get("page")) || tableStateRef.current.page}
           initialPageSize={Number(searchParams.get("size")) || tableStateRef.current.pageSize}
