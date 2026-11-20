@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import type { ServiceLine } from "../../types/barrel";
-import { FormField, formControlClassName } from "../common/barrel";
+import { FormField, formControlClassName, SelectDropdown } from "../common/barrel";
 
 export const CreateServicePage: React.FC = () => {
   const { data, addService, addToast } = useTicketStore();
@@ -18,8 +18,16 @@ export const CreateServicePage: React.FC = () => {
   const [technologies, setTechnologies] = useState<string[]>([]);
   const [technologyInput, setTechnologyInput] = useState("");
   const [error, setError] = useState("");
+  const [step, setStep] = useState(1);
   const slaTarget = `${slaValue}${slaUnit === "Minutes" ? "m" : slaUnit === "Hours" ? "h" : "d"}`;
   const uptime = `${uptimeValue}%`;
+
+  const validateStep = (currentStep: number) => {
+    if (currentStep === 1 && (!name.trim() || !code.trim() || !department || !lead)) { setError("Complete the service details to continue."); return false; }
+    if (currentStep === 2 && (!/^\d+(?:\.\d+)?$/.test(slaValue.trim()) || !/^\d+(?:\.\d+)?$/.test(uptimeValue.trim()) || Number(uptimeValue) <= 0 || Number(uptimeValue) > 100)) { setError("Enter valid response time and uptime targets to continue."); return false; }
+    setError("");
+    return true;
+  };
 
   const addTechnology = (value: string) => {
     const normalized = value.trim();
@@ -47,31 +55,26 @@ export const CreateServicePage: React.FC = () => {
     } else navigate("/services");
   };
 
-  return <main className="service-create-page">
-    <nav aria-label="Breadcrumb" className="service-create-breadcrumb"><button type="button" onClick={() => navigate("/services")}>Services</button><span aria-hidden="true">›</span><span>Add a service</span></nav>
-    <header className="service-create-heading"><h1>Add a service</h1><p>Define ownership and service targets.</p></header>
-    <section className="service-create-banner"><span className="service-create-banner-icon"><span className="material-symbols-outlined">layers</span></span><span className="service-create-banner-copy"><strong>New service</strong><span>Create a service line, assign ownership, and set operational targets like response time and uptime.</span></span></section>
-
-    <form onSubmit={submit} className="service-create-card">
-      <div className="service-create-section-heading"><span className="service-create-icon"><span className="material-symbols-outlined">info</span></span><div><h2>Service details</h2><p>Basic information and ownership for the service.</p></div></div>
+  return <main className="px-5 py-5 sm:px-7 sm:py-6"><form onSubmit={submit} className="space-y-5">
+      <div className="flex items-center gap-4 text-sm font-semibold text-[#384b68]"><span>{step} of 2</span><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#dfe5ef]"><div className="h-full rounded-full bg-[#25294e] transition-all" style={{ width: `${(step / 2) * 100}%` }} /></div><span className="hidden text-slate-500 sm:inline">{step === 1 ? "Service details" : "Operational targets"}</span></div>
+      {error && <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+      {step === 1 && <div className="space-y-4"><h2 className="text-[17px] font-bold text-[#1f2041]">Service details</h2>
       <div className="service-create-grid">
-        {error && <p role="alert" className="service-create-error">{error}</p>}
         <FormField label="Service name *"><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Customer Portal" /></FormField>
         <FormField label="Service code *"><input className={formControlClassName} required value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. SRV-001" /></FormField>
-        <FormField label="Department *"><select className={formControlClassName} value={department} required onChange={(event) => setDepartment(event.target.value)}>{(data.departments || []).map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select></FormField>
-        <FormField label="Service lead *"><select className={formControlClassName} value={lead} required onChange={(event) => setLead(event.target.value)}>{data.employees.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select></FormField>
+      <FormField label="Department *"><SelectDropdown label="Department" value={department} onChange={setDepartment} options={(data.departments || []).map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
+        <FormField label="Service lead *"><SelectDropdown label="Service lead" value={lead} onChange={setLead} options={data.employees.map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
       </div>
-
-      <section className="service-create-targets">
-        <div className="service-create-section-heading"><span className="service-create-icon"><span className="material-symbols-outlined">track_changes</span></span><div><h2>Operational targets</h2><p>Define service level targets and related configuration.</p></div><span className="service-create-uptime"><span className="material-symbols-outlined">monitoring</span>Target uptime {uptime}</span></div>
+      </div>}
+      {step === 2 && <section className="service-create-targets">
+        <div className="mb-4 flex items-center justify-between"><h2 className="text-[17px] font-bold text-[#1f2041]">Operational targets</h2><span className="rounded-lg bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-800">Target uptime {uptime}</span></div>
         <div className="service-create-grid service-create-target-grid">
-          <FormField label="Response time SLA *"><div className="service-create-composite"><input aria-label="Response time" type="number" min="1" step="any" required value={slaValue} onChange={(event) => setSlaValue(event.target.value)} /><select aria-label="Response time unit" value={slaUnit} onChange={(event) => setSlaUnit(event.target.value)}><option>Minutes</option><option>Hours</option><option>Days</option></select><span>e.g. 4 Hours</span></div></FormField>
+          <FormField label="Response time SLA *"><div className="service-create-composite"><input aria-label="Response time" type="number" min="1" step="any" required value={slaValue} onChange={(event) => setSlaValue(event.target.value)} /><SelectDropdown label="Response time unit" value={slaUnit} onChange={setSlaUnit} options={["Minutes", "Hours", "Days"].map((item) => ({ value: item, label: item }))} /><span>e.g. 4 Hours</span></div></FormField>
           <FormField label="Uptime target *"><div className="service-create-composite service-create-percent"><input aria-label="Uptime target" type="number" min="0.1" max="100" step="0.1" required value={uptimeValue} onChange={(event) => setUptimeValue(event.target.value)} /><span className="service-create-suffix">%</span><span>e.g. 99.9%</span></div></FormField>
           <FormField label="Technologies" className="service-create-wide"><div className="service-create-tags" onClick={() => document.getElementById("service-technology-input")?.focus()}>{technologies.map((technology) => <span className="service-create-tag" key={technology}>{technology}<button type="button" aria-label={`Remove ${technology}`} onClick={(event) => { event.stopPropagation(); setTechnologies((items) => items.filter((item) => item !== technology)); }}>×</button></span>)}<input id="service-technology-input" value={technologyInput} onChange={(event) => setTechnologyInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === ",") { event.preventDefault(); addTechnology(technologyInput); } if (event.key === "Backspace" && !technologyInput && technologies.length) setTechnologies((items) => items.slice(0, -1)); }} onBlur={() => technologyInput && addTechnology(technologyInput)} placeholder="Add technology..." /><span className="material-symbols-outlined">expand_more</span></div></FormField>
           <FormField label="Description" className="service-create-wide"><textarea className={formControlClassName} rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Briefly describe the service, its purpose, and key functionality." /></FormField>
         </div>
-      </section>
-      <footer className="service-create-actions"><button type="button" onClick={cancel}>Cancel</button><button type="submit">Create service</button></footer>
-    </form>
-  </main>;
+      </section>}
+      <footer className="flex items-center justify-between border-t border-slate-200 pt-5"><button type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }} className="rounded-lg border border-[#2c3158] px-5 py-2.5 text-sm font-semibold text-[#25294e] hover:bg-slate-50">{step === 1 ? "Cancel" : "Back"}</button><p className="hidden text-sm text-slate-500 md:block">{step === 1 ? "Complete this step to continue." : "Set the service level targets."}</p>{step === 1 ? <button type="button" onClick={() => { if (validateStep(1)) setStep(2); }} className="rounded-lg bg-[#25294e] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#1d2146]">Continue <span aria-hidden="true">→</span></button> : <button type="submit" className="rounded-lg bg-[#0e858d] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#0b7279]">Create service</button>}</footer>
+    </form></main>;
 };
