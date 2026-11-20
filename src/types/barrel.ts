@@ -8,6 +8,7 @@ export type RoleId =
   | 'management';
 
 export type InboundChannel = 'whatsapp' | 'email' | 'phone';
+export type ClientNotificationChannel = 'email' | 'whatsapp' | 'phone';
 
 export type TicketPriority = 'P1 Urgent' | 'P2 Normal' | 'P3 Low' | 'P4 Trivial';
 
@@ -100,6 +101,9 @@ export interface Ticket {
   attachments?: Attachment[];
   internalNotes?: InternalNote[];
   resolutionDetails?: string;
+  clientNotifiedAt?: string;
+  clientNotifiedVia?: ClientNotificationChannel;
+  clientNotificationNotes?: string;
   closedAt?: string;
   timeline: TicketTimelineItem[];
 }
@@ -148,6 +152,20 @@ export interface Employee {
   capacityMax: number;
   skills: string[];
   status: 'Available' | 'Busy' | 'Off Shift';
+  // Optional HR data keeps existing demo records and integrations backwards compatible.
+  dateOfBirth?: string;
+  gender?: string;
+  personalAddress?: string;
+  employmentType?: string;
+  hireDate?: string;
+  managerName?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  bankName?: string;
+  accountHolderName?: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  taxId?: string;
 }
 
 export interface Team {
