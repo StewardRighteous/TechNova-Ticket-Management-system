@@ -11,7 +11,7 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
   const diag = ticket.diagnosticData;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="p-5">
       <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
         Issue Overview
       </h4>
@@ -20,23 +20,26 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
         {ticket.description.replace(/\\n/g, "\n")}
       </p>
 
-      {/* Dynamic diagnostic fields */}
+      {/* Diagnostic fields collected by the add-ticket form */}
       {diag && (
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          {diag.operatingSystem && (
-            <DiagField icon="computer" label="OS" value={diag.operatingSystem} />
-          )}
-          {diag.browser && (
-            <DiagField icon="language" label="Browser" value={diag.browser} />
-          )}
-          {diag.device && (
-            <DiagField icon="devices" label="Device" value={diag.device} />
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {diag.errorMessage && (
+            <DiagField icon="report" label="Error message" value={diag.errorMessage} />
           )}
           {diag.errorCode && (
-            <DiagField icon="error" label="Error Code" value={diag.errorCode} />
+            <DiagField icon="error" label="Error code" value={diag.errorCode} />
           )}
-          {diag.errorMessage && (
-            <DiagField icon="report" label="Error" value={diag.errorMessage} />
+          {diag.clusterNode && (
+            <DiagField icon="dns" label="Cluster / server node" value={diag.clusterNode} />
+          )}
+          {diag.affectedUsers !== undefined && (
+            <DiagField icon="group" label="Affected users" value={String(diag.affectedUsers)} />
+          )}
+          {diag.expectedBehavior && (
+            <DiagField icon="target" label="Expected behavior" value={diag.expectedBehavior} />
+          )}
+          {diag.actualBehavior && (
+            <DiagField icon="report_problem" label="Actual behavior" value={diag.actualBehavior} />
           )}
         </div>
       )}
@@ -53,45 +56,6 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
         </div>
       )}
 
-      {/* Expected vs Actual */}
-      {(diag?.expectedBehavior || diag?.actualBehavior) && (
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {diag?.expectedBehavior && (
-            <div>
-              <h5 className="mb-1 text-xs font-bold text-emerald-700">
-                Expected
-              </h5>
-              <p className="rounded-lg border border-emerald-100 bg-emerald-50 p-2.5 text-xs text-slate-700">
-                {diag.expectedBehavior}
-              </p>
-            </div>
-          )}
-          {diag?.actualBehavior && (
-            <div>
-              <h5 className="mb-1 text-xs font-bold text-rose-700">
-                Actual
-              </h5>
-              <p className="rounded-lg border border-rose-100 bg-rose-50 p-2.5 text-xs text-slate-700">
-                {diag.actualBehavior}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tags */}
-      {ticket.tags.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {ticket.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-600"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
