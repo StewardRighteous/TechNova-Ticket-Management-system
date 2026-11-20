@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import type { Company, ServiceLine, Ticket } from "../../types/barrel";
-import { ComboboxFilter } from "../common/ComboboxFilter";
+import { ComboboxFilter, TableSearch } from "../common/barrel";
 
 interface ServiceDetailHeroProps {
   service: ServiceLine;
@@ -98,7 +98,7 @@ export const ServiceDetailHero: React.FC<ServiceDetailHeroProps> = ({
 const LinkedTickets: React.FC<{ tickets: Ticket[]; total: number; search: string; onSearch: (value: string) => void; statuses: string[]; onStatuses: (values: string[]) => void; onOpenTicket?: (id: string) => void }> = ({ tickets, total, search, onSearch, statuses, onStatuses, onOpenTicket }) => (
   <div>
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-bold text-[#1f2041]">Linked tickets <span className="font-medium text-slate-500">({total})</span></h2><div className="flex flex-wrap items-center gap-2">
-      <input aria-label="Search linked tickets" value={search} onChange={(event) => onSearch(event.target.value)} placeholder="Search tickets..." className="h-9 w-48 rounded-lg border border-slate-300 px-3 text-xs outline-none focus:border-[#119da4]" />
+      <TableSearch id="linked-ticket-search" value={search} onChange={onSearch} placeholder="Search tickets..." aria-label="Search linked tickets" className="w-full sm:w-64" />
       <ComboboxFilter label="Status" placeholder="Search status..." options={[...new Set(tickets.map((ticket) => ticket.status))].map((item) => ({ value: item, label: item }))} selectedValues={statuses} onChange={onStatuses} />
       <span className="text-xs font-semibold text-slate-500">{tickets.length} shown</span></div></div>
     <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[700px] text-left text-xs"><thead className="bg-slate-50 text-[10px] tracking-wide text-slate-500 uppercase"><tr>{["Ticket", "Subject", "Status", "Priority", "Assignee", "Updated", "SLA"].map((heading) => <th key={heading} className="px-2.5 py-2 font-bold">{heading}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{tickets.length ? tickets.map((ticket) => <tr key={ticket.id} className="hover:bg-slate-50/70"><td className="px-2.5 py-2.5"><button type="button" onClick={() => onOpenTicket?.(ticket.id)} className="font-bold text-[#0d6d77] hover:underline">{ticket.code}</button></td><td className="max-w-56 truncate px-2.5 py-2.5 font-medium text-slate-700">{ticket.title}</td><td className="px-2.5 py-2.5 text-slate-600">{ticket.status}</td><td className="px-2.5 py-2.5 text-slate-600">{ticket.priority.replace(/^P\d\s*/, "")}</td><td className="px-2.5 py-2.5 text-slate-600">{ticket.assignedToName || "Unassigned"}</td><td className="whitespace-nowrap px-2.5 py-2.5 text-slate-500">{ticket.timeAgo}</td><td className="whitespace-nowrap px-2.5 py-2.5 text-slate-600">{ticket.slaDeadline || ticket.slaRisk}</td></tr>) : <tr><td colSpan={7} className="px-2.5 py-6 text-center text-slate-500">{total ? "No tickets match these filters." : "No active tickets linked to this service."}</td></tr>}</tbody></table></div>
