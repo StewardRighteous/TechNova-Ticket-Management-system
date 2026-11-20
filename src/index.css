@@ -39,6 +39,78 @@
   --color-blue-900: #103342;
 }
 
+/* Create dialogs are intentionally denser than their full-page counterparts so the first step fits common laptop viewports. */
+.create-modal-shell input:not([type="checkbox"]):not([type="file"]),
+.create-modal-shell select,
+.create-modal-shell textarea {
+  min-height: 2.35rem;
+  border-width: 1px;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+.create-modal-shell label {
+  gap: 0.25rem;
+}
+
+.create-modal-shell .service-create-page {
+  padding-top: 0.65rem;
+  padding-bottom: 0.75rem;
+}
+
+.create-modal-shell .service-create-heading,
+.create-modal-shell .service-create-banner {
+  display: none;
+}
+
+.create-modal-shell .service-create-card {
+  margin-top: 0;
+  border: 0;
+  box-shadow: none;
+  padding-top: 0.5rem;
+}
+
+.create-modal-shell .service-create-section-heading {
+  margin-bottom: 0.55rem;
+}
+
+.create-modal-shell .service-create-targets {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+}
+
+.create-modal-shell .max-w-6xl {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.create-modal-shell .max-w-6xl > form {
+  padding: 1rem;
+}
+
+.create-modal-shell .max-w-6xl .gap-y-5 {
+  row-gap: 0.75rem;
+}
+
+.create-modal-shell .max-w-6xl .space-y-5 > :not(:first-child) {
+  margin-top: 0.75rem;
+}
+
+/* A saved ticket is already inside the create dialog. Remove the full-page
+   receipt chrome so the dialog reads as one continuous surface. */
+.create-modal-shell .ticket-success-page {
+  min-height: 100%;
+  padding: 0;
+  background: transparent;
+}
+
+.create-modal-shell .ticket-success-card {
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 @layer base {
   :root {
     --brand-navy: #1f2041;
