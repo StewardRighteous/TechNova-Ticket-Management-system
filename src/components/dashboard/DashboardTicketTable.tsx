@@ -29,7 +29,7 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
   const [sortField, setSortField] = useState<SortField>("priority");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) setSortAsc(!sortAsc);
@@ -183,7 +183,7 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10]}
+        pageSizeOptions={[10, 25, 50]}
       />
     </div>
   );
