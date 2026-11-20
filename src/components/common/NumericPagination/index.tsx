@@ -16,7 +16,7 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [5, 10, 20, 25, 50, 75, 100],
+  pageSizeOptions = [10, 25, 50],
   className = "",
 }) => {
   const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
