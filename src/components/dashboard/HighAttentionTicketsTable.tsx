@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import type { Ticket } from "../../types/barrel";
+import type { Employee, Ticket } from "../../types/barrel";
 import { NumericPagination } from "../common/barrel";
+import { StaffAvatar } from "../common/StaffAvatar";
 import { getHighAttentionTickets } from "./dashboardMetrics";
 
 export interface HighAttentionTicketsTableProps {
   tickets: Ticket[];
+  employees?: Employee[];
   onSelectTicket: (ticketId: string) => void;
+  onSelectCompany?: (companyId: string) => void;
+  onSelectAssignee?: (employeeId: string) => void;
   onExploreAll?: () => void;
 }
 
@@ -38,7 +42,10 @@ const renderSlaBadge = (risk: Ticket["slaRisk"], deadline?: string) => {
 
 export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps> = ({
   tickets,
+  employees = [],
   onSelectTicket,
+  onSelectCompany,
+  onSelectAssignee,
   onExploreAll,
 }) => {
   const highAttentionTickets = getHighAttentionTickets(tickets);
@@ -92,7 +99,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
               <th className="px-3 py-2.5">Ticket</th>
               <th className="px-3 py-2.5">Company</th>
               <th className="px-3 py-2.5">Due status</th>
-              <th className="px-3 py-2.5">Owner</th>
+              <th className="px-3 py-2.5">Assignee</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -107,15 +114,42 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                   <span className="mt-0.5 block truncate font-semibold text-slate-900 group-hover:text-rose-700 transition-colors" title={ticket.title}>{ticket.title}</span>
                 </td>
                 <td className="max-w-0 px-3 py-2.5">
-                  <div className="truncate font-semibold text-slate-800" title={ticket.companyName}>{ticket.companyName}</div>
+                  {onSelectCompany ? (
+                    <button
+                      type="button"
+                      onClick={(event) => { event.stopPropagation(); onSelectCompany(ticket.companyId); }}
+                      className="block max-w-full truncate text-left font-semibold text-slate-800 transition-colors hover:text-indigo-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                      title={`View ${ticket.companyName}`}
+                    >
+                      {ticket.companyName}
+                    </button>
+                  ) : (
+                    <div className="truncate font-semibold text-slate-800" title={ticket.companyName}>{ticket.companyName}</div>
+                  )}
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="whitespace-nowrap">{renderSlaBadge(ticket.slaRisk)}</div>
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="flex min-w-0 items-center gap-1 text-[10px] text-slate-600">
-                    <span className="material-symbols-outlined shrink-0 text-[13px] text-slate-400">person</span>
-                    <span className="">{ticket.assignedToName}</span>
+                    <StaffAvatar
+                      src={employees.find((employee) => employee.id === ticket.assignedToId)?.avatar || ""}
+                      alt={`${ticket.assignedToName} profile`}
+                      sizeClassName="h-5 w-5 shrink-0"
+                      fallbackClassName="text-[15px] text-slate-400"
+                    />
+                    {onSelectAssignee ? (
+                      <button
+                        type="button"
+                        onClick={(event) => { event.stopPropagation(); onSelectAssignee(ticket.assignedToId); }}
+                        className="min-w-0 truncate text-left transition-colors hover:text-indigo-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                        title={`View ${ticket.assignedToName}`}
+                      >
+                        {ticket.assignedToName}
+                      </button>
+                    ) : (
+                      <span className="">{ticket.assignedToName}</span>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -146,7 +180,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10, 25]}
+        pageSizeOptions={[10, 25, 50]}
       />
     </section>
   );
