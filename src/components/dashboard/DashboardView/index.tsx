@@ -17,6 +17,13 @@ const getGreeting = () => {
   return "Good night";
 };
 
+const getDashboardMessage = () =>
+  `${new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date())} · Review open tickets, prioritize urgent issues, and keep your team moving.`;
+
 export const DashboardView: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -86,30 +93,9 @@ export const DashboardView: React.FC = () => {
               <h1 className="text-[20px] font-bold tracking-tight">
                 {getGreeting()}, {currentUser?.name?.split(" ")[0] || "Team"}
               </h1>
-            </div>
-          </div>
-          <div className="flex gap-2 sm:pr-1">
-            <div className="flex min-w-32 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5">
-              <span className="material-symbols-outlined rounded-lg bg-indigo-500/30 p-2 text-indigo-100">
-                confirmation_number
-              </span>
-              <div>
-              <strong className="block text-lg leading-5">
-                  {metrics.totalTickets}
-                </strong>
-              <span className="text-[11px] text-slate-300">Tickets</span>
-              </div>
-            </div>
-            <div className="flex min-w-32 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-1.5">
-              <span className="material-symbols-outlined rounded-lg bg-rose-500/20 p-2 text-rose-200">
-                warning
-              </span>
-              <div>
-              <strong className="block text-lg leading-5">
-                  {metrics.slaAtRiskOrBreachedCount}
-                </strong>
-              <span className="text-[11px] text-slate-300">High attention</span>
-              </div>
+              <p className="mt-0.5 text-xs text-white/75 sm:text-sm">
+                {getDashboardMessage()}
+              </p>
             </div>
           </div>
         </div>
@@ -139,20 +125,30 @@ export const DashboardView: React.FC = () => {
         <div className="space-y-3">
           <HighAttentionTicketsTable
             tickets={tickets}
+            employees={data.employees}
             onSelectTicket={openTicket}
+            onSelectCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
+            onSelectAssignee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
             onExploreAll={() => {
               setSelectedTicketId(null);
               setTicketTableFocus("sla-risk");
               navigate("/tickets?scope=sla-risk");
             }}
           />
-          <RecentTickets tickets={recent} onOpen={openTicket} onViewAll={() => navigate("/latest-updates")} />
+          <RecentTickets
+            tickets={recent}
+            onOpen={openTicket}
+            onViewAll={() => navigate("/latest-updates")}
+            onSelectCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
+            onSelectAssignee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
+          />
         </div>
         <div className="space-y-3">
           <VolumeBreakdownCards
             tickets={tickets}
             teams={data.teams}
             departments={data.departments}
+            referenceNow={referenceNow}
           />
           <NotificationsCard
             notifications={notificationsForPersona}
