@@ -12,12 +12,12 @@ export function canAccessTicket(ticket: Ticket, role: RoleId, employeeId?: strin
 }
 
 const allowedTransitions: Record<Ticket["status"], Ticket["status"][]> = {
-  Open: ["In Progress", "Escalated", "Closed"],
-  "In Progress": ["Under Review", "Escalated", "Pending QA", "Resolved", "Closed"],
-  Escalated: ["In Progress", "Under Review", "Pending QA", "Resolved", "Closed"],
-  "Under Review": ["In Progress", "Escalated", "Pending QA", "Resolved", "Closed"],
-  "Pending QA": ["In Progress", "Under Review", "Resolved", "Closed"],
-  Resolved: ["In Progress", "Closed"],
+  Open: ["In Progress"],
+  "In Progress": ["Open", "Escalated"],
+  Escalated: ["In Progress", "Under Review"],
+  "Under Review": ["Escalated", "Pending QA"],
+  "Pending QA": ["Under Review", "Resolved"],
+  Resolved: ["Pending QA", "Closed"],
   Closed: [],
 };
 
