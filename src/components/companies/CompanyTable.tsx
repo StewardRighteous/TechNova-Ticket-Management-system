@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Company } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination } from "../common/barrel";
+import { ComboboxFilter, NumericPagination, TableSearch } from "../common/barrel";
 
 interface CompanyTableProps {
   companies: Company[];
@@ -52,10 +52,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
-        <div className="relative min-w-60 max-w-xs">
-          <span aria-hidden="true" className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500">search</span>
-          <input type="search" id="company-search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Filter companies or contacts..." aria-label="Filter companies or contacts" className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
-        </div>
+        <TableSearch id="company-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Filter companies or contacts..." aria-label="Filter companies or contacts" className="min-w-52 max-w-[480px] flex-1" />
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
           <ComboboxFilter label="Account tier" singleSelect selectedValues={tierFilter === "all" ? [] : [tierFilter]} onChange={(v) => { setTierFilter(v[0] || "all"); setPage(1); }} options={[...new Set(companies.map((c) => c.tier))].map((v) => ({ value: v, label: v }))} />
           {onCreateNew && <button type="button" onClick={onCreateNew} className="flex shrink-0 items-center gap-1 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-700"><span aria-hidden="true" className="material-symbols-outlined text-[16px]">add</span> New</button>}
@@ -176,7 +173,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10, 20, 25, 50]}
+        pageSizeOptions={[10, 25, 50]}
       />
     </div>
   );
