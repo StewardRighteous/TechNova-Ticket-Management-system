@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { ServiceLine } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination } from "../common/barrel";
+import { ComboboxFilter, NumericPagination, TableSearch } from "../common/barrel";
 
 interface ServiceTableProps {
   services: ServiceLine[];
@@ -106,27 +106,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
-        <div className="relative max-w-xs min-w-60">
-          <span
-            aria-hidden="true"
-            className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500"
-          >
-            search
-          </span>
-          <input
-            type="search"
-            id="service-search"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-              updateState({ search: event.target.value, page: 1 });
-            }}
-            placeholder="Filter services or lead..."
-            aria-label="Filter services or lead"
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-          />
-        </div>
+        <TableSearch id="service-search" value={search} onChange={(value) => { setSearch(value); setPage(1); updateState({ search: value, page: 1 }); }} placeholder="Filter services or lead..." aria-label="Filter services or lead" className="min-w-52 max-w-[480px] flex-1" />
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           <ComboboxFilter
             label="Department"
@@ -310,7 +290,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
           setPage(1);
           updateState({ pageSize: value, page: 1 });
         }}
-        pageSizeOptions={[5, 10, 20, 25, 50]}
+        pageSizeOptions={[10, 25, 50]}
       />
     </div>
   );
