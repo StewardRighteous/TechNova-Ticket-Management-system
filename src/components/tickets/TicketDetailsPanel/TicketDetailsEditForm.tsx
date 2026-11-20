@@ -28,15 +28,11 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
   const diagnostics =
     activeTab === "diagnostics"
       ? ([
-          "browser",
-          "operatingSystem",
-          "device",
           "clusterNode",
-          "errorRate",
           "errorCode",
           "errorMessage",
         ] as const)
-      : (["stepsToReproduce", "expectedBehavior", "actualBehavior"] as const);
+      : (["stepsToReproduce"] as const);
   return (
     <div className="mt-4 grid grid-cols-3 gap-x-8 gap-y-6 p-1">
       {activeTab === "overview" && (
@@ -224,11 +220,11 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
       )}
       {(activeTab === "diagnostics" || activeTab === "reproduction") && (
       <div className="rounded-xl p-4 md:col-span-3">
-          <div className="grid gap-3 sm:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {diagnostics.map((key) => (
               <DiagnosticInput
                 key={key}
-                label={({ browser: "Browser", operatingSystem: "Operating system", device: "Device", clusterNode: "Cluster node", errorRate: "Error rate", errorCode: "Error code", errorMessage: "Error message", stepsToReproduce: "Steps to reproduce", expectedBehavior: "Expected behavior", actualBehavior: "Actual behavior" } as Record<string, string>)[key]}
+                label={({ clusterNode: "Cluster / server node", errorCode: "Error code", errorMessage: "Error message", stepsToReproduce: "Steps to reproduce" } as Record<string, string>)[key]}
                 value={draft.diagnosticData[key]}
                 readonly={readonly}
                 onChange={(value) =>
