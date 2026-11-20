@@ -9,13 +9,6 @@ export function authenticateByEmail(
   ) || null;
 }
 
-export function authenticateById(
-  employeeId: string,
-  employees: Employee[]
-): Employee | null {
-  return employees.find((e) => e.id === employeeId) || null;
-}
-
 export function addTimelineNoteToTicket(
   db: MockupDatabase,
   ticketId: string,
