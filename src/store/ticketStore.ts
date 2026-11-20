@@ -7,6 +7,7 @@ import type {
   ServiceLine,
   RoleId,
   TicketStatus,
+  ClientNotificationChannel,
   ToastMessage,
   ToastType,
 } from "../types/barrel";
@@ -18,10 +19,11 @@ import {
 } from "./ticketMutations";
 import {
   authenticateByEmail,
-  authenticateById,
   addTimelineNoteToTicket,
 } from "./authHelpers";
 import { ROLE_PERMISSIONS, canAccessTicket, canTransitionTicket } from "../utils/rolePermissions";
+
+const LOGIN_PASSWORD = "Password@123";
 
 export type TicketTableFocus = "active" | "overdue" | "sla-risk" | "resolved";
 
@@ -37,8 +39,7 @@ interface TicketStore {
   isSidebarCollapsed: boolean;
   toasts: ToastMessage[];
 
-  login: (email: string) => boolean;
-  loginAsEmployee: (employeeId: string) => void;
+  login: (email: string, password: string) => boolean;
   logout: () => void;
   setActiveTab: (tab: string) => void;
   setSelectedTicketId: (id: string | null) => void;
@@ -63,7 +64,9 @@ interface TicketStore {
     status: TicketStatus,
     note?: string,
   ) => void;
+  notifyTicketClient: (ticketId: string, channel: ClientNotificationChannel, notes?: string) => void;
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
+  removeTicket: (ticketId: string) => void;
   assignTicket: (ticketId: string, employeeId: string, note?: string) => void;
   addTicketTimelineNote: (ticketId: string, note: string) => void;
   markNotificationRead: (notificationId: string) => void;
@@ -104,7 +107,8 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   isSidebarCollapsed: false,
   toasts: [],
 
-  login: (email: string) => {
+  login: (email: string, password: string) => {
+    if (password !== LOGIN_PASSWORD) return false;
     const matched = authenticateByEmail(email, get().data.employees);
     if (matched) {
       set({
@@ -117,19 +121,6 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       return true;
     }
     return false;
-  },
-
-  loginAsEmployee: (employeeId: string) => {
-    const matched = authenticateById(employeeId, get().data.employees);
-    if (matched) {
-      set({
-        currentUser: matched,
-        activeRole: matched.role,
-        isAuthenticated: true,
-        activeTab: "dashboard",
-      });
-      setSessionPersonaId(matched.id);
-    }
   },
 
   logout: () => {
@@ -243,6 +234,25 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     set({ data: updatedData });
   },
 
+  notifyTicketClient: (ticketId, channel, notes) => {
+    const state = get();
+    const ticket = state.data.tickets.find((item) => item.id === ticketId);
+    if (!ticket || ticket.status !== "Resolved" || !canAccessTicketByState(state, ticketId)) return;
+    const currentEmp = state.currentUser || state.data.employees[0];
+    const channelLabel = channel === "whatsapp" ? "WhatsApp" : channel === "email" ? "email" : "phone";
+    const updatedTickets = updateTicketWorkflowInList(
+      state.data.tickets,
+      ticketId,
+      { clientNotifiedAt: new Date().toISOString(), clientNotifiedVia: channel, clientNotificationNotes: notes?.trim() || undefined },
+      currentEmp,
+      `Client notified via ${channelLabel}`,
+      `${ticket.clientContact} was notified about the resolution via ${channelLabel}.`,
+    );
+    const updatedData = { ...state.data, tickets: updatedTickets };
+    persistState(updatedData);
+    set({ data: updatedData });
+  },
+
   updateTicket: (ticketId, updates) => {
     const state = get();
     if (!canAccessTicketByState(state, ticketId)) return;
@@ -292,6 +302,16 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     const updatedData = { ...state.data, tickets };
     persistState(updatedData);
     set({ data: updatedData });
+  },
+
+  removeTicket: (ticketId) => {
+    const state = get();
+    if (!canAccessTicketByState(state, ticketId) || !ROLE_PERMISSIONS[state.activeRole].canManageTeam) return;
+    const ticket = state.data.tickets.find((item) => item.id === ticketId);
+    if (!ticket) return;
+    const updatedData = { ...state.data, tickets: state.data.tickets.filter((item) => item.id !== ticketId) };
+    persistState(updatedData);
+    set({ data: updatedData, selectedTicketId: state.selectedTicketId === ticketId ? null : state.selectedTicketId });
   },
 
   assignTicket: (ticketId, employeeId, note) => {
