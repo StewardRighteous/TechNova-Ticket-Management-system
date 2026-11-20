@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 90" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">TechNova Solutions Pvt. Ltd.</title>
+  <desc id="logo-desc">TechNova logo with a ticket icon</desc>
+  <rect width="330" height="90" rx="4" fill="#202148"/>
+  <rect x="20" y="18" width="54" height="54" rx="17" fill="#167b96"/>
+  <path d="M34 34h26v5a4 4 0 0 0 0 8v5H34v-5a4 4 0 0 0 0-8v-5Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M43 37v2.5m0 4v2.5m8-9v2.5m0 4v2.5" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="94" y="45" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700">TechNova</text>
+  <text x="94" y="68" fill="#8eb4d8" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="600" letter-spacing="1.4">SOLUTIONS PVT. LTD.</text>
+</svg>
