@@ -31,6 +31,13 @@ export function clearSessionPersona(): void {
 function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
   return {
     ...state,
+    employees: state.employees.map((employee) => {
+      const seedEmployee = (initialData as MockupDatabase).employees.find((item) => item.id === employee.id);
+      const isLegacyAvatar = employee.avatar === "person" || employee.avatar.includes("randomuser.me") || employee.avatar.includes("images.unsplash.com");
+      return isLegacyAvatar && seedEmployee && employee.avatar !== seedEmployee.avatar
+        ? { ...employee, avatar: seedEmployee.avatar }
+        : employee;
+    }),
     tickets: state.tickets.map((ticket) => {
       const company = state.companies.find((item) => item.id === ticket.companyId);
       const service = state.services.find((item) => item.id === ticket.serviceId);
