@@ -24,6 +24,72 @@ export interface DepartmentBreakdownItem {
   percentage: number;
 }
 
+export interface VolumeComparison {
+  currentCount: number;
+  previousCount: number;
+  difference: number;
+  percentage: number | null;
+}
+
+export type VolumeComparisonMap = Record<string, VolumeComparison>;
+
+/** Compares tickets created in the last seven days with the seven days before that. */
+export const computeVolumeComparison = (
+  tickets: Ticket[],
+  referenceNow: Date = new Date(),
+): VolumeComparison => {
+  const nowMs = referenceNow.getTime();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const currentStartMs = nowMs - weekMs;
+  const previousStartMs = nowMs - weekMs * 2;
+  let currentCount = 0;
+  let previousCount = 0;
+
+  for (const ticket of tickets) {
+    const createdMs = Date.parse(ticket.createdAt);
+    if (Number.isNaN(createdMs)) continue;
+    if (createdMs >= currentStartMs && createdMs <= nowMs) currentCount++;
+    else if (createdMs >= previousStartMs && createdMs < currentStartMs) previousCount++;
+  }
+
+  const difference = currentCount - previousCount;
+  const percentage = previousCount > 0
+    ? Math.round((Math.abs(difference) / previousCount) * 100)
+    : currentCount > 0 ? null : 0;
+
+  return { currentCount, previousCount, difference, percentage };
+};
+
+export const computeVolumeComparisons = (
+  tickets: Ticket[],
+  getKey: (ticket: Ticket) => string,
+  referenceNow: Date = new Date(),
+): VolumeComparisonMap => {
+  const nowMs = referenceNow.getTime();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const currentStartMs = nowMs - weekMs;
+  const previousStartMs = nowMs - weekMs * 2;
+  const counts = new Map<string, { currentCount: number; previousCount: number }>();
+
+  for (const ticket of tickets) {
+    const createdMs = Date.parse(ticket.createdAt);
+    if (Number.isNaN(createdMs)) continue;
+    const key = getKey(ticket);
+    const entry = counts.get(key) || { currentCount: 0, previousCount: 0 };
+    if (createdMs >= currentStartMs && createdMs <= nowMs) entry.currentCount++;
+    else if (createdMs >= previousStartMs && createdMs < currentStartMs) entry.previousCount++;
+    counts.set(key, entry);
+  }
+
+  return Object.fromEntries([...counts.entries()].map(([key, { currentCount, previousCount }]) => {
+    const difference = currentCount - previousCount;
+    const percentage = previousCount > 0
+      ? Math.round((Math.abs(difference) / previousCount) * 100)
+      : currentCount > 0 ? null : 0;
+    return [key, { currentCount, previousCount, difference, percentage }];
+  }));
+};
+
 const INACTIVE_STATUSES = new Set(["Resolved", "Closed"]);
 
 export const isTicketActive = (ticket: Ticket): boolean => {
