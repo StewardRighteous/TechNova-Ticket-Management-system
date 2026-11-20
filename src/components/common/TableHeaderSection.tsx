@@ -1,4 +1,5 @@
 import React from "react";
+import { TableSearch } from "./TableSearch";
 
 interface TableHeaderSectionProps {
   title: string;
@@ -48,20 +49,14 @@ export const TableHeaderSection: React.FC<TableHeaderSectionProps> = ({
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5 border-t border-white/15 pt-3">
-        <div className="relative max-w-xs min-w-60">
-          <span aria-hidden="true" className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500">
-            search
-          </span>
-          <input
-            type="search"
-            id="ticket-search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-8 text-sm text-slate-900 transition-all outline-none placeholder:text-slate-500 focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
-          />
-        </div>
+        <TableSearch
+          id="dashboard-ticket-search"
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder}
+          className="max-w-[480px] min-w-52"
+        />
       {children && (
         <div className="flex flex-wrap items-center gap-2.5">
           {children}
