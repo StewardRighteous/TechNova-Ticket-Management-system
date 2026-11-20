@@ -3,9 +3,11 @@ import type {
   Ticket,
   Team,
   Department,
+  Employee,
 } from "../../../types/barrel";
-import { PriorityBadge, StatusBadge, NumericPagination } from "../../common/barrel";
+import { PriorityBadge, StatusBadge, NumericPagination, StaffAvatar } from "../../common/barrel";
 import { TicketTableFilters } from "../TicketTableFilters";
+import { TableSearch } from "../../common/barrel";
 import type { TicketTableFocus } from "../../../store/ticketStore";
 import { getOverdueTickets, isTicketSlaAtRisk } from "../../dashboard/dashboardMetrics";
 
@@ -13,7 +15,10 @@ interface TicketTableProps {
   tickets: Ticket[];
   teams?: Team[];
   departments?: Department[];
+  employees?: Employee[];
   onViewTicket: (ticketId: string) => void;
+  onViewCompany?: (companyId: string) => void;
+  onViewAssignee?: (employeeId: string) => void;
   onCreateNew: () => void;
   initialPage?: number;
   initialPageSize?: number;
@@ -48,7 +53,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   tickets,
   teams = [],
   departments = [],
+  employees = [],
   onViewTicket,
+  onViewCompany,
+  onViewAssignee,
   onCreateNew,
   initialPage,
   initialPageSize,
@@ -212,6 +220,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   });
 
   const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const kpiCards = [
+    ["TOTAL", tickets.length, "border-blue-400/30 bg-blue-500/15 text-blue-200"],
+    ["ACTIVE", tickets.filter((ticket) => ["Open", "In Progress"].includes(ticket.status)).length, "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"],
+    ["NEEDS ATTENTION", tickets.filter((ticket) => ["Escalated", "Under Review", "Pending QA"].includes(ticket.status)).length, "border-amber-400/30 bg-amber-500/15 text-amber-200"],
+    ["RESOLVED", tickets.filter((ticket) => ["Resolved", "Closed"].includes(ticket.status)).length, "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"],
+  ] as const;
   useEffect(() => {
     const lastPage = Math.max(1, Math.ceil(filtered.length / pageSize));
     if (page > lastPage) setPage(lastPage);
@@ -224,24 +238,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           <h2 className="text-lg font-bold tracking-tight">{activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}</h2>
           <p className="mt-1 text-xs text-slate-300">Review, prioritize, and manage support requests.</p>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
-          {[
-            ["TOTAL", tickets.length, "border-blue-400/30 bg-blue-500/15 text-blue-200"],
-            ["OPEN", tickets.filter((ticket) => ticket.status === "Open").length, "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"],
-            ["IN PROGRESS", tickets.filter((ticket) => ticket.status === "In Progress").length, "border-amber-400/30 bg-amber-500/15 text-amber-200"],
-            ["ESCALATED", tickets.filter((ticket) => ticket.status === "Escalated").length, "border-orange-400/30 bg-orange-500/15 text-orange-200"],
-            ["UNDER REVIEW", tickets.filter((ticket) => ticket.status === "Under Review").length, "border-cyan-400/30 bg-cyan-500/15 text-cyan-200"],
-            ["PENDING QA", tickets.filter((ticket) => ticket.status === "Pending QA").length, "border-violet-400/30 bg-violet-500/15 text-violet-200"],
-            ["RESOLVED", tickets.filter((ticket) => ticket.status === "Resolved").length, "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"],
-            ["CLOSED", tickets.filter((ticket) => ticket.status === "Closed").length, "border-slate-400/30 bg-slate-500/15 text-slate-200"],
-          ].map(([label, count, styles]) => <div key={String(label)} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {kpiCards.map(([label, count, styles]) => <div key={label} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
-        <div className="relative min-w-52 w-full sm:w-auto sm:flex-1 sm:max-w-xs">
-          <span aria-hidden="true" className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500">search</span>
-          <input type="search" id="ticket-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search tickets..." aria-label="Search tickets" className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-200" />
-        </div>
+        <TableSearch id="ticket-search" value={searchInput} onChange={setSearchInput} placeholder="Search tickets..." aria-label="Search tickets" className="min-w-52 w-full sm:w-auto sm:flex-1 sm:max-w-[480px]" />
         {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span><button type="button" aria-label="Remove dashboard scope" onClick={onClearScope} className="rounded-full px-1 text-indigo-700 hover:bg-indigo-100">×</button></div>}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
         <TicketTableFilters
@@ -281,16 +283,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 </div>
               </th>
         
-              <th className="px-4 py-2.5">Department</th>
-              
-          
+              <th className="px-4 py-2.5">Assignee</th>
               <th className="px-3 py-2.5">Status</th>
               <th className="px-5 py-2.5">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
             {paginated.map((t) => {
-              const deptInfo = t.teamId ? teamToDept.get(t.teamId) : undefined;
               return (
                 <tr
                   key={t.id}
@@ -310,26 +309,18 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </td>
 
                   <td className="px-4 py-2.5 whitespace-nowrap">
-                    <div className="font-semibold text-slate-900">
+                    <button type="button" onClick={(event) => { event.stopPropagation(); onViewCompany?.(t.companyId); }} className="font-semibold text-slate-900 hover:text-indigo-600 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600" aria-label={`View company ${t.companyName}`}>
                       {t.companyName}
-                    </div>
-                  
+                    </button>
                   </td>
-
-              
-
-                  <td className="px-4 py-2.5 whitespace-normal">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700">
-                      <span className="material-symbols-outlined text-[14px] text-slate-400">
-                        corporate_fare
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <button type="button" onClick={(event) => { event.stopPropagation(); onViewAssignee?.(t.assignedToId); }} className="inline-flex items-center gap-2 font-medium text-slate-700 hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600" aria-label={`View assignee ${t.assignedToName}`}>
+                      <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-500">
+                        <StaffAvatar src={employees.find((employee) => employee.id === t.assignedToId)?.avatar || "person"} alt={`${t.assignedToName} profile`} sizeClassName="h-7 w-7" fallbackClassName="text-[15px]" />
                       </span>
-                      {deptInfo ? deptInfo.name : "Operations"}
-                    </span>
+                      <span>{t.assignedToName || "Unassigned"}</span>
+                    </button>
                   </td>
-
-                  
-
-                
 
                   <td className="px-3 py-2.5 whitespace-nowrap">
                     <StatusBadge status={t.status} />
@@ -380,7 +371,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10, 20, 25, 50, 75, 100]}
+        pageSizeOptions={[10, 25, 50]}
       />
     </div>
   );
