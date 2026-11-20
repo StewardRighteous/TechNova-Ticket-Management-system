@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import type { Employee, RoleId } from "../../types/barrel";
-import { EntityCreatePage, FormField, formControlClassName } from "../common/barrel";
+import { FormField, formControlClassName, SelectDropdown } from "../common/barrel";
 
 export const CreateEmployeePage: React.FC = () => {
   const { data, addEmployee, addToast } = useTicketStore();
@@ -33,16 +33,20 @@ export const CreateEmployeePage: React.FC = () => {
     navigate(`/employees/${encodeURIComponent(employee.id)}`);
   };
 
-  return <EntityCreatePage title="Add an employee" description="Create an employee profile and assign their role, team, and capacity." onCancel={() => { if (name || email || phone) { if (window.confirm("Discard this employee draft?")) navigate("/employees"); } else navigate("/employees"); }} onSubmit={submit}>
-    {error && <p role="alert" className="sm:col-span-2 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
-    <FormField label="Full name"><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} /></FormField>
-    <FormField label="Role"><select className={formControlClassName} value={role} onChange={(event) => setRole(event.target.value as RoleId)}>{data.roles.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></FormField>
-    <FormField label="Email"><input className={formControlClassName} required type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></FormField>
-    <FormField label="Phone"><input className={formControlClassName} required type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} /></FormField>
-    <FormField label="Department · required"><select className={formControlClassName} value={departmentId} onChange={(event) => setDepartmentId(event.target.value)}><option value="">Select a department</option>{(data.departments || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></FormField>
-    <FormField label="Team · required"><select className={formControlClassName} value={teamId} required onChange={(event) => { setTeamId(event.target.value); setDepartmentId(data.teams?.find((team) => team.id === event.target.value)?.departmentId || ""); }}><option value="">Unassigned</option>{(data.teams || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><p className="mt-1 text-xs text-slate-500">Selecting a team sets its department.</p></FormField>
-    <FormField label="Location"><select className={formControlClassName} value={locationId} onChange={(event) => setLocationId(event.target.value)}><option value="">Unassigned</option>{(data.locations || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></FormField>
-    <FormField label="Maximum active tickets"><input className={formControlClassName} type="number" min={1} required value={capacityMax} onChange={(event) => setCapacityMax(Number(event.target.value))} /></FormField>
-    <FormField label="Skills" className="sm:col-span-2"><input className={formControlClassName} value={skills} onChange={(event) => setSkills(event.target.value)} placeholder="Comma-separated skills" /></FormField>
-  </EntityCreatePage>;
+  const cancel = () => { if ((name || email || phone) && !window.confirm("Discard this employee draft?")) return; navigate("/employees"); };
+  return <main className="px-5 py-5 sm:px-7 sm:py-6"><form onSubmit={submit} className="space-y-5">
+    {error && <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+    <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
+      <FormField label="Full name · required"><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Jamie Lee" /></FormField>
+      <FormField label="Role · required"><SelectDropdown label="Role" value={role} onChange={(value) => setRole(value as RoleId)} options={data.roles.map((item) => ({ value: item.id, label: item.name }))} required /></FormField>
+      <FormField label="Email · required"><input className={formControlClassName} required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@technova.com" /></FormField>
+      <FormField label="Phone · required"><input className={formControlClassName} required type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="e.g. +1 555 0100" /></FormField>
+      <FormField label="Department · required"><SelectDropdown label="Department" value={departmentId} onChange={setDepartmentId} options={(data.departments || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a department" required /></FormField>
+      <FormField label="Team · required"><SelectDropdown label="Team" value={teamId} onChange={(value) => { setTeamId(value); setDepartmentId(data.teams?.find((team) => team.id === value)?.departmentId || ""); }} options={(data.teams || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Unassigned" required /></FormField>
+      <FormField label="Location"><SelectDropdown label="Location" value={locationId} onChange={setLocationId} options={(data.locations || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Unassigned" /></FormField>
+      <FormField label="Maximum active tickets"><input className={formControlClassName} type="number" min={1} required value={capacityMax} onChange={(event) => setCapacityMax(Number(event.target.value))} /></FormField>
+      <FormField label="Skills" className="sm:col-span-2"><input className={formControlClassName} value={skills} onChange={(event) => setSkills(event.target.value)} placeholder="Comma-separated skills" /></FormField>
+    </div>
+    <footer className="flex items-center justify-between border-t border-slate-200 pt-5"><button type="button" onClick={cancel} className="rounded-lg border border-[#2c3158] px-5 py-2.5 text-sm font-semibold text-[#25294e] hover:bg-slate-50">Cancel</button><button type="submit" className="rounded-lg bg-[#0e858d] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#0b7279]">Create employee</button></footer>
+  </form></main>;
 };
