@@ -5,6 +5,7 @@ import { useTicketStore } from "../../../../store/barrel";
 import { ROLE_PERMISSIONS, canAccessCompany, canAccessEmployee, canAccessService, canAccessTicket } from "../../../../utils/rolePermissions";
 import { notificationForViewer } from "../../../../utils/notificationDisplay";
 import { filterTicketsByRole } from "../../../../utils/rolePermissions";
+import { StaffAvatar } from "../../StaffAvatar";
 
 
 export const Header: React.FC = () => {
@@ -114,11 +115,11 @@ export const Header: React.FC = () => {
       {createPage || detailPage ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
         <button type="button" onClick={() => { const section = (createPage || detailPage)![1]; if (section === "tickets" && detailPage) setSelectedTicketId(null); const returnTo = section === "tickets" && detailPage ? (location.state as { returnTo?: string } | null)?.returnTo : undefined; navigate(returnTo || `/${section}`, { state: { ...((location.state as object | null) || {}), ticketScrollY: window.history.state?.usr?.ticketScrollY } }); }} className="capitalize text-indigo-600 hover:text-indigo-800">{(createPage || detailPage)![1]}</button>
         <span className="text-slate-300">›</span>
-        <h1 className="truncate text-base font-extrabold tracking-tight text-slate-900 sm:text-lg">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</h1>
+        <h1 className="truncate font-extrabold tracking-tight text-slate-900">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</h1>
       </nav> : location.pathname === "/notifications" || location.pathname === "/latest-updates" ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
         <button type="button" onClick={() => navigate("/dashboard")} className="text-indigo-600 hover:text-indigo-800">Dashboard</button>
         <span aria-hidden="true" className="text-slate-300">›</span>
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">{location.pathname === "/notifications" ? "Notifications" : "Latest Updates"}</h1>
+        <h1 className="font-extrabold tracking-tight text-slate-900">{location.pathname === "/notifications" ? "Notifications" : "Latest Updates"}</h1>
       </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{location.pathname === "/tickets" ? "All Tickets" : activeTab}</h1>}
       <nav aria-label="Header shortcuts" className="ml-auto mr-2 flex shrink-0 items-center justify-end gap-2 sm:mr-4">
         <button type="button" onClick={() => navigate("/tickets?view=mine")} aria-label="My Queue" title="My Queue" className="inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
@@ -138,9 +139,15 @@ export const Header: React.FC = () => {
           </button>
           {isNotificationPopoverOpen && <div role="dialog" aria-label="Recent notifications" className="absolute right-0 z-50 mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-              <div>
+              <div className="flex items-center gap-2">
                 <h2 className="text-sm font-bold text-slate-900">Notifications</h2>
-                <p className="mt-0.5 text-xs text-slate-500">{unreadNotificationCount ? `${unreadNotificationCount} unread` : "You're all caught up"}</p>
+                {unreadNotificationCount ? (
+                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                    {unreadNotificationCount} unread
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-500">You're all caught up</span>
+                )}
               </div>
               <button type="button" onClick={() => { setIsNotificationPopoverOpen(false); navigate("/notifications"); }} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800">View all</button>
             </div>
@@ -157,7 +164,6 @@ export const Header: React.FC = () => {
               </button>)}
               {!recentNotifications.length && <p className="px-4 py-8 text-center text-sm text-slate-500">No notifications yet.</p>}
             </div>
-            <button type="button" onClick={() => { setIsNotificationPopoverOpen(false); navigate("/notifications"); }} className="w-full border-t border-slate-100 px-4 py-3 text-center text-xs font-bold text-indigo-600 transition hover:bg-indigo-50">View all notifications</button>
           </div>}
         </div>
       </nav>
@@ -182,10 +188,8 @@ export const Header: React.FC = () => {
             title="User profile and demo persona"
             aria-expanded={isProfileDropdownOpen}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white shadow-sm">
-              <span aria-hidden="true" className="material-symbols-outlined text-[17px]">
-                {activeEmployee.avatar}
-              </span>
+            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-xs font-bold text-white shadow-sm">
+              <StaffAvatar src={activeEmployee.avatar} alt={`${activeEmployee.name} profile`} sizeClassName="h-8 w-8" />
             </div>
             <div className="hidden flex-col md:flex">
               <div className="flex items-center gap-1.5">
