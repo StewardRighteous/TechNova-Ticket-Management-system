@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Employee } from '../../types/barrel';
+import { StaffAvatar } from '../common/StaffAvatar';
 
 interface EmployeeCardProps {
   employee: Employee;
@@ -20,8 +21,8 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, isCurrentR
       <div>
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow">
-              <span className="material-symbols-outlined text-[20px]">{employee.avatar}</span>
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-slate-900 text-sm font-bold text-white shadow">
+              <StaffAvatar src={employee.avatar} alt={`${employee.name} profile`} sizeClassName="h-10 w-10" fallbackClassName="text-[20px]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
