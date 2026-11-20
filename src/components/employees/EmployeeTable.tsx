@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Employee } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination } from "../common/barrel";
+import { ComboboxFilter, NumericPagination, StaffAvatar, TableSearch } from "../common/barrel";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -20,7 +20,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const filtered = employees.filter((e) => {
     if (roleFilter !== "all" && e.role !== roleFilter) return false;
@@ -94,26 +94,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
-        <div className="relative max-w-xs min-w-60 flex-1">
-          <span
-            aria-hidden="true"
-            className="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[17px] text-slate-500"
-          >
-            search
-          </span>
-          <input
-            type="search"
-            id="employee-search"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-            placeholder="Search employees by name, role, or email..."
-            aria-label="Search employees by name, role, or email"
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pr-3 pl-8 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-          />
-        </div>
+        <TableSearch id="employee-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Search employees by name, role, or email..." aria-label="Search employees by name, role, or email" className="min-w-52 max-w-[480px] flex-1" />
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
           <ComboboxFilter
             label="Location"
@@ -209,10 +190,8 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                 >
                   <td className="px-5 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white shadow-sm">
-                        <span className="material-symbols-outlined text-[17px]">
-                          {emp.avatar}
-                        </span>
+                      <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-teal-600 text-xs font-bold text-white shadow-sm">
+                        <StaffAvatar src={emp.avatar} alt={`${emp.name} profile`} sizeClassName="h-8 w-8" />
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -307,7 +286,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        pageSizeOptions={[5, 10, 20, 25, 50]}
+        pageSizeOptions={[10, 25, 50]}
       />
     </div>
   );
