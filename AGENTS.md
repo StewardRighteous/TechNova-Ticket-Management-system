@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This is a React, TypeScript, and Vite ticket management application. Application entry points are `src/main.tsx` and `src/App.tsx`; shared styles live in `src/index.css`. Feature and reusable UI components are grouped under `src/components/` by domain (`tickets/`, `dashboard/`, `services/`, `employees/`, `companies/`, `settings/`, `auth/`, and `common/`). Shared Zustand state is in `src/store/`; shared types and helpers are in `src/types/` and `src/utils/`. Static assets belong in `public/`. Tests sit beside the code they cover, with shared Vitest setup in `src/test/setup.ts`.
+This is a React, TypeScript, and Vite ticket management application. Application entry points are `src/main.tsx` and `src/App.tsx`; shared styles live in `src/index.css`. Feature and reusable UI components are grouped under `src/components/` by domain (`tickets/`, `dashboard/`, `services/`, `employees/`, `companies/`, `settings/`, `auth/`, and `common/`). Shared Zustand state is in `src/store/`; shared types and helpers are in `src/types/` and `src/utils/`. Static assets belong in `public/`.
 
 ## Build, Test, and Development Commands
 
@@ -10,7 +10,6 @@ Run `npm install` to install dependencies, then:
 
 - `npm run dev` starts the Vite development server.
 - `npm run build` runs TypeScript project checks and creates the production bundle in `dist/`.
-- `npm test` runs the Vitest suite once in jsdom.
 - `npm run lint` runs Oxlint.
 - `npm run preview` serves the built bundle locally for review.
 
@@ -20,7 +19,7 @@ Use TypeScript and React function components. Follow the existing two-space inde
 
 ## Testing Guidelines
 
-Vitest runs with jsdom and React Testing Library; `src/test/setup.ts` loads the jest-dom matchers. Add focused tests alongside changed components or store modules, using `*.test.tsx` for rendered UI and `*.test.ts` for logic. Run `npm test` before submitting changes; no repository-wide coverage threshold is configured.
+No automated test suite is currently configured in this repository.
 
 ## Commit & Pull Request Guidelines
 
