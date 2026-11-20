@@ -102,7 +102,7 @@ export function updateTicketStatusInList(
 export function updateTicketWorkflowInList(
   tickets: Ticket[],
   ticketId: string,
-  updates: Partial<Pick<Ticket, "status" | "assignedToId" | "assignedToName" | "assignedToRole" | "currentStageRole" | "closedAt">>,
+  updates: Partial<Pick<Ticket, "status" | "assignedToId" | "assignedToName" | "assignedToRole" | "currentStageRole" | "closedAt" | "clientNotifiedAt" | "clientNotifiedVia" | "clientNotificationNotes">>,
   currentEmp: Employee,
   action: string,
   note: string,
