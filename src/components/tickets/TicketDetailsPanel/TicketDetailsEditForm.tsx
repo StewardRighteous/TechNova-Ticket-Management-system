@@ -120,7 +120,8 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             readonly={readonly}
           />
           <Input
-            label="Due date"
+            label="Due date and time"
+            type="datetime-local"
             value={draft.dueAt}
             set={(v) => set("dueAt", v)}
             readonly={readonly}

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Ticket } from "../../../types/barrel";
-import { createDraft } from "./draft";
+import { createDraft, localDueAt } from "./draft";
 import { TicketDetailsEditForm } from "./TicketDetailsEditForm";
 import { ConfirmationDialog } from "./shared";
 
@@ -45,7 +45,9 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
       companyCode: company?.code ?? ticket.companyCode,
       serviceName: service?.name ?? ticket.serviceName,
       categoryId: draft.categoryId || undefined,
-      dueAt: draft.dueAt || undefined,
+      dueAt: draft.dueAt === localDueAt(ticket.dueAt)
+        ? ticket.dueAt
+        : draft.dueAt ? new Date(draft.dueAt).toISOString() : undefined,
       tags: tagsText
         .split(",")
         .map((tag) => tag.trim())

@@ -27,14 +27,17 @@ export const Input: React.FC<{
   label: string;
   value?: string;
   set: (value: string) => void;
+  type?: "text" | "datetime-local";
   wide?: boolean;
   readonly: boolean;
-}> = ({ label, value, set, wide, readonly }) => (
+}> = ({ label, value, set, wide, readonly, type = "text" }) => (
   <label
     className={`text-xs font-semibold text-slate-600 ${wide ? "col-span-2" : ""}`}
   >
     {label}
     <input
+      type={type}
+      step={type === "datetime-local" ? "any" : undefined}
       className={`${readonly ? readOnlyFieldClass : fieldClass} mt-1`}
       value={value ?? ""}
       onChange={(e) => set(e.target.value)}
