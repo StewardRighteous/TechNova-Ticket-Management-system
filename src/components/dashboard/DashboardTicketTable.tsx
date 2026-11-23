@@ -89,36 +89,36 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
+          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase">
             <tr>
               <th
-                className="cursor-pointer px-5 py-2.5"
+                className="cursor-pointer select-none px-5 py-2.5"
                 onClick={() => handleSort("code")}
               >
                 <span>Ticket</span>
               </th>
               <th className="px-3 py-2.5">Channel</th>
               <th
-                className="cursor-pointer px-3 py-2.5"
+                className="cursor-pointer select-none px-3 py-2.5"
                 onClick={() => handleSort("company")}
               >
                 <span>Client</span>
               </th>
               <th
-                className="cursor-pointer px-3 py-2.5"
+                className="cursor-pointer select-none px-3 py-2.5"
                 onClick={() => handleSort("title")}
               >
                 <span>Incident</span>
               </th>
               <th
-                className="cursor-pointer px-3 py-2.5"
+                className="cursor-pointer select-none px-3 py-2.5"
                 onClick={() => handleSort("priority")}
               >
                 <span>Priority</span>
               </th>
               <th className="px-3 py-2.5">Assignee</th>
               <th
-                className="cursor-pointer px-3 py-2.5"
+                className="cursor-pointer select-none px-3 py-2.5"
                 onClick={() => handleSort("status")}
               >
                 <span>Status</span>
@@ -160,7 +160,7 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
                 <td className="px-3 py-2.5 whitespace-nowrap">
                   <StatusBadge status={t.status} />
                 </td>
-                <td className="px-5 py-2.5 text-right whitespace-nowrap">
+                <td className="px-5 py-2.5 whitespace-nowrap">
                   <button
                     onClick={() => onSelectTicket(t.id)}
                     className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"

@@ -95,7 +95,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
             <col className="w-[20%]" />
             <col className="w-[16%]" />
           </colgroup>
-          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase select-none">
+          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase">
             <tr>
               <th className="px-3 py-2.5">Ticket</th>
               <th className="px-3 py-2.5">Company</th>
@@ -107,12 +107,16 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
             {paginatedTickets.map((ticket) => (
               <tr
                 key={ticket.id}
-                onClick={() => onSelectTicket(ticket.id)}
+                onClick={(event) => {
+                  if (event.detail === 0 || !window.getSelection()?.toString()) {
+                    onSelectTicket(ticket.id);
+                  }
+                }}
                 className="group cursor-pointer transition hover:bg-rose-50/40"
               >
                 <td className="max-w-0 px-3 py-2.5">
-                  <div className="font-mono text-[10px] font-bold text-slate-500">{ticket.code}</div>
-                  <span className="mt-0.5 block truncate font-semibold text-slate-900 group-hover:text-rose-700 transition-colors" title={ticket.title}>{ticket.title}</span>
+                  <div className="w-fit cursor-text font-mono text-[10px] font-bold text-slate-500">{ticket.code}</div>
+                  <span className="mt-0.5 block w-fit max-w-full cursor-text truncate font-semibold text-slate-900 group-hover:text-rose-700 transition-colors" title={ticket.title}>{ticket.title}</span>
                 </td>
                 <td className="max-w-0 px-3 py-2.5">
                   {onSelectCompany ? (
@@ -125,11 +129,11 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                       {ticket.companyName}
                     </button>
                   ) : (
-                    <div className="truncate font-semibold text-slate-800" title={ticket.companyName}>{ticket.companyName}</div>
+                    <div className="w-fit max-w-full cursor-text truncate font-semibold text-slate-800" title={ticket.companyName}>{ticket.companyName}</div>
                   )}
                 </td>
                 <td className="px-3 py-2.5">
-                  <div className="whitespace-nowrap">{renderSlaBadge(ticketSlaRisk(ticket))}</div>
+                  <div className="w-fit cursor-text whitespace-nowrap">{renderSlaBadge(ticketSlaRisk(ticket))}</div>
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="flex min-w-0 items-center gap-1 text-[10px] text-slate-600">
@@ -149,7 +153,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                         {ticket.assignedToName}
                       </button>
                     ) : (
-                      <span className="">{ticket.assignedToName}</span>
+                      <span className="cursor-text">{ticket.assignedToName}</span>
                     )}
                   </div>
                 </td>

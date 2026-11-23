@@ -195,6 +195,19 @@
   button, input, select, textarea {
     accent-color: var(--brand-teal);
   }
+
+  :where(table) :is(td, th) {
+    user-select: text;
+  }
+
+  :where(table) :where(button, a[href], summary, select, input[type="checkbox"], input[type="radio"]) {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  :where(table) .material-symbols-outlined {
+    user-select: none;
+  }
 }
 
 /* Keep the established palette consistent across feature pages. */

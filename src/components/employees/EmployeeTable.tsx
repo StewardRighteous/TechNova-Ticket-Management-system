@@ -169,7 +169,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
             <tr>
               <th className="px-5 py-2.5">Staff Member</th>
               <th className="px-4 py-2.5">
@@ -203,11 +203,11 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900 group-hover:text-teal-700">
+                          <span className="cursor-text font-bold text-slate-900 group-hover:text-teal-700">
                             {emp.name}
                           </span>
                           {isCurrent && (
-                            <span className="rounded bg-teal-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                            <span className="cursor-text rounded bg-teal-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
                               YOU
                             </span>
                           )}
@@ -220,7 +220,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                       <span className="material-symbols-outlined text-[15px] text-slate-400">
                         badge
                       </span>
-                      {emp.roleTitle}
+                      <span className="cursor-text">{emp.roleTitle}</span>
                     </span>
                   </td>
 
@@ -229,7 +229,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                       <span className="material-symbols-outlined text-[15px] text-slate-400">
                         email
                       </span>
-                      {emp.email}
+                      <span className="cursor-text">{emp.email}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-[11px] whitespace-nowrap text-slate-800">
@@ -237,13 +237,13 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                       <span className="material-symbols-outlined text-[15px] text-slate-400">
                         phone
                       </span>
-                      {emp.phone}
+                      <span className="cursor-text">{emp.phone}</span>
                     </div>
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        className={`inline-flex cursor-text items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
                         emp.status === "Available"
                           ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
                           : emp.status === "Busy"

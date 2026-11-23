@@ -63,7 +63,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
             <tr>
               <th className="px-5 py-2.5">Company Name</th>
               <th className="px-4 py-2.5">
@@ -108,10 +108,10 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                       account_circle
                     </span>
                     <div>
-                      <span className="block font-semibold text-slate-800">
+                      <span className="block w-fit cursor-text font-semibold text-slate-800">
                         {c.contactName}
                       </span>
-                      <span className="text-[10px] text-slate-500">
+                      <span className="cursor-text text-[10px] text-slate-500">
                         {c.contactRole}
                       </span>
                     </div>
@@ -122,7 +122,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                     <span className="material-symbols-outlined text-slate-400">
                       domain
                     </span>
-                    {c.tier}
+                    <span className="cursor-text">{c.tier}</span>
                   </span>
                 </td>
                 <td className="px-4 py-3.5 whitespace-nowrap">
@@ -130,7 +130,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                     <span className="material-symbols-outlined text-slate-400">
                       person
                     </span>
-                    {c.accountManager}
+                    <span className="cursor-text">{c.accountManager}</span>
                   </span>
                 </td>
 
@@ -139,7 +139,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                     <span className="material-symbols-outlined text-[13px] text-slate-400">
                       mail
                     </span>
-                    {c.contactEmail}
+                    <span className="cursor-text">{c.contactEmail}</span>
                   </span>
                 </td>
 
@@ -148,7 +148,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                     <span className="material-symbols-outlined text-[13px] text-slate-400">
                       confirmation_number
                     </span>
-                    {c.activeTickets} Tickets
+                    <span className="cursor-text">{c.activeTickets} Tickets</span>
                   </span>
                 </td>
                 <td className="px-5 py-3 text-left whitespace-nowrap">
