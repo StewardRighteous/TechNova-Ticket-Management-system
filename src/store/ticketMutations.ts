@@ -9,6 +9,7 @@ export function createNewTicket(
   activeRole: RoleId,
   data: MockupDatabase,
   creator?: Employee | null,
+  createdAt = new Date().toISOString(),
 ): { newTicket: Ticket; updatedData: MockupDatabase } {
   const newId = createUniqueTicketId(data.tickets);
   const currentEmp = (creator && data.employees.find((employee) => employee.id === creator.id)) || data.employees.find((e) => e.role === activeRole) || data.employees[0];
@@ -17,8 +18,8 @@ export function createNewTicket(
     ...ticketInput,
     id: newId,
     code: newId,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt,
+    updatedAt: createdAt,
     timeAgo: 'Just now',
     timeline: [
       {
@@ -102,7 +103,11 @@ export function updateTicketStatusInList(
 export function updateTicketWorkflowInList(
   tickets: Ticket[],
   ticketId: string,
-  updates: Partial<Pick<Ticket, "status" | "assignedToId" | "assignedToName" | "assignedToRole" | "currentStageRole" | "closedAt" | "clientNotifiedAt" | "clientNotifiedVia" | "clientNotificationNotes">>,
+  updates: Partial<Pick<Ticket,
+    "status" | "assignedToId" | "assignedToName" | "assignedToRole" | "teamId" | "currentStageRole"
+    | "closedAt" | "resolutionDetails" | "resolvedAt" | "firstRespondedAt"
+    | "clientNotifiedAt" | "clientNotifiedVia" | "clientNotificationNotes"
+  >>,
   currentEmp: Employee,
   action: string,
   note: string,

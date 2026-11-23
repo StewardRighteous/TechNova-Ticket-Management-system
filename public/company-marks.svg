@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="apex" viewBox="0 0 32 32"><path fill="#183e57" d="M1 27 17 4l14 23H21l-5-9-6 9z"/><path fill="#daa548" d="m17 4 6 10-5 3-5-7z"/></symbol>
+  <symbol id="cloudscale" viewBox="0 0 32 32"><path fill="#246dc1" d="M9 23a8 8 0 0 1-1-16 10 10 0 0 1 18 4 6 6 0 0 1-1 12z"/><path stroke="#fff" stroke-width="2.5" fill="none" d="m12 16 5-5 5 5m-5-5v11"/><path fill="#60cbd8" d="M6 25h19l-4 4H2z"/></symbol>
+  <symbol id="nexabio" viewBox="0 0 32 32"><path stroke="#117a6d" stroke-width="3" fill="none" d="M7 2c0 14 18 14 18 28M25 2c0 14-18 14-18 28"/><path stroke="#63b695" stroke-width="2.5" d="M10 5h12M12 9h8m-8 14h8M10 27h12"/></symbol>
+  <symbol id="omnilogistics" viewBox="0 0 32 32"><path fill="#c35b28" d="m16 2 14 8-14 8-14-8z"/><path fill="#783b27" d="m2 13 12 7v11L2 24z"/><path fill="#ed9552" d="m30 13-12 7v11l12-7z"/></symbol>
+  <symbol id="zenith" viewBox="0 0 32 32"><path fill="#6f4689" d="M3 5h27L14 22H5L16 11H3z"/><path fill="#ae76ac" d="m4 27 6-6h20v6z"/></symbol>
+  <symbol id="innovatecorp" viewBox="0 0 32 32"><g fill="none" stroke-width="3"><ellipse cx="16" cy="16" rx="7" ry="14" stroke="#3455a2" transform="rotate(45 16 16)"/><ellipse cx="16" cy="16" rx="7" ry="14" stroke="#318caa" transform="rotate(-45 16 16)"/></g><circle cx="16" cy="16" r="3" fill="#213059"/></symbol>
+  <symbol id="company" viewBox="0 0 32 32"><path fill="#2c7280" d="M5 29V9l14-6v26zm17 0V13h5v16z"/><path stroke="white" stroke-width="2" d="M9 12h6m-6 5h6m-6 5h6"/></symbol>
+</svg>

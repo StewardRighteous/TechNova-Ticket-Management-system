@@ -1,4 +1,5 @@
 import type { Ticket, Team, Department, InboundChannel } from "../../types/barrel";
+import { ticketSlaRisk } from "../../utils/supportPolicy";
 
 export interface ExecutiveMetrics {
   totalTickets: number;
@@ -96,8 +97,8 @@ export const isTicketActive = (ticket: Ticket): boolean => {
   return !INACTIVE_STATUSES.has(ticket.status);
 };
 
-export const isTicketSlaAtRisk = (ticket: Ticket): boolean =>
-  isTicketActive(ticket) && (ticket.slaRisk === "Breached" || ticket.slaRisk === "At Risk");
+export const isTicketSlaAtRisk = (ticket: Ticket, now = Date.now()): boolean =>
+  isTicketActive(ticket) && ticketSlaRisk(ticket, now) !== "On Target";
 
 export const getOverdueTickets = (tickets: Ticket[], referenceNow: Date = new Date()): Ticket[] => {
   const nowMs = referenceNow.getTime();
@@ -108,8 +109,8 @@ export const getOverdueTickets = (tickets: Ticket[], referenceNow: Date = new Da
   });
 };
 
-export const getSlaRiskTickets = (tickets: Ticket[]): Ticket[] =>
-  tickets.filter(isTicketSlaAtRisk);
+export const getSlaRiskTickets = (tickets: Ticket[], now = Date.now()): Ticket[] =>
+  tickets.filter((ticket) => isTicketSlaAtRisk(ticket, now));
 
 export const computeExecutiveMetrics = (
   tickets: Ticket[],
@@ -117,7 +118,7 @@ export const computeExecutiveMetrics = (
 ): ExecutiveMetrics => {
   const totalActive = tickets.filter(isTicketActive).length;
   const overdueCount = getOverdueTickets(tickets, referenceNow).length;
-  const slaAtRiskOrBreachedCount = getSlaRiskTickets(tickets).length;
+  const slaAtRiskOrBreachedCount = getSlaRiskTickets(tickets, referenceNow.getTime()).length;
 
   // Compute average resolution time for resolved / closed tickets
   let totalResolutionTimeMs = 0;
@@ -232,6 +233,7 @@ export const computeDepartmentBreakdown = (
 
 export const getHighAttentionTickets = (tickets: Ticket[]): Ticket[] => {
   // High attention includes SLA-risk tickets plus urgent/high-priority tickets.
+  const now = Date.now();
   return tickets
     .filter((ticket) => {
       const active = isTicketActive(ticket);
@@ -239,14 +241,15 @@ export const getHighAttentionTickets = (tickets: Ticket[]): Ticket[] => {
         ticket.priority === "P1 Urgent" ||
         ticket.priority.toLowerCase().includes("urgent") ||
         ticket.priority.toLowerCase().includes("high");
-      const isSlaRisk = isTicketSlaAtRisk(ticket);
+      const isSlaRisk = isTicketSlaAtRisk(ticket, now);
 
       return active && (isCritical || isSlaRisk);
     })
     .sort((a, b) => {
       const riskRank = (ticket: Ticket) => {
-        if (ticket.slaRisk === "Breached") return 0;
-        if (ticket.slaRisk === "At Risk") return 1;
+        const risk = ticketSlaRisk(ticket, now);
+        if (risk === "Breached") return 0;
+        if (risk === "At Risk") return 1;
         return 2;
       };
       const priorityRank = (ticket: Ticket) => {

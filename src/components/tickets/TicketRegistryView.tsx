@@ -135,6 +135,7 @@ export const TicketRegistryView: React.FC = () => {
         </section>
       ) : selectedTicket ? (
         <TicketDetailHero
+          key={selectedTicket.id}
           ticket={selectedTicket}
           employees={activeRole === "operations_manager" || activeRole === "management" ? data.employees : data.employees.filter((employee) => employee.id === selectedTicket.assignedToId)}
           companies={data.companies}
@@ -153,7 +154,6 @@ export const TicketRegistryView: React.FC = () => {
           }
           onViewEmployee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
           onViewCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
-          onOpenClientNotification={() => navigate(`/tickets/${encodeURIComponent(selectedTicket.id)}/notify-client`)}
         />
       ) : (
       <TicketTable
@@ -162,8 +162,6 @@ export const TicketRegistryView: React.FC = () => {
           departments={data.departments}
           employees={data.employees}
           onViewTicket={handleViewTicket}
-          onViewCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
-          onViewAssignee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
           onCreateNew={() => navigate("/tickets/new")}
           initialPage={Number(searchParams.get("page")) || tableStateRef.current.page}
           initialPageSize={Number(searchParams.get("size")) || tableStateRef.current.pageSize}

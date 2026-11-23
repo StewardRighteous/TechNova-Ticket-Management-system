@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { Employee, Ticket, TicketStatus } from "../../types/barrel";
+import { SelectDropdown } from "../common/SelectDropdown";
 import { StaffAvatar } from "../common/StaffAvatar";
 
 interface TicketHistoryPanelProps {
@@ -117,17 +118,13 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
         </button>}
         {canManageTeam && <div className="border-t border-slate-100 pt-4">
           <label htmlFor="history-reassign" className="block text-xs font-bold text-slate-700">Reassign ticket</label>
-          <select id="history-reassign" value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-            {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name} · {employee.roleTitle}</option>)}
-          </select>
+          <SelectDropdown label="Reassign ticket" value={assigneeId} onChange={setAssigneeId} options={employees.map((employee) => ({ value: employee.id, label: `${employee.name} · ${employee.roleTitle}` }))} className="mt-2 w-full" />
           <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a handoff note (optional)" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500" />
           <button type="button" onClick={reassign} disabled={assigneeId === ticket.assignedToId} className="mt-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white enabled:hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40">Apply reassignment</button>
         </div>}
         <div className="border-t border-slate-100 pt-4">
           <label htmlFor="history-status" className="block text-xs font-bold text-slate-700">Update status</label>
-          <select id="history-status" value={ticket.status} onChange={(event) => onStatusChange(event.target.value as TicketStatus)} className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-            {(["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"] as TicketStatus[]).map((status) => <option key={status} value={status}>{status}</option>)}
-          </select>
+          <SelectDropdown label="Update status" value={ticket.status} onChange={(value) => onStatusChange(value as TicketStatus)} options={["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"].map((value) => ({ value, label: value }))} className="mt-2 w-full" />
         </div>
       </section>
     </div>

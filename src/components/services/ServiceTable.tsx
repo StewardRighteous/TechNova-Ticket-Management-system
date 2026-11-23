@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import type { ServiceLine } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination, TableSearch } from "../common/barrel";
+import type { Employee, ServiceLine } from "../../types/barrel";
+import { ComboboxFilter, NumericPagination, StaffAvatar, TableSearch } from "../common/barrel";
 
 interface ServiceTableProps {
   services: ServiceLine[];
+  employees: Employee[];
   onViewService: (serviceId: string) => void;
   onCreateNew?: () => void;
   initialPage?: number;
@@ -22,6 +23,7 @@ interface ServiceTableProps {
 
 export const ServiceTable: React.FC<ServiceTableProps> = ({
   services,
+  employees,
   onViewService,
   onCreateNew,
   initialPage = 1,
@@ -38,6 +40,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
   const [page, setPage] = useState<number>(initialPage);
   const [pageSize, setPageSize] = useState<number>(initialPageSize);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
   const updateState = (
     next: Partial<{
@@ -72,6 +75,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
     );
   });
 
+  const avatarsByName = new Map(employees.map((employee) => [employee.name, employee.avatar]));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
   React.useEffect(() => {
     setPage((current) =>
@@ -81,29 +85,14 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   const departmentOptions = [
     ...new Set(services.map((service) => service.department)),
   ].map((value) => ({ value, label: value }));
-  const statusOptions = [
-    ...new Set(services.map((service) => service.status)),
-  ].map((value) => ({ value, label: value }));
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold tracking-tight">All Services</h2>
-            <p className="mt-1 text-xs text-slate-300">
-              Browse and manage service lines.
-            </p>
-          </div>
-          <div className="rounded-xl border border-blue-400/30 bg-blue-500/15 px-4 py-2 text-center text-blue-200">
-            <div className="text-[10px] font-bold tracking-wide">
-              TOTAL SERVICES
-            </div>
-            <div className="mt-0.5 text-xl leading-none font-bold">
-              {services.length}
-            </div>
-          </div>
-        </div>
+        <h2 className="text-lg font-bold tracking-tight">All Services</h2>
+        <p className="mt-1 text-xs text-slate-300">
+          Browse and manage service lines.
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
         <TableSearch id="service-search" value={search} onChange={(value) => { setSearch(value); setPage(1); updateState({ search: value, page: 1 }); }} placeholder="Filter services or lead..." aria-label="Filter services or lead" className="min-w-52 max-w-[480px] flex-1" />
@@ -196,14 +185,18 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
             {paginated.map((srv) => (
               <tr
                 key={srv.id}
-                className="group cursor-pointer transition-colors hover:bg-teal-50/50"
-                onClick={() => onViewService(srv.id)}
+                className={`group cursor-pointer transition-colors hover:bg-teal-50/50 ${selectedServiceId === srv.id ? "bg-teal-50" : ""}`}
+                onClick={(event) => {
+                  setSelectedServiceId(srv.id);
+                  if (event.detail === 2) onViewService(srv.id);
+                }}
               >
                 <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                   {srv.code}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-100 text-slate-500">{srv.logo ? <img src={srv.logo} alt="" className="h-full w-full object-cover" /> : <span className="material-symbols-outlined text-[18px]">{srv.code.startsWith("CLOUD") ? "cloud" : srv.code.startsWith("BIZ") ? "business" : srv.code.startsWith("SUPP") ? "support_agent" : srv.code.startsWith("SEC") ? "security" : "web"}</span>}</span>
                     <button
                       type="button"
                       onClick={(event) => {
@@ -228,9 +221,12 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                 </td>
                 <td className="px-4 py-3.5 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-slate-400">
-                      person
-                    </span>
+                    <StaffAvatar
+                      key={avatarsByName.get(srv.lead)}
+                      src={avatarsByName.get(srv.lead) ?? ""}
+                      alt=""
+                      sizeClassName="size-7 shrink-0"
+                    />
                     <span className="font-semibold text-slate-800">
                       {srv.lead}
                     </span>
@@ -251,7 +247,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                       event.stopPropagation();
                       onViewService(srv.id);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-600 hover:text-white"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
                   >
                     <span className="material-symbols-outlined text-[15px]">
                       visibility

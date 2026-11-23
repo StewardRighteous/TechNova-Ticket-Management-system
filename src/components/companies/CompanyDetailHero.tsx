@@ -1,134 +1,157 @@
-import React, { useEffect, useState } from "react";
-import type { Company, CustomerContact, Ticket } from "../../types/barrel";
+import React, { useState } from "react";
+import type { Company, CustomerContact, Employee, ServiceLine, Ticket } from "../../types/barrel";
+import { ComboboxFilter, TableSearch } from "../common/barrel";
+import { CompanyContracts } from "./CompanyContracts";
+import { DetailEditDialog } from "../common/DetailEditDialog";
+import { formControlClassName, SelectDropdown } from "../common/barrel";
+import { useSearchParams } from "react-router-dom";
 
 interface CompanyDetailHeroProps {
   company: Company;
-  onBack: () => void;
   onUpdateCompany: (updates: Partial<Company>) => void;
+  onDeleteCompany?: (permanent: boolean) => void;
   canEdit?: boolean;
   tickets?: Ticket[];
+  relatedTicketCount?: number;
   onOpenTicket?: (ticketId: string) => void;
+  services?: ServiceLine[];
+  companies?: Company[];
+  employees?: Employee[];
+  onOpenService?: (serviceId: string) => void;
 }
 
-type ProfileTab = "contact" | "account" | "system";
 type WorkspaceTab = "contacts" | "tickets" | "contracts";
-
-const profileTabs: { id: ProfileTab; label: string }[] = [
-  { id: "contact", label: "Contact" },
-  { id: "account", label: "Account" },
-  { id: "system", label: "System" },
-];
-
-const profileFields: Record<ProfileTab, { key: keyof Company; label: string; type?: string; readOnly?: boolean }[]> = {
-  contact: [
-    { key: "id", label: "Company ID", readOnly: true },
-    { key: "code", label: "Company code", readOnly: true },
-    { key: "name", label: "Company name" },
-    { key: "contactName", label: "Primary contact" },
-    { key: "contactRole", label: "Contact role" },
-    { key: "contactEmail", label: "Email", type: "email" },
-    { key: "contactPhone", label: "Phone", type: "tel" },
-  ],
-  account: [
-    { key: "tier", label: "Account tier" },
-    { key: "accountManager", label: "Account manager" },
-    { key: "status", label: "Account status" },
-    { key: "preferredChannel", label: "Preferred channel" },
-    { key: "activeContracts", label: "Active contracts", type: "number" },
-    { key: "subscribedServices", label: "Subscribed services" },
-  ],
-  system: [
-    { key: "activeTickets", label: "Active tickets", type: "number", readOnly: true },
-    { key: "slaResponseTime", label: "SLA response time" },
-  ],
-};
-const displayValue = (value: unknown) => Array.isArray(value) ? value.join(", ") : String(value ?? "—");
 
 export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   company,
-  onBack,
   onUpdateCompany,
+  onDeleteCompany,
   canEdit = true,
   tickets = [],
+  relatedTicketCount = tickets.length,
   onOpenTicket,
+  services = [],
+  onOpenService,
 }) => {
   const [draft, setDraft] = useState<Company>(company);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeProfileTab, setActiveProfileTab] = useState<ProfileTab>("contact");
-  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("contacts");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [editError, setEditError] = useState("");
+  const [params, setParams] = useSearchParams();
+  const requestedTab = params.get("tab");
+  const workspaceTab: WorkspaceTab = requestedTab === "tickets" || requestedTab === "contracts" ? requestedTab : "contacts";
+  const setWorkspaceTab = (tab: WorkspaceTab) => setParams({ tab }, { replace: true });
   const [isAddingContact, setIsAddingContact] = useState(false);
-  const [isEditingContracts, setIsEditingContracts] = useState(false);
-  const [contractDraft, setContractDraft] = useState({ activeContracts: company.activeContracts, slaResponseTime: company.slaResponseTime, subscribedServices: company.subscribedServices });
-  const [serviceToAdd, setServiceToAdd] = useState("");
+  const [contactFlags, setContactFlags] = useState({ primary: false, escalation: false });
   const [newContact, setNewContact] = useState({ name: "", role: "", email: "", phone: "" });
   const [editingContact, setEditingContact] = useState<CustomerContact | null>(null);
-  const [confirmAction, setConfirmAction] = useState<"save" | "cancel" | null>(null);
-  useEffect(() => setDraft(company), [company]);
-  useEffect(() => setContractDraft({ activeContracts: company.activeContracts, slaResponseTime: company.slaResponseTime, subscribedServices: company.subscribedServices }), [company]);
-
-  const updateField = (key: keyof Company, value: string) => setDraft((current) => ({
-    ...current,
-    [key]: key === "activeContracts" || key === "activeTickets" ? Number(value)
-      : key === "subscribedServices" ? value.split(",").map((item) => item.trim()).filter(Boolean)
-      : value,
-  }));
-  const finishAction = () => {
-    if (confirmAction === "save") onUpdateCompany(draft);
-    else if (confirmAction === "cancel") setDraft(company);
-    setConfirmAction(null);
-    setIsEditing(false);
+  const [contactToDelete, setContactToDelete] = useState<CustomerContact | null>(null);
+  const [contactSearch, setContactSearch] = useState("");
+  const [contactRoleFilter, setContactRoleFilter] = useState<string[]>([]);
+  const [ticketSearch, setTicketSearch] = useState("");
+  const [ticketStatusFilter, setTicketStatusFilter] = useState<string[]>([]);
+  const [ticketPriorityFilter, setTicketPriorityFilter] = useState<string[]>([]);
+  const uploadCompanyLogo = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => setDraft((current) => ({ ...current, logo: String(reader.result) }));
+    reader.readAsDataURL(file);
   };
-  const contacts: CustomerContact[] = company.contacts?.length ? company.contacts : [{ id: "primary", name: company.contactName, role: company.contactRole, email: company.contactEmail, phone: company.contactPhone }];
+  const contacts: CustomerContact[] = company.contacts?.length ? company.contacts : [{ id: `legacy-${company.id}`, name: company.contactName, role: company.contactRole, email: company.contactEmail, phone: company.contactPhone }];
+  const primaryContact = contacts.find((contact) => contact.id === company.primaryContactId)
+    ?? contacts.find((contact) => contact.email === company.contactEmail)
+    ?? contacts.find((contact) => contact.name === company.contactName)
+    ?? contacts[0];
+  const escalationContact = contacts.find((contact) => contact.id === company.escalationContactId);
   const openTickets = tickets.filter((ticket) => !["Resolved", "Closed"].includes(ticket.status));
+  const contactRoles = [...new Set(contacts.map((contact) => contact.role || "Unspecified"))];
+  const filteredContacts = contacts.filter((contact) => {
+    const query = contactSearch.trim().toLowerCase();
+    const matchesSearch = !query || [contact.name, contact.role, contact.email, contact.phone].some((value) => value?.toLowerCase().includes(query));
+    const role = contact.role || "Unspecified";
+    return matchesSearch && (!contactRoleFilter.length || contactRoleFilter.includes(role));
+  });
+  const filteredTickets = openTickets.filter((ticket) => {
+    const query = ticketSearch.trim().toLowerCase();
+    const matchesSearch = !query || [ticket.code, ticket.title, ticket.assignedToName, ticket.status, ticket.priority].some((value) => value?.toLowerCase().includes(query));
+    return matchesSearch && (!ticketStatusFilter.length || ticketStatusFilter.includes(ticket.status)) && (!ticketPriorityFilter.length || ticketPriorityFilter.includes(ticket.priority));
+  });
   const addContact = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const contact: CustomerContact = { id: `contact-${crypto.randomUUID()}`, ...newContact };
-    onUpdateCompany({ contacts: [...contacts, contact] });
+    onUpdateCompany({
+      contacts: [...contacts, contact],
+      ...(contactFlags.primary ? { primaryContactId: contact.id, contactName: contact.name, contactRole: contact.role, contactEmail: contact.email, contactPhone: contact.phone } : {}),
+      ...(contactFlags.escalation ? { escalationContactId: contact.id } : {}),
+    });
     setNewContact({ name: "", role: "", email: "", phone: "" });
+    setContactFlags({ primary: false, escalation: false });
     setIsAddingContact(false);
   };
   const editContact = (contact: CustomerContact) => {
     setEditingContact(contact);
     setNewContact({ name: contact.name, role: contact.role || "", email: contact.email, phone: contact.phone });
+    setContactFlags({ primary: contact.id === primaryContact.id, escalation: contact.id === escalationContact?.id });
   };
   const saveContact = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!editingContact) return;
     const updatedContact = { ...editingContact, ...newContact };
-    if (editingContact.id === "primary") {
-      onUpdateCompany({
-        contactName: updatedContact.name,
-        contactRole: updatedContact.role || "",
-        contactEmail: updatedContact.email,
-        contactPhone: updatedContact.phone,
-        contacts: [updatedContact],
-      });
-    } else {
-      onUpdateCompany({ contacts: contacts.map((contact) => contact.id === editingContact.id ? updatedContact : contact) });
-    }
+    const remainingPrimaryId = editingContact.id === primaryContact.id && !contactFlags.primary ? contacts.find((item) => item.id !== editingContact.id)?.id : primaryContact.id;
+    const remainingPrimary = contacts.find((item) => item.id === remainingPrimaryId);
+    onUpdateCompany({
+      contacts: contacts.map((contact) => contact.id === editingContact.id ? updatedContact : contact),
+      primaryContactId: contactFlags.primary ? updatedContact.id : remainingPrimaryId,
+      contactName: contactFlags.primary ? updatedContact.name : remainingPrimary?.name,
+      contactRole: contactFlags.primary ? updatedContact.role || "" : remainingPrimary?.role || "",
+      contactEmail: contactFlags.primary ? updatedContact.email : remainingPrimary?.email,
+      contactPhone: contactFlags.primary ? updatedContact.phone : remainingPrimary?.phone,
+      escalationContactId: contactFlags.escalation ? updatedContact.id : editingContact.id === escalationContact?.id ? undefined : escalationContact?.id,
+    });
     setEditingContact(null);
     setNewContact({ name: "", role: "", email: "", phone: "" });
+    setContactFlags({ primary: false, escalation: false });
   };
   const deleteContact = (contact: CustomerContact) => {
-    if (contacts.length <= 1 || !window.confirm(`Delete ${contact.name} from this company?`)) return;
-    onUpdateCompany({ contacts: contacts.filter((item) => item.id !== contact.id) });
+    if (contacts.length <= 1) return;
+    setContactToDelete(contact);
+  };
+  const confirmDeleteContact = () => {
+    if (!contactToDelete) return;
+    const contact = contactToDelete;
+    const remaining = contacts.filter((item) => item.id !== contact.id);
+    const nextPrimary = contact.id === primaryContact.id ? remaining[0] : primaryContact;
+    onUpdateCompany({
+      contacts: remaining, primaryContactId: nextPrimary.id,
+      contactName: nextPrimary.name, contactRole: nextPrimary.role ?? "",
+      contactEmail: nextPrimary.email, contactPhone: nextPrimary.phone,
+      escalationContactId: contact.id === escalationContact?.id || nextPrimary.id === escalationContact?.id ? undefined : escalationContact?.id,
+    });
+    setContactToDelete(null);
   };
 
   return (
     <div className="space-y-3">
+      {contactToDelete && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setContactToDelete(null); }}><section role="alertdialog" aria-modal="true" aria-labelledby="delete-contact-title" className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-5 shadow-2xl"><h2 id="delete-contact-title" className="text-base font-bold text-slate-900">Delete {contactToDelete.name}?</h2><p className="mt-2 text-sm text-slate-600">This contact will be removed from {company.name}.</p><div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setContactToDelete(null)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button><button type="button" onClick={confirmDeleteContact} className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">Delete contact</button></div></section></div>}
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/10 text-teal-200" aria-hidden="true"><span className="material-symbols-outlined block translate-x-[1px] translate-y-[1px] text-[23px] leading-none">domain</span></span>
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/70 bg-white shadow-sm" aria-hidden="true">{company.logo?.includes("#") ? <svg className="h-11 w-11" viewBox="0 0 32 32"><use href={`/${company.logo}`} /></svg> : company.logo ? <img src={company.logo} alt="" className="h-11 w-11 object-contain" /> : <span className="material-symbols-outlined text-[26px] leading-none text-teal-800">domain</span>}</span>
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold text-white">{company.name}</h1>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <h1 className="truncate text-lg font-bold text-white">{company.name}</h1>
+                <span className="rounded-full bg-teal-400/20 px-2 py-0.5 text-xs font-semibold text-teal-100">{company.status}</span>
+              </div>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-200">
-                <span>{company.tier}</span><span aria-hidden="true">·</span>
-                <span className="rounded-full bg-teal-400/20 px-2 py-0.5 font-semibold text-teal-100">{company.status}</span>
+                <span>{company.tier}</span>
               </div>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 self-center">
+            {canEdit && <button type="button" onClick={() => { setDraft(company); setEditError(""); setIsEditing(true); }} className="rounded-lg border border-white/30 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10">Edit Details</button>}
+            {canEdit && <button type="button" onClick={() => { setDeleteConfirmation(""); setIsDeleteDialogOpen(true); }} className="rounded-lg border border-red-300/50 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20">Delete company</button>}
             <button type="button" onClick={() => setWorkspaceTab("contacts")} className="rounded-lg border border-white/30 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10">View contacts</button>
             <button type="button" onClick={() => setWorkspaceTab("tickets")} className="rounded-lg bg-teal-500 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-600">View ticket activity</button>
           </div>
@@ -136,9 +159,9 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
         <div className="grid grid-cols-2 border-t border-white/15 sm:grid-cols-4">
           {[
             ["Account manager", company.accountManager, "person"],
-            ["Primary contact", company.contactName, "support_agent"],
-            ["SLA response", company.slaResponseTime, "bolt"],
+            ["Primary contact", primaryContact.name, "support_agent"],
             ["Active tickets", openTickets.length, "confirmation_number"],
+            ["Preferred support channel", company.preferredChannel, "support"],
           ].map(([label, value, icon]) => (
             <div key={label} className="flex min-w-0 items-center gap-2 border-r border-white/10 px-3 py-2.5 last:border-r-0 sm:px-4">
               <span className="material-symbols-outlined text-[17px] text-teal-200">{icon}</span>
@@ -147,42 +170,63 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
           ))}
         </div>
       </section>
-
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-3 pt-1.5" role="presentation">
-          <div className="flex gap-1" role="tablist" aria-label="Company workspace">{([ ["contacts", "Contacts"], ["tickets", "Active Tickets"], ["contracts", "Contracts & Services"] ] as [WorkspaceTab, string][]).map(([id, label]) => (
+          <div className="flex min-w-0 gap-1 overflow-x-auto" role="tablist" aria-label="Company workspace">{([ ["contacts", "Contacts"], ["tickets", "Active Tickets"], ["contracts", "Contracts & Services"] ] as [WorkspaceTab, string][]).map(([id, label]) => (
             <button key={id} role="tab" aria-selected={workspaceTab === id} type="button" onClick={() => setWorkspaceTab(id)} className={`border-b-2 px-3 py-2.5 text-xs font-bold ${workspaceTab === id ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{label}{id === "tickets" ? ` (${openTickets.length})` : id === "contacts" ? ` (${contacts.length})` : ""}</button>
           ))}</div>
-          {workspaceTab === "contacts" && <button type="button" onClick={() => setIsAddingContact(true)} disabled={!canEdit} className="mb-1 inline-flex items-center gap-1.5 rounded-lg bg-[#119DA4] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0E858D] disabled:cursor-not-allowed disabled:opacity-50"><span aria-hidden="true" className="material-symbols-outlined text-base">person_add</span>Add contact</button>}
-          {workspaceTab === "contracts" && canEdit && <button type="button" onClick={() => { setContractDraft({ activeContracts: company.activeContracts, slaResponseTime: company.slaResponseTime, subscribedServices: [...company.subscribedServices] }); setIsEditingContracts(true); }} className="mb-1 inline-flex items-center gap-1.5 rounded-lg bg-[#119DA4] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#0E858D]"><span aria-hidden="true" className="material-symbols-outlined text-base">edit</span>Edit contracts & services</button>}
         </div>
         <div className="p-3 sm:p-4" role="tabpanel">
           {workspaceTab === "contacts" && <>
-            <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-[#4B3F72]"><tr><th className="px-2 py-2">Name</th><th className="px-2 py-2">Role</th><th className="px-2 py-2">Email</th><th className="px-2 py-2">Phone</th><th className="px-2 py-2 text-right">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{contacts.map((contact) => <tr key={contact.id}><td className="whitespace-nowrap px-2 py-2.5 font-semibold text-[#1F2041]">{contact.name}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.role || company.contactRole || "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-[#19647E]">{contact.email}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.phone}</td><td className="whitespace-nowrap px-2 py-2.5 text-right"><div className="inline-flex items-center gap-1.5"><button type="button" onClick={() => editContact(contact)} disabled={!canEdit} aria-label={`Edit ${contact.name}`} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">edit</span><span>Edit</span></button><button type="button" onClick={() => deleteContact(contact)} disabled={!canEdit || contacts.length <= 1} aria-label={`Delete ${contact.name}`} title={contacts.length <= 1 ? "A company must have at least one contact" : undefined} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-slate-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">delete</span><span>Delete</span></button></div></td></tr>)}</tbody></table></div>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <TableSearch id="company-contact-search" value={contactSearch} onChange={setContactSearch} placeholder="Search contacts..." aria-label="Search contacts" className="min-w-52 max-w-[480px] flex-1" />
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+              <ComboboxFilter label="Role" options={contactRoles.map((role) => ({ value: role, label: role }))} selectedValues={contactRoleFilter} onChange={setContactRoleFilter} singleSelect placeholder="Search roles..." />
+              <button type="button" onClick={() => { setNewContact({ name: "", role: "", email: "", phone: "" }); setContactFlags({ primary: false, escalation: false }); setIsAddingContact(true); }} disabled={!canEdit} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#119DA4] px-3 text-xs font-semibold text-white transition hover:bg-[#0E858D] disabled:cursor-not-allowed disabled:opacity-50"><span aria-hidden="true" className="material-symbols-outlined text-base">person_add</span>Add contact</button>
+              </div>
+            </div>
+              <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-[#4B3F72]"><tr><th className="px-2 py-2">Name</th><th className="px-2 py-2">Role</th><th className="px-2 py-2">Email</th><th className="px-2 py-2">Phone</th><th className="px-2 py-2">Primary</th><th className="px-2 py-2">Escalation</th><th className="px-2 py-2 text-right">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredContacts.length ? filteredContacts.map((contact) => <tr key={contact.id}><td className="whitespace-nowrap px-2 py-2.5 font-semibold text-[#1F2041]">{contact.name}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.role || "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-[#19647E]">{contact.email}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.phone}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === primaryContact.id ? "Yes" : "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === escalationContact?.id ? "Yes" : "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-right"><div className="inline-flex items-center gap-1.5"><button type="button" onClick={() => editContact(contact)} disabled={!canEdit} aria-label={`Edit ${contact.name}`} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">edit</span><span>Edit</span></button><button type="button" onClick={() => deleteContact(contact)} disabled={!canEdit || contacts.length <= 1} aria-label={`Delete ${contact.name}`} title={contacts.length <= 1 ? "A company must have at least one contact" : undefined} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-slate-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">delete</span><span>Delete</span></button></div></td></tr>) : <tr><td className="px-2 py-6 text-center text-slate-500" colSpan={7}>No contacts match these filters.</td></tr>}</tbody></table></div>
           </>}
-          {workspaceTab === "tickets" && <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Ticket</th><th className="px-2 py-2">Subject</th><th className="px-2 py-2">Status</th><th className="px-2 py-2">Priority</th><th className="px-2 py-2">Assignee</th><th className="px-2 py-2">Updated</th></tr></thead><tbody className="divide-y divide-slate-100">{openTickets.length ? openTickets.map((ticket) => <tr key={ticket.id}><td className="whitespace-nowrap px-2 py-2.5"><button type="button" className="font-bold text-indigo-700 hover:underline" onClick={() => onOpenTicket?.(ticket.id)}>{ticket.code}</button></td><td className="px-2 py-2.5 text-slate-700">{ticket.title}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.status}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.priority}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.assignedToName || "Unassigned"}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-500">{ticket.timeAgo}</td></tr>) : <tr><td className="px-2 py-6 text-center text-slate-500" colSpan={6}>No active tickets.</td></tr>}</tbody></table></div>}
-          {workspaceTab === "contracts" && <>{company.subscribedServices.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{company.subscribedServices.map((service) => <div key={service} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5"><span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-700" aria-hidden="true"><span className="material-symbols-outlined block translate-x-[1px] translate-y-[1px] text-[18px] leading-none">cloud</span></span><div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-slate-900">{service}</p><p className="text-[10px] text-slate-500">SLA: {company.slaResponseTime} response</p></div><span className="rounded-full bg-teal-50 px-2 py-1 text-[10px] font-semibold text-teal-800">Active</span></div>)}</div> : <p className="py-6 text-center text-xs text-slate-500">No contracts or services are linked to this company.</p>}</>}
+          {workspaceTab === "tickets" && <>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <TableSearch id="company-ticket-search" value={ticketSearch} onChange={setTicketSearch} placeholder="Search tickets..." aria-label="Search tickets" className="min-w-52 max-w-[480px] flex-1" />
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+              <ComboboxFilter label="Status" options={[...new Set(openTickets.map((ticket) => ticket.status))].map((status) => ({ value: status, label: status }))} selectedValues={ticketStatusFilter} onChange={setTicketStatusFilter} singleSelect placeholder="Search statuses..." />
+              <ComboboxFilter label="Priority" options={[...new Set(openTickets.map((ticket) => ticket.priority))].map((priority) => ({ value: priority, label: priority }))} selectedValues={ticketPriorityFilter} onChange={setTicketPriorityFilter} singleSelect placeholder="Search priorities..." />
+              </div>
+            </div>
+            <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Ticket</th><th className="px-2 py-2">Subject</th><th className="px-2 py-2">Status</th><th className="px-2 py-2">Priority</th><th className="px-2 py-2">Assignee</th><th className="px-2 py-2">Updated</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredTickets.length ? filteredTickets.map((ticket) => <tr key={ticket.id}><td className="whitespace-nowrap px-2 py-2.5"><button type="button" className="font-bold text-indigo-700 hover:underline" onClick={() => onOpenTicket?.(ticket.id)}>{ticket.code}</button></td><td className="px-2 py-2.5 text-slate-700">{ticket.title}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.status}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.priority}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.assignedToName || "Unassigned"}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-500">{ticket.timeAgo}</td></tr>) : <tr><td className="px-2 py-6 text-center text-slate-500" colSpan={6}>No active tickets match these filters.</td></tr>}</tbody></table></div>
+          </>}
+          {workspaceTab === "contracts" && <CompanyContracts company={company} services={services} canEdit={canEdit} onUpdate={onUpdateCompany} onOpenService={onOpenService} />}
         </div>
       </section>
 
-      {isAddingContact && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsAddingContact(false); }}><section role="dialog" aria-modal="true" aria-labelledby="add-contact-title" className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="flex items-start justify-between px-4 py-3"><div><h2 id="add-contact-title" className="text-base font-bold text-slate-900">Add company contact</h2><p className="mt-0.5 text-xs text-slate-500">Add a contact for {company.name}.</p></div><button type="button" onClick={() => setIsAddingContact(false)} aria-label="Close add contact dialog" className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><span aria-hidden="true" className="material-symbols-outlined text-lg">close</span></button></div><form onSubmit={addContact} className="space-y-3 p-4"><div className="grid gap-3 sm:grid-cols-2">{([ ["name", "Full name", "text"], ["role", "Role", "text"], ["email", "Email", "email"], ["phone", "Phone", "tel"] ] as const).map(([key, label, type]) => <label key={key} className="block text-xs font-semibold text-slate-600">{label}<input required type={type} value={newContact[key]} onChange={(event) => setNewContact((current) => ({ ...current, [key]: event.target.value }))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200" /></label>)}</div><div className="flex justify-end"><button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800">Add contact</button></div></form></section></div>}
+      {isAddingContact && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsAddingContact(false); }}><section role="dialog" aria-modal="true" aria-labelledby="add-contact-title" className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="flex items-start justify-between px-4 py-3"><div><h2 id="add-contact-title" className="text-base font-bold text-slate-900">Add company contact</h2></div></div><form onSubmit={addContact} className="space-y-3 p-4"><div className="grid gap-3 sm:grid-cols-2">{([ ["name", "Full name", "text"], ["role", "Role", "text"], ["email", "Email", "email"], ["phone", "Phone", "tel"] ] as const).map(([key, label, type]) => <label key={key} className="block text-xs font-semibold text-slate-600">{label}<input required type={type} value={newContact[key]} onChange={(event) => setNewContact((current) => ({ ...current, [key]: event.target.value }))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200" /></label>)}</div><div className="flex flex-wrap gap-4 text-xs text-slate-700"><label className="flex items-center gap-2"><input type="checkbox" checked={contactFlags.primary} onChange={(event) => setContactFlags((current) => ({ ...current, primary: event.target.checked }))} />Primary support contact</label><label className="flex items-center gap-2"><input type="checkbox" checked={contactFlags.escalation} onChange={(event) => setContactFlags((current) => ({ ...current, escalation: event.target.checked }))} />Escalation contact</label></div><div className="flex justify-end gap-2"><button type="button" onClick={() => setIsAddingContact(false)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">Cancel</button><button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800">Save</button></div></form></section></div>}
 
-      {editingContact && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingContact(null); }}><section role="dialog" aria-modal="true" aria-labelledby="edit-contact-title" className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="flex items-start justify-between px-4 py-3"><div><h2 id="edit-contact-title" className="text-base font-bold text-slate-900">Edit company contact</h2><p className="mt-0.5 text-xs text-slate-500">Update contact details for {company.name}.</p></div><button type="button" onClick={() => setEditingContact(null)} aria-label="Close edit contact dialog" className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><span aria-hidden="true" className="material-symbols-outlined text-lg">close</span></button></div><form onSubmit={saveContact} className="space-y-3 p-4"><div className="grid gap-3 sm:grid-cols-2">{([ ["name", "Full name", "text"], ["role", "Role", "text"], ["email", "Email", "email"], ["phone", "Phone", "tel"] ] as const).map(([key, label, type]) => <label key={key} className="block text-xs font-semibold text-slate-600">{label}<input required type={type} value={newContact[key]} onChange={(event) => setNewContact((current) => ({ ...current, [key]: event.target.value }))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200" /></label>)}</div><div className="flex justify-end"><button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800">Save changes</button></div></form></section></div>}
+      {editingContact && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingContact(null); }}><section role="dialog" aria-modal="true" aria-labelledby="edit-contact-title" className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="flex items-start justify-between px-4 py-3"><div><h2 id="edit-contact-title" className="text-base font-bold text-slate-900">Edit company contact</h2></div></div><form onSubmit={saveContact} className="space-y-3 p-4"><div className="grid gap-3 sm:grid-cols-2">{([ ["name", "Full name", "text"], ["role", "Role", "text"], ["email", "Email", "email"], ["phone", "Phone", "tel"] ] as const).map(([key, label, type]) => <label key={key} className="block text-xs font-semibold text-slate-600">{label}<input required type={type} value={newContact[key]} onChange={(event) => setNewContact((current) => ({ ...current, [key]: event.target.value }))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200" /></label>)}</div><div className="flex flex-wrap gap-4 text-xs text-slate-700"><label className="flex items-center gap-2"><input type="checkbox" checked={contactFlags.primary} onChange={(event) => setContactFlags((current) => ({ ...current, primary: event.target.checked }))} />Primary support contact</label><label className="flex items-center gap-2"><input type="checkbox" checked={contactFlags.escalation} onChange={(event) => setContactFlags((current) => ({ ...current, escalation: event.target.checked }))} />Escalation contact</label></div><div className="flex justify-end gap-2"><button type="button" onClick={() => setEditingContact(null)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">Cancel</button><button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800">Save</button></div></form></section></div>}
 
-      {isEditingContracts && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsEditingContracts(false); }}><section role="dialog" aria-modal="true" aria-labelledby="edit-contracts-title" className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div className="flex items-start justify-between px-4 py-3"><div><h2 id="edit-contracts-title" className="text-base font-bold text-slate-900">Edit contracts & services</h2><p className="mt-0.5 text-xs text-slate-500">Manage the contract details and services linked to {company.name}.</p></div><button type="button" onClick={() => setIsEditingContracts(false)} aria-label="Close contracts dialog" className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><span aria-hidden="true" className="material-symbols-outlined text-lg">close</span></button></div><form onSubmit={(event) => { event.preventDefault(); onUpdateCompany({ activeContracts: Math.max(0, contractDraft.activeContracts), slaResponseTime: contractDraft.slaResponseTime.trim(), subscribedServices: contractDraft.subscribedServices }); setIsEditingContracts(false); }} className="space-y-3 p-4"><div className="grid gap-3 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-600">Active contracts<input min="0" type="number" value={contractDraft.activeContracts} onChange={(event) => setContractDraft((current) => ({ ...current, activeContracts: Number(event.target.value) }))} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200" /></label><label className="text-xs font-semibold text-slate-600">SLA response time<input required value={contractDraft.slaResponseTime} onChange={(event) => setContractDraft((current) => ({ ...current, slaResponseTime: event.target.value }))} placeholder="e.g. 15m" className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200" /></label></div><fieldset><legend className="mb-1.5 text-xs font-semibold text-slate-600">Linked services</legend><div className="grid max-h-48 gap-2 overflow-y-auto sm:grid-cols-2">{company.subscribedServices.map((service) => <label key={service} className="flex items-center gap-2 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700"><input type="checkbox" checked={contractDraft.subscribedServices.includes(service)} onChange={(event) => setContractDraft((current) => ({ ...current, subscribedServices: event.target.checked ? [...current.subscribedServices, service] : current.subscribedServices.filter((item) => item !== service) }))} className="h-4 w-4 rounded border-slate-300" />{service}</label>)}{company.subscribedServices.length === 0 && <p className="text-sm text-slate-500">No linked services yet. Add one below.</p>}</div></fieldset><label className="block text-xs font-semibold text-slate-600">Add service<input value={serviceToAdd} onChange={(event) => setServiceToAdd(event.target.value)} placeholder="Enter a service name" className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200" /></label><div className="flex justify-between gap-2"><button type="button" onClick={() => { if (serviceToAdd.trim() && !contractDraft.subscribedServices.includes(serviceToAdd.trim())) setContractDraft((current) => ({ ...current, subscribedServices: [...current.subscribedServices, serviceToAdd.trim()] })); setServiceToAdd(""); }} disabled={!serviceToAdd.trim()} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">Add service</button><button type="submit" className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800">Save changes</button></div></form></section></div>}
-
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
-          <h2 className="text-sm font-bold text-slate-900">Company details</h2>
-          {!isEditing && canEdit ? <button type="button" onClick={() => setIsEditing(true)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><span className="material-symbols-outlined text-[15px]">edit</span>Edit</button> : isEditing ? <div className="flex gap-2"><button type="button" onClick={() => setConfirmAction("cancel")} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button><button type="button" onClick={() => setConfirmAction("save")} className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">Save</button></div> : null}
+      {isEditing && <DetailEditDialog title="Edit company details" onCancel={() => setIsEditing(false)} onSave={(event) => {
+        event.preventDefault();
+        const name = draft.name.trim();
+        if (!name) { setEditError("Enter a company name."); return; }
+        onUpdateCompany({
+          name, tier: draft.tier, status: draft.status,
+          preferredChannel: draft.preferredChannel, logo: draft.logo,
+        });
+        setIsEditing(false);
+      }}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-xs">Company name<input className={formControlClassName} required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
+          <label className="space-y-1.5 text-xs"><span className="block">Preferred support channel</span><SelectDropdown label="Preferred support channel" options={["email", "phone", "whatsapp"].map((value) => ({ value, label: value }))} value={draft.preferredChannel} onChange={(value) => setDraft({ ...draft, preferredChannel: value as Company["preferredChannel"] })} /></label>
+          <label className="text-xs">Account tier<input className={formControlClassName} required value={draft.tier} onChange={(event) => setDraft({ ...draft, tier: event.target.value })} /></label>
+          <label className="space-y-1.5 text-xs"><span className="block">Account status</span><SelectDropdown label="Account status" options={["Active", "Inactive"].map((value) => ({ value, label: value }))} value={draft.status} onChange={(value) => setDraft({ ...draft, status: value as Company["status"] })} /></label>
+          <label className="block space-y-1.5 text-xs"><span>Company logo</span><span className="relative flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-[1.5px] border-[#c4d2e5] bg-white px-3.5 py-2 text-sm font-semibold text-[#1f2041] transition hover:border-teal-500"><span className="material-symbols-outlined text-[18px]" aria-hidden="true">upload</span>Upload company logo<input className="absolute inset-0 h-full w-full cursor-pointer opacity-0" type="file" accept="image/*" aria-label="Upload company logo" onChange={(event) => uploadCompanyLogo(event.target.files?.[0])} /></span></label>
         </div>
-        <div className="flex gap-1 border-b border-slate-200 px-3" role="tablist" aria-label="Company detail categories">{profileTabs.map((tab) => <button key={tab.id} role="tab" aria-selected={activeProfileTab === tab.id} type="button" onClick={() => setActiveProfileTab(tab.id)} className={`border-b-2 px-3 py-2 text-[11px] font-semibold ${activeProfileTab === tab.id ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{tab.label}</button>)}</div>
-        <div className="grid grid-cols-1 gap-x-5 gap-y-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
-          {profileFields[activeProfileTab].map((field) => <label key={field.key} className="min-w-0 text-[10px] font-semibold text-slate-500">{field.label}{isEditing && !field.readOnly ? <input type={field.type || "text"} value={displayValue(draft[field.key])} onChange={(event) => updateField(field.key, event.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-normal text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" /> : <span className="mt-1 block truncate text-xs font-medium text-slate-900">{displayValue(draft[field.key])}</span>}</label>)}
-        </div>
-      </section>
+        <p className="text-xs text-slate-500">Internal company ID {company.id}</p>
+        {editError && <p role="alert" className="text-sm text-red-700">{editError}</p>}
+      </DetailEditDialog>}
 
-      {confirmAction && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="dialog" aria-modal="true"><div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-4 shadow-xl"><div className="flex justify-end"><button type="button" onClick={() => setConfirmAction(null)} aria-label="Close confirmation dialog" className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><span aria-hidden="true" className="material-symbols-outlined text-lg">close</span></button></div><h3 className="text-base font-bold text-slate-900">{confirmAction === "save" ? "Save changes?" : "Discard changes?"}</h3><p className="mt-1.5 text-sm text-slate-500">{confirmAction === "save" ? "Your company details will be updated." : "Your unsaved changes will be lost."}</p><div className="mt-4 flex justify-end"><button type="button" onClick={finishAction} className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-800">{confirmAction === "save" ? "Save changes" : "Discard"}</button></div></div></div>}
+      {isDeleteDialogOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsDeleteDialogOpen(false); }}><section role="alertdialog" aria-modal="true" aria-labelledby="delete-company-title" aria-describedby="delete-company-description" className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-5 shadow-2xl"><h2 id="delete-company-title" className="text-lg font-bold text-slate-900">Delete {company.name}?</h2><p id="delete-company-description" className="mt-2 text-sm leading-5 text-slate-600">Choose whether to keep this company record inactive or permanently delete it. Permanent deletion also removes {relatedTicketCount} related ticket{relatedTicketCount === 1 ? "" : "s"} and cannot be undone.</p><div className="mt-4 space-y-3"><button type="button" onClick={() => { onDeleteCompany?.(false); setIsDeleteDialogOpen(false); }} className="w-full rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-50"><span className="block text-sm font-semibold text-slate-900">Set company inactive</span><span className="mt-1 block text-xs text-slate-600">Keep the company and its ticket history. It can be reactivated later.</span></button><div className="rounded-lg border border-red-200 p-3"><p className="text-sm font-semibold text-red-800">Permanently delete company and related tickets</p><label className="mt-2 block text-xs font-medium text-slate-700">Type <strong>{company.name}</strong> to confirm<input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100" /></label><div className="mt-3 flex justify-end gap-2"><button type="button" onClick={() => setIsDeleteDialogOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button><button type="button" disabled={deleteConfirmation !== company.name} onClick={() => onDeleteCompany?.(true)} className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50">Permanently delete</button></div></div></div></section></div>}
     </div>
   );
 };

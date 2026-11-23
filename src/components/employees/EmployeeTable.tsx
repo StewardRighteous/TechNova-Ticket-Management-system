@@ -21,6 +21,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [locationFilter, setLocationFilter] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   const filtered = employees.filter((e) => {
     if (roleFilter !== "all" && e.role !== roleFilter) return false;
@@ -58,7 +59,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
               Manage your team and availability.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2 lg:w-[min(100%,20rem)]">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[min(100%,26rem)]">
             {[
               [
                 "TOTAL MEMBERS",
@@ -76,6 +77,12 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                 employees.filter((employee) => employee.status === "Busy")
                   .length,
                 "border-amber-400/30 bg-amber-500/15 text-amber-200",
+              ],
+              [
+                "OFF SHIFT",
+                employees.filter((employee) => employee.status === "Off Shift")
+                  .length,
+                "border-slate-400/30 bg-slate-500/15 text-slate-200",
               ],
             ].map(([label, count, tone]) => (
               <div
@@ -185,8 +192,9 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
               return (
                 <tr
                   key={emp.id}
-                  className="group cursor-pointer transition-colors hover:bg-teal-50/50"
-                  onClick={() => onViewEmployee(emp.id)}
+                  className={`group cursor-pointer transition-colors hover:bg-teal-50/50 ${selectedEmployeeId === emp.id ? "bg-teal-50" : ""}`}
+                  onClick={() => setSelectedEmployeeId(emp.id)}
+                  onDoubleClick={() => onViewEmployee(emp.id)}
                 >
                   <td className="px-5 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">

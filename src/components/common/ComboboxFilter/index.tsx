@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 export interface ComboboxOption {
   value: string;
@@ -15,6 +16,7 @@ export interface ComboboxFilterProps {
   placeholder?: string;
   showBadges?: boolean;
   className?: string;
+  portal?: boolean;
 }
 
 export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
@@ -26,21 +28,39 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
   placeholder,
   showBadges = false,
   className = "",
+  portal = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const listboxRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0, width: 208, maxHeight: 224 });
   const [activeIndex, setActiveIndex] = useState(0);
 
-  useEffect(() => { if (isOpen) { setActiveIndex(0); searchRef.current?.focus(); } }, [isOpen]);
+  useEffect(() => { if (isOpen) { setActiveIndex(0); searchRef.current?.focus({ preventScroll: true }); } }, [isOpen]);
+
+  const positionPanel = useCallback(() => {
+    const bounds = buttonRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const spaceBelow = window.innerHeight - bounds.bottom - 12;
+    const spaceAbove = bounds.top - 12;
+    const opensAbove = spaceBelow < 224 && spaceAbove > spaceBelow;
+    const maxHeight = Math.max(120, Math.min(224, opensAbove ? spaceAbove : spaceBelow));
+    const width = Math.max(208, bounds.width);
+    const left = Math.min(bounds.left - 12, window.innerWidth - width - 8);
+    setPanelPosition({ top: opensAbove ? Math.max(8, bounds.top - maxHeight - 4) : bounds.bottom + 4, left: Math.max(8, left), width, maxHeight });
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        !containerRef.current.contains(event.target as Node) &&
+        !listboxRef.current?.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -50,6 +70,17 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !portal) return;
+    positionPanel();
+    window.addEventListener("resize", positionPanel);
+    window.addEventListener("scroll", positionPanel, true);
+    return () => {
+      window.removeEventListener("resize", positionPanel);
+      window.removeEventListener("scroll", positionPanel, true);
+    };
+  }, [isOpen, portal, positionPanel]);
 
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -94,8 +125,15 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
     <div className={`relative inline-flex flex-col gap-1.5 ${className}`} ref={containerRef}>
       <div className="flex items-center gap-1.5">
         <button
+          ref={buttonRef}
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            if (portal) {
+              positionPanel();
+              setPortalTarget(containerRef.current?.closest("dialog") ?? document.body);
+            }
+            setIsOpen(!isOpen);
+          }}
           aria-expanded={isOpen}
           aria-label={`Filter by ${label}`}
           className={`flex h-8 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors ${
@@ -156,9 +194,12 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
 
       {/* Dropdown panel */}
       {isOpen && (
-        <div
+        (() => {
+          const panel = <div
+          ref={listboxRef}
           role="listbox"
-          className="absolute top-10 left-0 z-50 min-w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150"
+          style={portal ? { position: "fixed", top: panelPosition.top, left: panelPosition.left, width: panelPosition.width, maxHeight: panelPosition.maxHeight } : undefined}
+          className={`${portal ? "z-[120]" : "absolute top-10 right-0 z-50 min-w-52"} rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150`}
         >
           {/* Search filter input */}
           <div className="relative mb-1 px-1">
@@ -210,7 +251,9 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
               })
             )}
           </div>
-        </div>
+        </div>;
+          return portal ? (portalTarget ? createPortal(panel, portalTarget) : null) : panel;
+        })()
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import type { Employee, Ticket } from "../../types/barrel";
 import { NumericPagination } from "../common/barrel";
 import { StaffAvatar } from "../common/StaffAvatar";
 import { getHighAttentionTickets } from "./dashboardMetrics";
+import { ticketSlaRisk } from "../../utils/supportPolicy";
 
 export interface HighAttentionTicketsTableProps {
   tickets: Ticket[];
@@ -128,7 +129,7 @@ export const HighAttentionTicketsTable: React.FC<HighAttentionTicketsTableProps>
                   )}
                 </td>
                 <td className="px-3 py-2.5">
-                  <div className="whitespace-nowrap">{renderSlaBadge(ticket.slaRisk)}</div>
+                  <div className="whitespace-nowrap">{renderSlaBadge(ticketSlaRisk(ticket))}</div>
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="flex min-w-0 items-center gap-1 text-[10px] text-slate-600">

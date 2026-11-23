@@ -11,6 +11,7 @@ export const createDraft = (ticket: Ticket, companies: Company[] = []): Draft =>
   clientContact: ticket.clientContact,
   slaDeadline: ticket.slaDeadline,
   environment: ticket.environment,
+  supportSite: ticket.supportSite,
   systemRevision: ticket.systemRevision,
   resolutionDetails: ticket.resolutionDetails ?? "",
   categoryId: ticket.categoryId ?? "",

@@ -60,7 +60,7 @@ const CreateModalRoute: React.FC<CreateModalRouteProps> = ({ section, title, chi
   return <>
     {background}
     <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/55 p-3 sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) navigate(`/${section}`); }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="create-modal-title" className="create-modal-shell relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-h-[calc(100vh-3rem)]">
+      <section role="dialog" aria-modal="true" aria-labelledby="create-modal-title" className={`create-modal-shell relative flex max-h-[calc(100vh-1.5rem)] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-h-[calc(100vh-3rem)] ${section === "companies" || section === "services" || section === "employees" ? "max-w-2xl" : "max-w-4xl"}`}>
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3.5 sm:px-7">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#0e858d]">{section}</p>

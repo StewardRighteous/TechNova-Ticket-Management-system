@@ -4,6 +4,8 @@ import { useTicketStore } from "../../store/barrel";
 import type { Employee, RoleId } from "../../types/barrel";
 import { FormField, formControlClassName, SelectDropdown } from "../common/barrel";
 
+const compactControl = `${formControlClassName} rounded-md border border-slate-300 px-3 py-2 focus:border-teal-600 focus:ring-teal-600`;
+
 export const CreateEmployeePage: React.FC = () => {
   const { data, addEmployee, addToast } = useTicketStore();
   const navigate = useNavigate();
@@ -37,16 +39,16 @@ export const CreateEmployeePage: React.FC = () => {
   return <main className="px-5 py-5 sm:px-7 sm:py-6"><form onSubmit={submit} className="space-y-5">
     {error && <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
     <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
-      <FormField label="Full name · required"><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Jamie Lee" /></FormField>
-      <FormField label="Role · required"><SelectDropdown label="Role" value={role} onChange={(value) => setRole(value as RoleId)} options={data.roles.map((item) => ({ value: item.id, label: item.name }))} required /></FormField>
-      <FormField label="Email · required"><input className={formControlClassName} required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@technova.com" /></FormField>
-      <FormField label="Phone · required"><input className={formControlClassName} required type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="e.g. +1 555 0100" /></FormField>
-      <FormField label="Department · required"><SelectDropdown label="Department" value={departmentId} onChange={setDepartmentId} options={(data.departments || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a department" required /></FormField>
-      <FormField label="Team · required"><SelectDropdown label="Team" value={teamId} onChange={(value) => { setTeamId(value); setDepartmentId(data.teams?.find((team) => team.id === value)?.departmentId || ""); }} options={(data.teams || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Unassigned" required /></FormField>
+      <FormField label={<>Full name <span className="text-red-600">*</span></>}><input className={compactControl} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Jamie Lee" /></FormField>
+      <FormField label={<>Role <span className="text-red-600">*</span></>}><SelectDropdown label="Role" value={role} onChange={(value) => setRole(value as RoleId)} options={data.roles.map((item) => ({ value: item.id, label: item.name }))} required /></FormField>
+      <FormField label={<>Email <span className="text-red-600">*</span></>}><input className={compactControl} required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@technova.com" /></FormField>
+      <FormField label={<>Phone <span className="text-red-600">*</span></>}><input className={compactControl} required type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="e.g. +1 555 0100" /></FormField>
+      <FormField label={<>Department <span className="text-red-600">*</span></>}><SelectDropdown label="Department" value={departmentId} onChange={setDepartmentId} options={(data.departments || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a department" required /></FormField>
+      <FormField label={<>Team <span className="text-red-600">*</span></>}><SelectDropdown label="Team" value={teamId} onChange={(value) => { setTeamId(value); setDepartmentId(data.teams?.find((team) => team.id === value)?.departmentId || ""); }} options={(data.teams || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Unassigned" required /></FormField>
       <FormField label="Location"><SelectDropdown label="Location" value={locationId} onChange={setLocationId} options={(data.locations || []).map((item) => ({ value: item.id, label: item.name }))} placeholder="Unassigned" /></FormField>
-      <FormField label="Maximum active tickets"><input className={formControlClassName} type="number" min={1} required value={capacityMax} onChange={(event) => setCapacityMax(Number(event.target.value))} /></FormField>
-      <FormField label="Skills" className="sm:col-span-2"><input className={formControlClassName} value={skills} onChange={(event) => setSkills(event.target.value)} placeholder="Comma-separated skills" /></FormField>
+      <FormField label="Maximum active tickets"><input className={compactControl} type="number" min={1} required value={capacityMax} onChange={(event) => setCapacityMax(Number(event.target.value))} /></FormField>
+      <FormField label="Skills"><input className={compactControl} value={skills} onChange={(event) => setSkills(event.target.value)} placeholder="Comma-separated skills" /></FormField>
     </div>
-    <footer className="flex items-center justify-between border-t border-slate-200 pt-5"><button type="button" onClick={cancel} className="rounded-lg border border-[#2c3158] px-5 py-2.5 text-sm font-semibold text-[#25294e] hover:bg-slate-50">Cancel</button><button type="submit" className="rounded-lg bg-[#0e858d] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#0b7279]">Create employee</button></footer>
+    <footer className="flex justify-end gap-2 border-t border-slate-200 pt-4"><button type="button" onClick={cancel} className="rounded-lg border border-[#2c3158] px-5 py-2.5 text-sm font-semibold text-[#25294e] hover:bg-slate-50">Cancel</button><button type="submit" className="rounded-lg bg-teal-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">Create employee</button></footer>
   </form></main>;
 };

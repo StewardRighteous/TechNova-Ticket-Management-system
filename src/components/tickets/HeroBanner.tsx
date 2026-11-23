@@ -11,7 +11,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ ticket, onDelete }) => {
     ["Priority", ticket.priority.replace(/^P\d\s*/, ""), "flag"],
   ];
 
-  return <div className="rounded-t-2xl bg-slate-900 text-white">
+  return <div className="overflow-hidden rounded-2xl bg-slate-900 text-white">
     <section aria-labelledby="ticket-summary-title">
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 sm:px-5">
         <div className="flex min-w-0 items-center gap-3">

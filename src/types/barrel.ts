@@ -12,6 +12,28 @@ export type ClientNotificationChannel = 'email' | 'whatsapp' | 'phone';
 
 export type TicketPriority = 'P1 Urgent' | 'P2 Normal' | 'P3 Low' | 'P4 Trivial';
 
+export interface SupportCalendar {
+  timeZone: string;
+  weekdays: number[];
+  opensAt: string;
+  closesAt: string;
+}
+
+export interface SlaPolicy {
+  targets: Partial<Record<TicketPriority, { responseMinutes?: number; resolutionMinutes?: number }>>;
+  calendar?: SupportCalendar;
+}
+
+export interface SupportContract {
+  id: string;
+  reference: string;
+  serviceIds: string[];
+  status: "Active" | "Inactive";
+  startsOn?: string;
+  endsOn?: string;
+  slaPolicy?: SlaPolicy;
+}
+
 export type TicketStatus =
   | 'Open'
   | 'In Progress'
@@ -89,6 +111,10 @@ export interface Ticket {
   teamId?: string;
   currentStageRole: RoleId;
   slaDeadline: string;
+  slaPolicyApplied?: true;
+  firstResponseDueAt?: string;
+  firstRespondedAt?: string;
+  resolvedAt?: string;
   dueAt?: string;
   slaRisk: 'On Target' | 'At Risk' | 'Breached';
   createdAt: string;
@@ -97,6 +123,7 @@ export interface Ticket {
   tags: string[];
   systemRevision: string;
   environment: string;
+  supportSite?: string;
   diagnosticData?: TicketDiagnosticData;
   attachments?: Attachment[];
   internalNotes?: InternalNote[];
@@ -119,6 +146,7 @@ export interface CustomerContact {
 
 export interface Company {
   id: string;
+  logo?: string;
   code: string;
   name: string;
   tier: string;
@@ -127,6 +155,10 @@ export interface Company {
   contactEmail: string;
   contactPhone: string;
   contacts?: CustomerContact[];
+  primaryContactId?: string;
+  escalationContactId?: string;
+  supportSites?: string[];
+  contracts?: SupportContract[];
   preferredChannel: InboundChannel;
   activeContracts: number;
   activeTickets: number;
@@ -152,6 +184,10 @@ export interface Employee {
   capacityMax: number;
   skills: string[];
   status: 'Available' | 'Busy' | 'Off Shift';
+  accountStatus?: "Active" | "Disabled";
+  eligibleServiceIds?: string[];
+  supportSchedule?: string;
+  timeZone?: string;
   // Optional HR data keeps existing demo records and integrations backwards compatible.
   dateOfBirth?: string;
   gender?: string;
@@ -188,6 +224,7 @@ export interface Location {
 
 export interface ServiceLine {
   id: string;
+  logo?: string;
   name: string;
   code: string;
   department: string;
@@ -198,6 +235,13 @@ export interface ServiceLine {
   description: string;
   technologies: string[];
   status: string;
+  slaPolicy?: SlaPolicy;
+  uptimeTarget?: string;
+  defaultTeamId?: string;
+  escalationTeamId?: string;
+  onCallContactId?: string;
+  escalationGuidelines?: string;
+  runbookUrl?: string;
 }
 
 export interface CompanyInfo {

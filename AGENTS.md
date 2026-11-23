@@ -1,30 +1,25 @@
-# Repository Guidelines
+# Project Rules
 
-## Project Structure & Module Organization
+React + TypeScript + Vite ticket app.
 
-This is a React, TypeScript, and Vite ticket management application. Application entry points are `src/main.tsx` and `src/App.tsx`; shared styles live in `src/index.css`. Feature and reusable UI components are grouped under `src/components/` by domain (`tickets/`, `dashboard/`, `services/`, `employees/`, `companies/`, `settings/`, `auth/`, and `common/`). Shared Zustand state is in `src/store/`; shared types and helpers are in `src/types/` and `src/utils/`. Static assets belong in `public/`.
+- Entry: `src/main.tsx`, `src/App.tsx`; styles: `src/index.css`.
+- Features: `src/components/`; state: `src/store/`; types/helpers: `src/types/`, `src/utils/`; assets: `public/`.
+- Use function components, TypeScript, two-space indentation, double quotes, PascalCase components, camelCase helpers/hooks/variables.
+- Keep feature UI in its domain folder and reusable UI in `common/`.
+- Commands: `npm run dev`, `npm run build`, `npm run lint`, `npm run preview`.
+- Keep secrets out of source control. Do not commit `dist/` or `node_modules/`.
+- Use concise imperative commit messages; PRs summarize behavior, tests/build status, config changes, and screenshots for visual work.
 
-## Build, Test, and Development Commands
+## UI Rules
 
-Run `npm install` to install dependencies, then:
-
-- `npm run dev` starts the Vite development server.
-- `npm run build` runs TypeScript project checks and creates the production bundle in `dist/`.
-- `npm run lint` runs Oxlint.
-- `npm run preview` serves the built bundle locally for review.
-
-## Coding Style & Naming Conventions
-
-Use TypeScript and React function components. Follow the existing two-space indentation and double-quoted strings. Prettier is configured with the Tailwind plugin; keep utility classes in its canonical order. Use PascalCase for component files and component names (for example, `TicketDetailView.tsx`), camelCase for helpers, hooks, and variables, and `.test.ts`/`.test.tsx` for tests. Keep feature-specific UI in its domain folder and reusable UI in `common/`.
-
-## Testing Guidelines
-
-No automated test suite is currently configured in this repository.
-
-## Commit & Pull Request Guidelines
-
-Recent history uses short imperative subjects, with some Conventional Commit prefixes such as `feat(tickets): ...`; use a concise scope where it helps (for example, `fix(dashboard): correct ticket count`). Pull requests should summarize user-visible behavior and implementation, link related issues when available, and include screenshots for visual changes. Note relevant test and build results and any configuration changes.
-
-## Configuration & Generated Files
-
-Keep environment-specific secrets out of source control. Use `package.json` for scripts and dependency changes. Treat `dist/` and `node_modules/` as generated/local output; do not commit them.
+1. Remove extra background and padding. Add only when instructed.
+2. Never use native selects. Use modern dropdowns for 2–3 categories; combo boxes for more.
+3. Banner title followed by status label.
+4. Banner top corner: buttons or nothing else.
+5. Every dialog: title, fields, Cancel, Save.
+6. Do not repeat anything twice on one page.
+7. Table row: double-click opens; single-click selects.
+8. Banner includes Delete with confirmation verification box.
+9. Avoid excessive page scrolling.
+10. Separate excessive data into tabs.
+11. All created data editable except ID.

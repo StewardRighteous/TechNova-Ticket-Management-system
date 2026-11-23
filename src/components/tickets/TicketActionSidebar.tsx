@@ -1,5 +1,7 @@
 import React from 'react';
 import type { Ticket, Employee, TicketStatus } from '../../types/barrel';
+import { SelectDropdown } from "../common/SelectDropdown";
+import { ticketSlaRisk } from "../../utils/supportPolicy";
 
 interface TicketActionSidebarProps {
   ticket: Ticket;
@@ -34,32 +36,12 @@ export const TicketActionSidebar: React.FC<TicketActionSidebarProps> = ({
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">Incident Status</label>
-          <select
-            value={ticket.status}
-            onChange={(e) => onStatusChange(e.target.value as TicketStatus)}
-            className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
-          >
-            {statusOptions.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
+          <SelectDropdown label="Incident Status" value={ticket.status} onChange={(value) => onStatusChange(value as TicketStatus)} options={statusOptions.map((value) => ({ value, label: value }))} />
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">Assigned Engineer</label>
-          <select
-            value={ticket.assignedToId}
-            onChange={(e) => onAssigneeChange(e.target.value)}
-            className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
-          >
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name} ({emp.roleTitle})
-              </option>
-            ))}
-          </select>
+          <SelectDropdown label="Assigned Engineer" value={ticket.assignedToId} onChange={onAssigneeChange} options={employees.map((employee) => ({ value: employee.id, label: `${employee.name} (${employee.roleTitle})` }))} />
         </div>
       </div>
 
@@ -72,7 +54,7 @@ export const TicketActionSidebar: React.FC<TicketActionSidebarProps> = ({
         <div className="flex items-center justify-between text-xs">
           <span className="text-slate-500">SLA Status:</span>
           <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-            {ticket.slaRisk} ({ticket.slaDeadline})
+            {ticketSlaRisk(ticket)} ({ticket.slaDeadline})
           </span>
         </div>
 

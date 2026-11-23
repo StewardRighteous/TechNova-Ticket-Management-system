@@ -17,8 +17,6 @@ interface TicketTableProps {
   departments?: Department[];
   employees?: Employee[];
   onViewTicket: (ticketId: string) => void;
-  onViewCompany?: (companyId: string) => void;
-  onViewAssignee?: (employeeId: string) => void;
   onCreateNew: () => void;
   initialPage?: number;
   initialPageSize?: number;
@@ -55,8 +53,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   departments = [],
   employees = [],
   onViewTicket,
-  onViewCompany,
-  onViewAssignee,
   onCreateNew,
   initialPage,
   initialPageSize,
@@ -76,14 +72,15 @@ export const TicketTable: React.FC<TicketTableProps> = ({
 }) => {
   const [searchInput, setSearchInput] = useState(initialSearch ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
+  const [selectedTicketRowId, setSelectedTicketRowId] = useState<string | null>(null);
   const [channelFilter, setChannelFilter] = useState<string[]>(initialChannelFilter ?? []);
   const [statusFilter, setStatusFilter] = useState<string[]>(initialStatusFilter ?? []);
   const [priorityFilter, setPriorityFilter] = useState<string[]>(initialPriorityFilter ?? []);
   const [departmentFilter, setDepartmentFilter] = useState<string[]>(initialDepartmentFilter ?? []);
 
-  const [sortField, setSortField] = useState<SortField>((initialSortField as SortField) || "time");
+  const sortField = (initialSortField as SortField) || "time";
   // The time comparator is newest first, so the initial direction is ascending.
-  const [sortAsc, setSortAsc] = useState<boolean>(initialSortAsc ?? true);
+  const sortAsc = initialSortAsc ?? true;
   const [page, setPage] = useState<number>(initialPage ?? 1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize ?? 10);
 
@@ -135,14 +132,6 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     }
     return map;
   }, [teams, departments]);
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else {
-      setSortField(field);
-      setSortAsc(true);
-    }
-  };
 
   const clearAllFilters = () => {
     setSearchInput("");
@@ -293,8 +282,9 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               return (
                 <tr
                   key={t.id}
-                  onClick={() => onViewTicket(t.id)}
-                  className="group cursor-pointer transition-colors hover:bg-indigo-50/40"
+                  onClick={() => setSelectedTicketRowId(t.id)}
+                  onDoubleClick={() => onViewTicket(t.id)}
+                  className={`group cursor-pointer transition-colors hover:bg-indigo-50/40 ${selectedTicketRowId === t.id ? "bg-indigo-50" : ""}`}
                 >
                   <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
                     {t.code}
@@ -309,17 +299,15 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   </td>
 
                   <td className="px-4 py-2.5 whitespace-nowrap">
-                    <button type="button" onClick={(event) => { event.stopPropagation(); onViewCompany?.(t.companyId); }} className="font-semibold text-slate-900 hover:text-indigo-600 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600" aria-label={`View company ${t.companyName}`}>
-                      {t.companyName}
-                    </button>
+                    <span className="font-semibold text-slate-900">{t.companyName}</span>
                   </td>
                   <td className="px-4 py-2.5 whitespace-nowrap">
-                    <button type="button" onClick={(event) => { event.stopPropagation(); onViewAssignee?.(t.assignedToId); }} className="inline-flex items-center gap-2 font-medium text-slate-700 hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600" aria-label={`View assignee ${t.assignedToName}`}>
+                    <span className="inline-flex items-center gap-2 font-medium text-slate-700">
                       <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-500">
                         <StaffAvatar src={employees.find((employee) => employee.id === t.assignedToId)?.avatar || "person"} alt={`${t.assignedToName} profile`} sizeClassName="h-7 w-7" fallbackClassName="text-[15px]" />
                       </span>
                       <span>{t.assignedToName || "Unassigned"}</span>
-                    </button>
+                    </span>
                   </td>
 
                   <td className="px-3 py-2.5 whitespace-nowrap">

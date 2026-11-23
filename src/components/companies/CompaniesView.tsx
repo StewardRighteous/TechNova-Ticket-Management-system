@@ -6,7 +6,7 @@ import { CompanyDetailHero } from "./CompanyDetailHero";
 import { filterCompaniesByRole, filterTicketsByRole } from "../../utils/barrel";
 
 export const CompaniesView: React.FC = () => {
-  const { data, activeRole, currentUser, updateCompany, addToast } = useTicketStore();
+  const { data, activeRole, currentUser, updateCompany, deleteCompany, addToast } = useTicketStore();
   const navigate = useNavigate();
   const { companyId: activeCompanyId } = useParams<{ companyId: string }>();
 
@@ -17,6 +17,7 @@ export const CompaniesView: React.FC = () => {
   );
   const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id, roleCompanies.map((company) => company.id));
   const selectedCompany = roleCompanies.find((c) => c.id === activeCompanyId);
+  const openTickets = roleTickets.filter((ticket) => ticket.status !== "Resolved" && ticket.status !== "Closed");
 
   const handleUpdateCompany = (
     updates: Partial<import("../../types/barrel").Company>,
@@ -25,6 +26,18 @@ export const CompaniesView: React.FC = () => {
       updateCompany(activeCompanyId, updates);
       addToast("Company changes saved", "success");
     }
+  };
+
+  const handleDeleteCompany = (permanent: boolean) => {
+    if (!activeCompanyId) return;
+    if (permanent) {
+      deleteCompany(activeCompanyId);
+      addToast("Company and related tickets permanently deleted.", "success");
+      navigate("/companies");
+      return;
+    }
+    updateCompany(activeCompanyId, { status: "Inactive" });
+    addToast("Company marked inactive.", "success");
   };
 
   return (
@@ -38,16 +51,22 @@ export const CompaniesView: React.FC = () => {
       ) : <>
         {selectedCompany && <>
           <CompanyDetailHero
+            key={selectedCompany.id}
             company={selectedCompany}
             canEdit={activeRole === "operations_manager" || activeRole === "management"}
-            onBack={() => navigate("/companies")}
             onUpdateCompany={handleUpdateCompany}
-            tickets={roleTickets.filter((ticket) => ticket.companyId === selectedCompany.id && !["Resolved", "Closed"].includes(ticket.status))}
+            onDeleteCompany={handleDeleteCompany}
+            tickets={roleTickets.filter((ticket) => ticket.companyId === selectedCompany.id)}
+            relatedTicketCount={data.tickets.filter((ticket) => ticket.companyId === selectedCompany.id).length}
             onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
+            services={data.services}
+            companies={data.companies}
+            employees={data.employees}
+            onOpenService={(serviceId) => navigate(`/services/${encodeURIComponent(serviceId)}?tab=contracts`)}
           />
         </>}
         <div hidden={Boolean(activeCompanyId)}><CompanyTable
-          companies={roleCompanies}
+          companies={roleCompanies.map((company) => ({ ...company, activeTickets: openTickets.filter((ticket) => ticket.companyId === company.id).length }))}
           onViewCompany={(id) => navigate(`/companies/${encodeURIComponent(id)}`)}
           onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/companies/new") : undefined}
         /></div>

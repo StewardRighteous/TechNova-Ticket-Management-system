@@ -15,7 +15,7 @@ export const StaffAvatar: React.FC<StaffAvatarProps> = ({
   fallbackClassName = "text-[17px]",
 }) => {
   const [hasError, setHasError] = useState(false);
-  const isImage = src.startsWith("http") || src.startsWith("/");
+  const isImage = src.startsWith("http") || src.startsWith("/") || src.startsWith("data:image/");
 
   if (!isImage || hasError) {
     return (

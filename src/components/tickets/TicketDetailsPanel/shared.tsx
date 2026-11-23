@@ -1,4 +1,6 @@
 import React from "react";
+import { SelectDropdown } from "../../common/SelectDropdown";
+
 export const fieldClass =
   "w-full rounded-lg border border-indigo-500 bg-white px-3 py-2 text-xs text-slate-800 shadow-sm outline-none focus:ring-2 focus:ring-indigo-500";
 export const readOnlyFieldClass =
@@ -84,22 +86,7 @@ export const Select: React.FC<{
     );
   }
 
-  return (
-    <label className="text-xs font-semibold text-slate-600">
-      {label}
-      <select
-        className={`${fieldClass} mt-1`}
-        value={value}
-        onChange={(e) => set(e.target.value)}
-      >
-        {options.map(([key, text]) => (
-          <option key={key} value={key}>
-            {text}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+  return <SelectDropdown label={label} value={value} onChange={set} options={options.map(([key, text]) => ({ value: key, label: text }))} className="mt-1" />;
 };
 
 export const Read: React.FC<{ label: string; value: string }> = ({

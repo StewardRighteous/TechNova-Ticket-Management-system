@@ -3,21 +3,28 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeDetailHero } from "./EmployeeDetailHero";
-import { filterEmployeesByRole, filterTicketsByRole } from "../../utils/barrel";
+import { filterEmployeesByRole, filterTicketsByRole, ROLE_PERMISSIONS } from "../../utils/barrel";
 
 export const EmployeesView: React.FC = () => {
-  const { data, activeRole, updateEmployee, addToast } = useTicketStore();
+  const { data, activeRole, currentUser, updateEmployee, deleteEmployee, addToast } = useTicketStore();
   const navigate = useNavigate();
   const { employeeId: activeEmployeeId } = useParams<{ employeeId: string }>();
 
   const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
-  const roleTickets = filterTicketsByRole(data.tickets, activeRole, data.employees.find((employee) => employee.role === activeRole)?.id);
+  const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
   const selectedEmployee = roleEmployees.find((e) => e.id === activeEmployeeId);
 
   const handleUpdateEmployee = (
     updates: Partial<import("../../types/barrel").Employee>,
   ) => {
     if (activeEmployeeId) { updateEmployee(activeEmployeeId, updates); addToast("Employee changes saved", "success"); }
+  };
+
+  const handleDeleteEmployee = () => {
+    if (!activeEmployeeId) return;
+    deleteEmployee(activeEmployeeId);
+    addToast("Employee deleted and active tickets unassigned.", "success");
+    navigate("/employees");
   };
 
   return (
@@ -31,13 +38,18 @@ export const EmployeesView: React.FC = () => {
       ) : <>
         {selectedEmployee && <>
           <EmployeeDetailHero
+            key={selectedEmployee.id}
             employee={selectedEmployee}
             tickets={roleTickets.filter((ticket) => ticket.assignedToId === selectedEmployee?.id && !["Resolved", "Closed"].includes(ticket.status))}
             teams={data.teams}
             departments={data.departments}
             locations={data.locations}
-            onBack={() => navigate("/employees")}
+            roles={data.roles}
+            services={data.services}
+            canEdit={ROLE_PERMISSIONS[activeRole].canManageTeam}
+            isCurrentUser={selectedEmployee.id === currentUser?.id}
             onUpdateEmployee={handleUpdateEmployee}
+            onDeleteEmployee={handleDeleteEmployee}
             onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>}

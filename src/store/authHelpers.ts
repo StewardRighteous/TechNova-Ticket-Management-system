@@ -5,7 +5,7 @@ export function authenticateByEmail(
   employees: Employee[]
 ): Employee | null {
   return employees.find(
-    (e) => e.email.toLowerCase() === email.trim().toLowerCase()
+    (e) => e.accountStatus !== "Disabled" && e.email.toLowerCase() === email.trim().toLowerCase()
   ) || null;
 }
 

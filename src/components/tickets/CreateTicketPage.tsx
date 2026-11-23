@@ -5,10 +5,11 @@ import { useTicketStore } from "../../store/barrel";
 import type { Attachment, CustomerContact, InboundChannel, Ticket, TicketDiagnosticData, TicketPriority } from "../../types/barrel";
 import { FormField, formControlClassName } from "../common/barrel";
 import { ChannelSelector } from "../common/modals/ChannelSelector";
+import { formatSupportDeadline, isEligibleAssignee, ticketPriorities } from "../../utils/supportPolicy";
 
 type IncidentCategory = "Technical/Bug" | "Login" | "Billing" | "Feature Request";
 const DRAFT_KEY = "technova.ticket-intake-draft";
-type IntakeDraft = { step?: 1 | 2; channel: InboundChannel; companyId: string; contactId: string; companySearch: string; title: string; serviceId: string; assigneeId: string; priority: TicketPriority | ""; category: IncidentCategory; description: string; initialNote: string; diagnostics: TicketDiagnosticData; categoryValue: string; attachments: Attachment[] };
+type IntakeDraft = { step?: 1 | 2; channel: InboundChannel; companyId: string; contactId: string; title: string; serviceId: string; assigneeId: string; supportSite?: string; priority: TicketPriority | ""; category: IncidentCategory; description: string; initialNote: string; diagnostics: TicketDiagnosticData; categoryValue: string; attachments: Attachment[] };
 
 interface TicketComboboxProps {
   label: string;
@@ -18,9 +19,10 @@ interface TicketComboboxProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   required?: boolean;
+  info?: string;
 }
 
-const TicketCombobox: React.FC<TicketComboboxProps> = ({ label, value, options, placeholder, onChange, disabled = false, required = false }) => {
+const TicketCombobox: React.FC<TicketComboboxProps> = ({ label, value, options, placeholder, onChange, disabled = false, required = false, info }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,7 @@ const TicketCombobox: React.FC<TicketComboboxProps> = ({ label, value, options, 
   }, [open]);
 
   return <div ref={containerRef} className="relative min-w-0">
-    <span className="mb-1.5 block text-sm font-semibold text-slate-700">{label}</span>
+    <span className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">{label}{required && <span className="text-red-600" aria-hidden="true">*</span>}{info && <span className="group relative inline-flex"><button type="button" aria-label={`${label} information`} className="material-symbols-outlined rounded-full text-[15px] text-slate-500 hover:text-brand-indigo focus:outline-none focus:ring-2 focus:ring-brand-indigo" title={info}>info</button><span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs font-normal text-white group-hover:block group-focus-within:block">{info}</span></span>}</span>
     <input type="hidden" value={value} required={required} disabled={disabled} aria-label={label} />
     <button ref={buttonRef} type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open} onClick={() => { setOpen((current) => !current); setQuery(""); }} className={`${formControlClassName} flex items-center justify-between text-left disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400`}>
       <span className={selectedLabel ? "truncate" : "truncate text-slate-400"}>{selectedLabel || placeholder}</span>
@@ -91,10 +93,10 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
   const [channel, setChannel] = useState<InboundChannel>(draft.channel || "whatsapp");
   const [companyId, setCompanyId] = useState(draft.companyId || "");
   const [contactId, setContactId] = useState(draft.contactId || "");
-  const [companySearch, setCompanySearch] = useState(draft.companySearch || "");
   const [title, setTitle] = useState(draft.title || "");
   const [serviceId, setServiceId] = useState(draft.serviceId || "");
   const [assigneeId, setAssigneeId] = useState(draft.assigneeId || "");
+  const [supportSite, setSupportSite] = useState(draft.supportSite || "");
   const [priority, setPriority] = useState<TicketPriority | "">(draft.priority || "");
   const [category, setCategory] = useState<IncidentCategory>(draft.category || "Technical/Bug");
   const [description, setDescription] = useState(draft.description || "");
@@ -106,11 +108,14 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [savedTicket, setSavedTicket] = useState<Ticket | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [attemptedContinue, setAttemptedContinue] = useState(false);
+  const [attemptedCreate, setAttemptedCreate] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const hasDraftData = Boolean(channel !== "whatsapp" || category !== "Technical/Bug" || title || companyId || contactId || companySearch || serviceId || assigneeId || priority || description || initialNote || attachments.length || categoryValue || diagnostics.errorMessage || diagnostics.errorCode || diagnostics.stepsToReproduce);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const hasDraftData = Boolean(channel !== "whatsapp" || category !== "Technical/Bug" || title || companyId || contactId || serviceId || assigneeId || priority || description || initialNote || attachments.length || categoryValue || diagnostics.errorMessage || diagnostics.errorCode || diagnostics.stepsToReproduce);
   useEffect(() => {
-    if (hasDraftData) sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ step, channel, companyId, contactId, companySearch, title, serviceId, assigneeId, priority, category, description, initialNote, diagnostics, categoryValue, attachments } satisfies IntakeDraft));
-  }, [hasDraftData, step, channel, companyId, contactId, companySearch, title, serviceId, assigneeId, priority, category, description, initialNote, diagnostics, categoryValue, attachments]);
+    if (hasDraftData) sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ step, channel, companyId, contactId, title, serviceId, assigneeId, supportSite, priority, category, description, initialNote, diagnostics, categoryValue, attachments } satisfies IntakeDraft));
+  }, [hasDraftData, step, channel, companyId, contactId, title, serviceId, assigneeId, supportSite, priority, category, description, initialNote, diagnostics, categoryValue, attachments]);
   useEffect(() => { headingRef.current?.focus({ preventScroll: true }); window.scrollTo(0, 0); }, [step]);
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => { if (hasDraftData) { event.preventDefault(); event.returnValue = ""; } };
@@ -121,10 +126,19 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
 
   const company = data.companies.find((item) => item.id === companyId);
   const service = data.services.find((item) => item.id === serviceId);
-  const assignee = data.employees.find((item) => item.id === assigneeId);
-  const matchingCompanies = data.companies.filter((item) =>
-    `${item.name} ${item.code} ${item.contactName} ${item.contactEmail} ${(item.contacts || []).map((contact) => `${contact.name} ${contact.email}`).join(" ")}`.toLowerCase().includes(companySearch.trim().toLowerCase()),
-  );
+  const eligibleAssignees = data.employees.filter((item) => isEligibleAssignee(item, serviceId));
+  const assignee = eligibleAssignees.find((item) => item.id === assigneeId);
+  const activeLoad = new Map<string, number>();
+  for (const ticket of data.tickets) {
+    if (ticket.status !== "Resolved" && ticket.status !== "Closed") {
+      activeLoad.set(ticket.assignedToId, (activeLoad.get(ticket.assignedToId) ?? 0) + 1);
+    }
+  }
+  const assigneeScore = (item: typeof eligibleAssignees[number]) =>
+    Number(item.status === "Available" && (activeLoad.get(item.id) ?? 0) < item.capacityMax) * 2
+      + Number(Boolean(service?.defaultTeamId && item.teamId === service.defaultTeamId));
+  eligibleAssignees.sort((a, b) => assigneeScore(b) - assigneeScore(a));
+  const matchingCompanies = data.companies;
   const contacts: CustomerContact[] = company?.contacts?.length ? company.contacts : company ? [{ id: `legacy-${company.id}`, name: company.contactName, email: company.contactEmail, phone: company.contactPhone }] : [];
 
   const updateDiagnostic = (key: keyof TicketDiagnosticData, value: string | number) =>
@@ -149,6 +163,8 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     if (submitting || savedTicket) return;
+    setAttemptedCreate(true);
+    if (!description.trim()) return;
     const selectedContact = contacts.find((contact) => contact.id === contactId);
     if (!company || !selectedContact || !service || !assignee || !priority || !title.trim() || !description.trim()) return;
     const finalDiagnostics = { ...diagnostics };
@@ -163,8 +179,8 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
       channelIdentifier: `${channel.toUpperCase()} Inbound #${Math.floor(1000 + Math.random() * 9000)}`,
       clientContact: selectedContact.name, assignedToId: assignee.id,
       assignedToName: assignee.name, assignedToRole: assignee.roleTitle, currentStageRole: assignee.role,
-      slaDeadline: priority.includes("P1") ? "1h remaining" : "4h remaining",
-      slaRisk: priority.includes("P1") ? "At Risk" : "On Target", tags: [category, service.name.split(" ")[0], priority.split(" ")[0]],
+      supportSite: company.supportSites?.includes(supportSite) ? supportSite : undefined,
+      tags: [category, service.name.split(" ")[0], priority.split(" ")[0]],
       attachments, diagnosticData: finalDiagnostics, systemRevision: data.companyInfo.version,
       environment: "Production Cloud Cluster", initialNote: initialNote.trim() || `Ticket intake processed via omnichannel ${channel.toUpperCase()} dispatch [Category: ${category}].`,
     });
@@ -208,7 +224,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
         <section aria-labelledby="ticket-details-heading">
           <h2 id="ticket-details-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Details</h2>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[['Company', `${savedTicket.companyName} (${savedTicket.companyCode})`], ['Customer contact', savedTicket.clientContact], ['Service', savedTicket.serviceName], ['Priority', savedTicket.priority], ['Channel', channelLabel], ['Assigned to', `${savedTicket.assignedToName} · ${savedTicket.assignedToRole}`], ['SLA', `${savedTicket.slaDeadline} · ${savedTicket.slaRisk}`], ['Channel reference', savedTicket.channelIdentifier], ['Attachments', `${savedTicket.attachments?.length || 0} image${savedTicket.attachments?.length === 1 ? "" : "s"}`]].map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 px-3 py-2.5"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd></div>)}
+            {[['Company', `${savedTicket.companyName} (${savedTicket.companyCode})`], ['Customer contact', savedTicket.clientContact], ['Service', savedTicket.serviceName], ['Priority', savedTicket.priority], ['Channel', channelLabel], ['Assigned to', `${savedTicket.assignedToName} · ${savedTicket.assignedToRole}`], ...(savedTicket.firstResponseDueAt ? [['First response due', formatSupportDeadline(savedTicket.firstResponseDueAt)]] : []), ...(savedTicket.dueAt ? [['Resolution due', formatSupportDeadline(savedTicket.dueAt)]] : []), ['Channel reference', savedTicket.channelIdentifier], ['Attachments', `${savedTicket.attachments?.length || 0} image${savedTicket.attachments?.length === 1 ? "" : "s"}`]].map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 px-3 py-2.5"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd></div>)}
           </dl>
         </section>
 
@@ -238,29 +254,38 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
 
       {step === 1 ? <div className="grid gap-x-4 gap-y-3 lg:grid-cols-2">
         <ChannelSelector channel={channel} setChannel={setChannel} />
-        <FormField label="Ticket title · required"><input className={formControlClassName} required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField>
-        <div><TicketCombobox label="Company · required" value={companyId} onChange={(value) => { setCompanyId(value); setContactId(""); }} options={matchingCompanies.map((item) => ({ value: item.id, label: `${item.name} (${item.code})` }))} placeholder="Select a company" required />{companySearch.trim() && matchingCompanies.length === 0 && <p className="mt-1 text-sm text-amber-700" role="status">No matching company or contact. Try another name, email, or company code.</p>}<details className="group mt-2"><summary className="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-brand-indigo underline decoration-slate-300 underline-offset-4">Find by name, email, or code <span aria-hidden="true">⌄</span></summary><div className="mt-2"><FormField label="Search company or contact"><input className={formControlClassName} value={companySearch} onChange={(event) => { setCompanySearch(event.target.value); setCompanyId(""); setContactId(""); }} placeholder="Name, email, or company code" /></FormField></div></details></div>
-        <TicketCombobox label="Customer contact · required" value={contactId} onChange={setContactId} options={contacts.map((contact) => ({ value: contact.id, label: `${contact.name} · ${contact.email}` }))} placeholder={company ? "Select a contact" : "Choose a company first"} disabled={!company} required />
-        <div><TicketCombobox label="Priority · required" value={priority} onChange={(value) => setPriority(value as TicketPriority | "")} options={["P1 Urgent", "P2 Normal", "P3 Low", "P4 Trivial"].map((item) => ({ value: item, label: item }))} placeholder="Select priority" required /><p className="mt-1 text-xs text-slate-500">P1 is reserved for critical incidents.</p></div>
-        <TicketCombobox label="Service · required" value={serviceId} onChange={setServiceId} options={data.services.map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a service" required />
-        <div><TicketCombobox label="Assign to · required" value={assigneeId} onChange={setAssigneeId} options={data.employees.map((item) => ({ value: item.id, label: `${item.name} · ${item.roleTitle}` }))} placeholder="Select an owner" required />{assignee && <p className="mt-1 text-xs text-slate-600">Assigned to <strong>{assignee.name}</strong> ({assignee.roleTitle}).</p>}</div>
+        <FormField label="Ticket title *"><input className={formControlClassName} required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField>
+        <div><TicketCombobox label="Company" value={companyId} onChange={(value) => { setCompanyId(value); setContactId(""); setSupportSite(""); }} options={matchingCompanies.map((item) => ({ value: item.id, label: `${item.name} (${item.code})` }))} placeholder="Select a company" required /></div>
+        <TicketCombobox label="Customer contact" value={contactId} onChange={setContactId} options={contacts.map((contact) => ({ value: contact.id, label: `${contact.name} · ${contact.email}` }))} placeholder={company ? "Select a contact" : "Choose a company first"} disabled={!company} required />
+        <TicketCombobox label="Priority" value={priority} onChange={(value) => setPriority(value as TicketPriority | "")} options={ticketPriorities.map((item) => ({ value: item, label: item }))} placeholder="Select priority" required info="P1 is reserved for critical incidents." />
+        <TicketCombobox label="Service" value={serviceId} onChange={(value) => {
+          setServiceId(value);
+          if (assignee && !isEligibleAssignee(assignee, value)) setAssigneeId("");
+        }} options={data.services.map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a service" required />
+        <TicketCombobox label="Assign to" value={assignee?.id ?? ""} onChange={setAssigneeId} options={eligibleAssignees.map((item) => ({
+          value: item.id,
+          label: `${item.name} · ${item.status} · ${activeLoad.get(item.id) ?? 0}/${item.capacityMax}`,
+        }))} placeholder="Select an owner" required />
+        {!!company?.supportSites?.length && <TicketCombobox label="Affected site or tenant" value={supportSite} onChange={setSupportSite} options={[
+          { value: "", label: "Unspecified" }, ...company.supportSites.map((site) => ({ value: site, label: site })),
+        ]} placeholder="Select a site or tenant" />}
       </div> : <div className="space-y-3">
         <div className="grid gap-3 lg:grid-cols-2"><TicketCombobox label="Incident category" value={category} onChange={(value) => { setCategory(value as IncidentCategory); setCategoryValue(""); }} options={["Technical/Bug", "Login", "Billing", "Feature Request"].map((item) => ({ value: item, label: item }))} placeholder="Select a category" />
           {category === "Technical/Bug" ? <FormField label="Error message"><input className={formControlClassName} value={diagnostics.errorMessage || ""} onChange={(event) => updateDiagnostic("errorMessage", event.target.value)} /></FormField> : <FormField label={category === "Billing" ? "Invoice or transaction ID" : category === "Login" ? "Affected account or username" : "Business impact and justification"}><input className={formControlClassName} value={categoryValue} onChange={(event) => setCategoryValue(event.target.value)} /></FormField>}</div>
         {category === "Technical/Bug" && <div className="grid gap-3 lg:grid-cols-2"><FormField label="Error code"><input className={formControlClassName} value={diagnostics.errorCode || ""} onChange={(event) => updateDiagnostic("errorCode", event.target.value)} /></FormField><FormField label="Cluster / server node"><input className={formControlClassName} value={diagnostics.clusterNode || ""} onChange={(event) => updateDiagnostic("clusterNode", event.target.value)} /></FormField><div className="lg:col-span-2"><FormField label="Steps to reproduce"><textarea className={formControlClassName} rows={2} value={diagnostics.stepsToReproduce || ""} onChange={(event) => updateDiagnostic("stepsToReproduce", event.target.value)} /></FormField></div></div>}
-        <FormField label="Problem description · required"><textarea className={formControlClassName} required rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe symptoms, impacted users, and relevant logs" /></FormField>
-        <div className="grid gap-3 lg:grid-cols-2"><FormField label="Files (optional)"><input className="block w-full text-sm text-slate-600" type="file" multiple onChange={handleAttachments} /><p className="mt-1 text-xs text-slate-500">Any file type, up to 5 MB per file.</p></FormField><FormField label="Internal note (optional)"><input className={formControlClassName} value={initialNote} onChange={(event) => setInitialNote(event.target.value)} /></FormField></div>
+        <label className="block space-y-1.5 text-[15px] font-semibold text-[#384b68]"> <span>Problem description <span className="text-red-600">*</span></span><textarea className={formControlClassName} rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe symptoms, impacted users, and relevant logs" /></label>
+        <div className="grid gap-3 lg:grid-cols-2"><div><div className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">Files (optional)<span className="group relative inline-flex"><button type="button" aria-label="File upload information" className="material-symbols-outlined rounded-full text-[15px] text-slate-500 hover:text-brand-indigo focus:outline-none focus:ring-2 focus:ring-brand-indigo" title="Any file type, up to 5 MB per file.">info</button><span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs font-normal text-white group-hover:block group-focus-within:block">Any file type, up to 5 MB per file.</span></span></div><input ref={attachmentInputRef} className="sr-only" type="file" multiple onChange={handleAttachments} /><button type="button" onClick={() => attachmentInputRef.current?.click()} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"><span className="material-symbols-outlined text-[18px]" aria-hidden="true">upload</span>Upload file</button></div><FormField label="Internal note (optional)"><input className={formControlClassName} value={initialNote} onChange={(event) => setInitialNote(event.target.value)} /></FormField></div>
         {attachmentError && <p role="alert" className="text-sm text-amber-800">{attachmentError}</p>}
         {attachmentsLoading && <p role="status" className="text-sm text-slate-600" aria-live="polite">Reading selected images…</p>}
         {attachments.length > 0 && <ul className="space-y-1 text-xs text-slate-600">{attachments.map((item) => <li key={item.id} className="flex justify-between">{item.name}<button type="button" onClick={() => setAttachments((current) => current.filter((attachment) => attachment.id !== item.id))} className="text-red-600">Remove</button></li>)}</ul>}
       </div>}
 
-      <footer className="flex flex-wrap items-end justify-between gap-3 border-t border-slate-100 pt-3">
-        <button type="button" onClick={step === 1 ? leaveIntake : () => setStep(1)} className="rounded-lg border border-brand-indigo px-4 py-2 text-sm font-semibold text-brand-indigo">{step === 1 ? "Cancel" : "Back"}</button>
-        <div className="flex flex-col items-end gap-2">
-          {step === 1 && !detailsValid && <p className="text-right text-xs text-amber-800" role="status">Complete the title, company, contact, priority, service, and owner to continue.</p>}
-          {step === 2 && !description.trim() && <p className="text-right text-xs text-amber-800" role="status">Add a problem description to create this ticket.</p>}
-          {step === 1 ? <button type="button" disabled={!detailsValid} onClick={() => setStep(2)} className="rounded-lg bg-brand-indigo px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Continue to diagnostics <span aria-hidden="true">→</span></button> : <button type="submit" disabled={submitting || attachmentsLoading || !description.trim() || !detailsValid} className="rounded-lg bg-brand-indigo px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Saving ticket…" : "Create ticket"}</button>}
+      <footer className="flex flex-col items-end gap-2 border-t border-slate-100 pt-3">
+        {step === 1 && attemptedContinue && !detailsValid && <p className="text-right text-xs text-amber-800" role="status">Complete all fields marked * to continue.</p>}
+        {step === 2 && attemptedCreate && !description.trim() && <p className="text-right text-xs text-amber-800" role="status">Add a problem description to create this ticket.</p>}
+        <div className="flex w-full justify-end gap-2">
+          <button type="button" onClick={step === 1 ? leaveIntake : () => setStep(1)} className="rounded-lg border border-brand-indigo px-4 py-2 text-sm font-semibold text-brand-indigo">{step === 1 ? "Cancel" : "Back"}</button>
+          {step === 1 ? <button type="button" onClick={() => { if (!detailsValid) { setAttemptedContinue(true); return; } setAttemptedContinue(false); setStep(2); }} className="rounded-lg bg-brand-indigo px-5 py-2 text-sm font-semibold text-white">Continue to diagnostics <span aria-hidden="true">→</span></button> : <button type="submit" disabled={submitting || attachmentsLoading || !detailsValid} className="rounded-lg bg-brand-indigo px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Saving ticket…" : "Create ticket"}</button>}
         </div>
       </footer>
     </form>

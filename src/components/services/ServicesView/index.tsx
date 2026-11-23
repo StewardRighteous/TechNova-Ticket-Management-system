@@ -6,15 +6,21 @@ import { ServiceDetailHero } from '../ServiceDetailHero';
 import { filterTicketsByRole } from '../../../utils/rolePermissions';
 
 export const ServicesView: React.FC = () => {
-  const { data, activeRole, currentUser, updateService } = useTicketStore();
+  const { data, activeRole, currentUser, updateService, deleteService } = useTicketStore();
   const navigate = useNavigate();
   const { serviceId: activeServiceId } = useParams<{ serviceId: string }>();
   const [tableState, setTableState] = useState({ page: 1, pageSize: 10, search: '', departmentFilter: [] as string[], statusFilter: [] as string[] });
 
   const selectedService = data.services.find((s) => s.id === activeServiceId);
   const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
+  const openTickets = roleTickets.filter((ticket) => ticket.status !== "Resolved" && ticket.status !== "Closed");
 
   const handleUpdateService = (updates: Partial<import('../../../types/barrel').ServiceLine>) => { if (activeServiceId) updateService(activeServiceId, updates); };
+  const handleDeleteService = () => {
+    if (!activeServiceId) return;
+    deleteService(activeServiceId);
+    navigate("/services");
+  };
 
   return (
     <div className="space-y-4 p-2">
@@ -27,16 +33,23 @@ export const ServicesView: React.FC = () => {
       ) : <>
         {selectedService && <>
           <ServiceDetailHero
+          key={selectedService.id}
           service={selectedService}
           canEdit={activeRole === "operations_manager" || activeRole === "management"}
           tickets={roleTickets}
           companies={data.companies}
+          services={data.services}
+          departments={data.departments}
+          employees={data.employees}
+          teams={data.teams}
           onUpdateService={handleUpdateService}
+          onDeleteService={handleDeleteService}
           onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>}
         <div hidden={Boolean(activeServiceId)}><ServiceTable
-          services={data.services}
+          services={data.services.map((service) => ({ ...service, activeTickets: openTickets.filter((ticket) => ticket.serviceId === service.id).length }))}
+          employees={data.employees}
           onViewService={(id) => navigate(`/services/${encodeURIComponent(id)}`)}
           onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/services/new") : undefined}
           initialPage={tableState.page}

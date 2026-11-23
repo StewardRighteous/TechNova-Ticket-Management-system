@@ -186,10 +186,12 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             options={companies.map((item) => [item.id, item.name])}
             set={(v) => {
               const nextCompany = companies.find((item) => item.id === v);
-              const nextContact = nextCompany?.contacts?.[0];
+              const nextContact = nextCompany?.contacts?.find((contact) => contact.id === nextCompany.primaryContactId)
+                ?? nextCompany?.contacts?.[0];
               set("companyId", v);
               set("contactId", nextContact?.id ?? (nextCompany ? `legacy-${nextCompany.id}` : undefined));
               set("clientContact", nextContact?.name ?? nextCompany?.contactName ?? "");
+              set("supportSite", undefined);
             }}
             readonly={readonly}
           />
@@ -212,6 +214,13 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             readonly={readonly}
           />
           <Read label="Assigned to" value={`${ticket.assignedToName} `} />
+          {(selectedCompany?.supportSites?.length || draft.supportSite) && <Select
+            label="Affected site or tenant"
+            value={draft.supportSite ?? ""}
+            options={[["", "Unspecified"], ...[...new Set([...(selectedCompany?.supportSites ?? []), ...(draft.supportSite ? [draft.supportSite] : [])])].map((site): [string, string] => [site, site])]}
+            set={(site) => set("supportSite", site || undefined)}
+            readonly={readonly}
+          />}
           <Read
             label="Assigned Person Role"
             value={`${ticket.assignedToRole} `}

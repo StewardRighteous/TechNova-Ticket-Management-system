@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useTicketStore } from "../../store/barrel";
 import { loadWorkspacePreferences, saveWorkspacePreferences, type WorkspacePreferences } from "../../utils/workspacePreferences";
+import { SelectDropdown } from "../common/SelectDropdown";
 
 interface ToggleProps {
   checked: boolean;
@@ -60,9 +61,6 @@ export const SettingsView: React.FC = () => {
     setPreferencesSaved(saveWorkspacePreferences(currentUser?.id, next));
   };
 
-  const selectClass =
-    "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
-
   React.useEffect(() => {
     if (!isResetConfirmOpen) return;
     cancelResetRef.current?.focus();
@@ -112,30 +110,19 @@ export const SettingsView: React.FC = () => {
             title="Default ticket view"
             description="Choose which ticket set opens first when you visit the ticket registry."
           >
-            <select
-              aria-label="Default ticket view"
-              className={selectClass}
-              onChange={(event) => updatePreferences({ ...settings, defaultView: event.target.value as WorkspacePreferences["defaultView"] })}
+            <SelectDropdown
+              label="Default ticket view"
               value={settings.defaultView}
-            >
-              <option value="all">All tickets</option>
-              <option value="mine">My tickets</option>
-              <option value="urgent">Urgent tickets</option>
-            </select>
+              onChange={(value) => updatePreferences({ ...settings, defaultView: value as WorkspacePreferences["defaultView"] })}
+              options={[{ value: "all", label: "All tickets" }, { value: "mine", label: "My tickets" }, { value: "urgent", label: "Urgent tickets" }]}
+              className="w-48"
+            />
           </SettingRow>
           <SettingRow
             title="Refresh interval"
             description="Ticket data is stored in this browser and does not sync with a server. Refresh the page to reload its saved data."
           >
-            <select
-              aria-label="Refresh behavior"
-              className={selectClass}
-              onChange={() => undefined}
-              value="manual"
-              disabled
-            >
-              <option value="manual">Manual only</option>
-            </select>
+            <SelectDropdown label="Refresh behavior" value="manual" onChange={() => undefined} options={[{ value: "manual", label: "Manual only" }]} disabled className="w-48" />
           </SettingRow>
           <SettingRow
             title="Compact layout"
@@ -160,15 +147,7 @@ export const SettingsView: React.FC = () => {
           title="Language"
           description="This demo is currently available in English (US). Language switching is not configured."
         >
-          <select
-            aria-label="Workspace language"
-            className={selectClass}
-            onChange={() => undefined}
-            value="english"
-            disabled
-          >
-            <option value="english">English (US)</option>
-          </select>
+          <SelectDropdown label="Workspace language" value="english" onChange={() => undefined} options={[{ value: "english", label: "English (US)" }]} disabled className="w-48" />
         </SettingRow>
       </section>
 

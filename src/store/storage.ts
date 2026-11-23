@@ -31,12 +31,47 @@ export function clearSessionPersona(): void {
 function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
   return {
     ...state,
+    companies: state.companies.map((company) => {
+      const seedCompany = (initialData as MockupDatabase).companies.find((item) => item.id === company.id);
+      return company.logo || !seedCompany?.logo ? company : { ...company, logo: seedCompany.logo };
+    }),
     employees: state.employees.map((employee) => {
       const seedEmployee = (initialData as MockupDatabase).employees.find((item) => item.id === employee.id);
       const isLegacyAvatar = employee.avatar === "person" || employee.avatar.includes("randomuser.me") || employee.avatar.includes("images.unsplash.com");
-      return isLegacyAvatar && seedEmployee && employee.avatar !== seedEmployee.avatar
-        ? { ...employee, avatar: seedEmployee.avatar }
-        : employee;
+      return {
+        ...employee,
+        ...(seedEmployee ? {
+          dateOfBirth: employee.dateOfBirth ?? seedEmployee.dateOfBirth,
+          gender: employee.gender ?? seedEmployee.gender,
+          personalAddress: employee.personalAddress ?? seedEmployee.personalAddress,
+          employmentType: employee.employmentType ?? seedEmployee.employmentType,
+          hireDate: employee.hireDate ?? seedEmployee.hireDate,
+          managerName: employee.managerName ?? seedEmployee.managerName,
+          timeZone: employee.timeZone ?? seedEmployee.timeZone,
+          supportSchedule: employee.supportSchedule ?? seedEmployee.supportSchedule,
+          emergencyContactName: employee.emergencyContactName ?? seedEmployee.emergencyContactName,
+          emergencyContactPhone: employee.emergencyContactPhone ?? seedEmployee.emergencyContactPhone,
+          bankName: employee.bankName ?? seedEmployee.bankName,
+          accountHolderName: employee.accountHolderName ?? seedEmployee.accountHolderName,
+          accountNumber: employee.accountNumber ?? seedEmployee.accountNumber,
+          routingNumber: employee.routingNumber ?? seedEmployee.routingNumber,
+          taxId: employee.taxId ?? seedEmployee.taxId,
+        } : {}),
+        ...(isLegacyAvatar && seedEmployee && employee.avatar !== seedEmployee.avatar ? { avatar: seedEmployee.avatar } : {}),
+      };
+    }),
+    services: state.services.map((service) => {
+      const seedService = (initialData as MockupDatabase).services.find((item) => item.id === service.id);
+      const previousDescriptions: Record<string, string> = {
+        "srv-1": "Full-stack web application development, microservices, multi-tenant architectures, and scalable API platforms.",
+        "srv-2": "Container orchestration, Kubernetes cluster governance, AWS/GCP architecture, CI/CD pipelines, and high availability systems.",
+        "srv-3": "Enterprise resource planning, CRM integrations, billing engines, automated workflow dispatch, and inventory matrix control.",
+        "srv-4": "Round-the-clock incident response, triage routing, patch releases, security monitoring, and proactive maintenance.",
+        "srv-5": "SOC-2 Type II audit readiness, PCI-DSS ledger verification, security vulnerability scans, and IT architecture advisory.",
+      };
+      return seedService && service.description === previousDescriptions[service.id]
+        ? { ...service, description: seedService.description }
+        : service;
     }),
     tickets: state.tickets.map((ticket) => {
       const company = state.companies.find((item) => item.id === ticket.companyId);
@@ -81,3 +116,4 @@ export function resetStoredState(): MockupDatabase {
   persistState(pristine);
   return pristine;
 }
+

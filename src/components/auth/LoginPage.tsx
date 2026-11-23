@@ -19,35 +19,30 @@ export const LoginPage: React.FC = () => {
 
   return (
     <main className="login-shell min-h-screen bg-white">
-      <div className="grid min-h-screen lg:grid-cols-2">
-        <aside className="relative hidden overflow-hidden bg-[#1d1e49] px-4 py-8 text-white lg:flex lg:flex-col lg:justify-between">
-          <div className="relative z-10 max-w-md pl-10">
-            <div className="flex items-center gap-4">
-              <img
-                src="/technova-logo.svg"
-                alt="TechNova Solutions Pvt. Ltd."
-                className="h-auto w-full max-w-[330px]"
-              />
-            </div>
-            <div className="mt-20 h-1.5 w-28 rounded-full bg-[#ffc23b]" />
-            <h2 className="mt-7 text-5xl leading-[1.08] font-bold tracking-tight">
-              Ticket Management System
-            </h2>
-            <p className="mt-8 max-w-sm text-xl leading-9 text-slate-200">
-              Manage IT support requests and workplace services for TechNova
-              employees.
-            </p>
+      <div className="grid min-h-screen grid-rows-[auto_1fr] lg:grid-cols-2 lg:grid-rows-1">
+        <aside className="relative isolate flex flex-col justify-between overflow-hidden bg-brand-indigo px-6 py-5 text-white lg:px-12 lg:py-10 xl:px-16">
+          <img src="/login-atrium.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-t from-brand-indigo/95 via-brand-indigo/70 via-45% to-brand-indigo/45" />
+          <div className="flex items-center gap-3">
+            <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-blue text-white shadow-sm">
+              <span className="material-symbols-outlined text-[20px]">confirmation_number</span>
+            </span>
+            <span className="text-xl font-bold tracking-tight">TechNova</span>
+          </div>
+          <div className="hidden max-w-lg lg:block">
+            <h2 className="text-5xl leading-[1.04] font-bold tracking-[-0.045em] xl:text-6xl">Ticket Management System</h2>
+            <p className="mt-5 max-w-sm text-base leading-relaxed text-white">Manage IT support requests and workplace services for TechNova employees.</p>
           </div>
         </aside>
 
-        <section className="flex min-h-screen items-center justify-center px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
-          <div className="w-full max-w-[560px]">
+        <section className="flex items-center justify-center px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
+          <div className="w-full max-w-[420px]">
             <header>
               <h1 className="text-3xl font-bold tracking-tight text-[#111536] sm:text-4xl">
-                Employee Sign In
+                Employee sign in
               </h1>
-              <p className="mt-3 text-lg text-slate-600 sm:text-xl">
-                Access the TechNova Ticket Management System
+              <p className="mt-2 text-base text-slate-600">
+                Sign in with your work account.
               </p>
             </header>
             <form onSubmit={submit} className="mt-8 space-y-5">
@@ -73,25 +68,33 @@ export const LoginPage: React.FC = () => {
                   >
                     mail
                   </span>
-                  <span className="pointer-events-none absolute top-1/2 left-12 h-8 w-px -translate-y-1/2 bg-slate-300" />
                   <input
                     id="demo-email"
                     type="email"
+                    autoComplete="username"
                     required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="name@technova.example"
-                    className="h-12 w-full rounded-lg border-2 border-slate-300 bg-white pl-14 pr-12 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-[#10aeb4] focus:ring-4 focus:ring-cyan-100"
+                    className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/60 pl-12 pr-12 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-[#10aeb4] focus:ring-4 focus:ring-cyan-100"
                   />
                 </div>
               </div>
               <div>
-                <label
-                  htmlFor="demo-password"
-                  className="mb-1.5 block text-sm font-bold text-[#111536]"
-                >
-                  Password
-                </label>
+                <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                  <label htmlFor="demo-password" className="text-sm font-bold text-[#111536]">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setError("Please contact support to reset your password.")
+                    }
+                    className="text-xs font-semibold text-indigo-700 hover:underline"
+                  >
+                    Reset password
+                  </button>
+                </div>
                 <div className="relative">
                   <span
                     aria-hidden="true"
@@ -99,14 +102,14 @@ export const LoginPage: React.FC = () => {
                   >
                     lock
                   </span>
-                  <span className="pointer-events-none absolute top-1/2 left-12 h-8 w-px -translate-y-1/2 bg-slate-300" />
                   <input
                     id="demo-password"
+                    autoComplete="current-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
-                    className="h-12 w-full rounded-lg border-2 border-slate-300 bg-white pl-14 pr-12 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-[#10aeb4] focus:ring-4 focus:ring-cyan-100"
+                    className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/60 pl-12 pr-12 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-[#10aeb4] focus:ring-4 focus:ring-cyan-100"
                   />
                   <button
                     type="button"
@@ -124,28 +127,19 @@ export const LoginPage: React.FC = () => {
               </div>
               <button
                 type="submit"
-                className="flex h-12 w-full items-center justify-center rounded-lg bg-[#08a9af] text-base font-bold text-white shadow-md transition hover:bg-[#078f98] focus-visible:ring-4 focus-visible:ring-cyan-200 focus-visible:outline-none"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#116b72] text-base font-bold text-white shadow-md transition hover:bg-[#10565e] focus-visible:ring-4 focus-visible:ring-cyan-200 focus-visible:outline-none"
               >
-                Sign in
+                Sign in <span aria-hidden="true" className="material-symbols-outlined text-lg">arrow_forward</span>
               </button>
             </form>
-            <button
-              type="button"
-              onClick={() =>
-                setError("Please contact support to reset your password.")
-              }
-              className="mx-auto mt-6 block text-base font-semibold text-[#63338e] underline decoration-2 underline-offset-4 hover:text-[#111536]"
-            >
-              Reset password
-            </button>
-            <p className="mt-8 flex items-center justify-center gap-3 text-base text-slate-600">
+            <p className="mt-8 flex items-center justify-center gap-3 text-sm text-slate-500">
               <span
                 aria-hidden="true"
                 className="material-symbols-outlined text-[20px]"
               >
                 lock
               </span>
-              Only internal TechNova employees.
+              For TechNova employees only.
             </p>
             <footer className="mt-6 flex items-center justify-center gap-7 border-t border-slate-200 pt-4 text-sm text-[#3269a8]">
               <button

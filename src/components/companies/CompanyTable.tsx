@@ -2,6 +2,15 @@ import React, { useState } from "react";
 import type { Company } from "../../types/barrel";
 import { ComboboxFilter, NumericPagination, TableSearch } from "../common/barrel";
 
+const companyMarks: Record<string, string> = {
+  "comp-1": "apex",
+  "comp-2": "cloudscale",
+  "comp-3": "nexabio",
+  "comp-4": "omnilogistics",
+  "comp-5": "zenith",
+  "comp-6": "innovatecorp",
+};
+
 interface CompanyTableProps {
   companies: Company[];
   onViewCompany: (companyId: string) => void;
@@ -17,6 +26,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
   const [tierFilter, setTierFilter] = useState<string>("all");
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
 
   const filtered = companies.filter((c) => {
     if (tierFilter !== "all" && c.tier !== tierFilter) return false;
@@ -40,16 +50,8 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold tracking-tight">All Companies</h2>
-            <p className="mt-1 text-xs text-slate-300">Browse and manage customer companies.</p>
-          </div>
-          <div className="rounded-xl border border-blue-400/30 bg-blue-500/15 px-5 py-2 text-center text-blue-200">
-            <div className="text-[10px] font-bold tracking-wide">TOTAL COMPANIES</div>
-            <div className="mt-0.5 text-xl leading-none font-bold">{companies.length}</div>
-          </div>
-        </div>
+        <h2 className="text-lg font-bold tracking-tight">All Companies</h2>
+        <p className="mt-1 text-xs text-slate-300">Browse and manage customer companies.</p>
       </div>
       <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
         <TableSearch id="company-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Filter companies or contacts..." aria-label="Filter companies or contacts" className="min-w-52 max-w-[480px] flex-1" />
@@ -84,14 +86,15 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
             {paginated.map((c) => (
               <tr
                 key={c.id}
-                className="group cursor-pointer transition-colors hover:bg-teal-50/50"
-                onClick={() => onViewCompany(c.id)}
+                className={`group cursor-pointer transition-colors hover:bg-teal-50/50 ${selectedCompanyId === c.id ? "bg-teal-50" : ""}`}
+                onClick={() => setSelectedCompanyId(c.id)}
+                onDoubleClick={() => onViewCompany(c.id)}
               >
                 <td className="px-5 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-xs font-bold text-teal-800">
-                      {c.code.slice(0, 2).toUpperCase()}
-                    </div>
+                    {c.logo && !c.logo.includes("#") ? <img src={c.logo} alt="" className="size-8 shrink-0 rounded object-contain" /> : <svg aria-hidden="true" className="size-8 shrink-0" viewBox="0 0 32 32">
+                      <use href={c.logo ? `/${c.logo}` : `/company-marks.svg#${companyMarks[c.id] ?? "company"}`} />
+                    </svg>}
                     <div>
                       <button type="button" onClick={(event) => { event.stopPropagation(); onViewCompany(c.id); }} className="block text-left font-bold text-slate-900 transition-colors group-hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-600">
                         {c.name}
@@ -152,7 +155,7 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
                   <button
                     type="button"
                     onClick={(event) => { event.stopPropagation(); onViewCompany(c.id); }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-600 hover:text-white"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
                   >
                     <span className="material-symbols-outlined text-[15px]">
                       visibility

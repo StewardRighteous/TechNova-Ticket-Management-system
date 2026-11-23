@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { Employee, Ticket, TicketStatus } from "../../types/barrel";
+import { SelectDropdown } from "../common/SelectDropdown";
 
 interface TicketAssignmentProgressProps {
   ticket: Ticket;
@@ -79,35 +80,13 @@ export const TicketAssignmentProgress: React.FC<
           <div className="flex min-w-70 items-center gap-3">
             <label className="text-xs font-semibold text-slate-600">
               Update Status
-              <select
-                value={ticket.status}
-                onChange={(e) => onStatusChange(e.target.value as TicketStatus)}
-                className="mt-1 block w-70 rounded-lg border border-slate-700 bg-white px-2.5 py-2 text-xs font-bold tracking-normal text-slate-800 normal-case outline-none focus:ring-2 focus:ring-indigo-400"
-              >
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Escalated">Escalated</option>
-                <option value="Under Review">Under Review</option>
-                <option value="Pending QA">Pending QA</option>
-                <option value="Resolved">Resolved</option>
-                <option value="Closed">Closed</option>
-              </select>
+              <SelectDropdown label="Update Status" value={ticket.status} onChange={(value) => onStatusChange(value as TicketStatus)} options={["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"].map((value) => ({ value, label: value }))} className="mt-1 w-70" />
             </label>
           </div>
 
           <label className="text-xs font-semibold text-slate-600">
             Reassign to
-            <select
-              value={assigneeId}
-              onChange={(e) => setAssigneeId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.name} · {employee.roleTitle}
-                </option>
-              ))}
-            </select>
+            <SelectDropdown label="Reassign to" value={assigneeId} onChange={setAssigneeId} options={employees.map((employee) => ({ value: employee.id, label: `${employee.name} · ${employee.roleTitle}` }))} className="mt-1" />
           </label>
           <label className="text-xs font-semibold text-slate-600">
             Note

@@ -24,6 +24,7 @@ export type Draft = Pick<
   | "clientContact"
   | "slaDeadline"
   | "environment"
+  | "supportSite"
   | "systemRevision"
   | "resolutionDetails"
 > & {
