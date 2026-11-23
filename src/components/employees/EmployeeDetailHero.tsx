@@ -9,7 +9,7 @@ import { ticketSlaRisk } from "../../utils/supportPolicy";
 interface EmployeeDetailHeroProps {
   employee: Employee;
   tickets: Ticket[];
-  onUpdateEmployee: (updates: Partial<Employee>) => void;
+  onUpdateEmployee: (updates: Partial<Employee>) => boolean;
   onDeleteEmployee?: () => void;
   onOpenTicket?: (ticketId: string) => void;
   teams?: Team[];
@@ -18,6 +18,8 @@ interface EmployeeDetailHeroProps {
   roles?: { id: RoleId; name: string }[];
   services?: ServiceLine[];
   canEdit?: boolean;
+  canManageEmployment?: boolean;
+  profileOnly?: boolean;
   isCurrentUser?: boolean;
 }
 
@@ -40,6 +42,8 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
   roles = [],
   services = [],
   canEdit = false,
+  canManageEmployment = false,
+  profileOnly = false,
   isCurrentUser = false,
 }) => {
   const [editingBanner, setEditingBanner] = useState(false);
@@ -73,20 +77,22 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
     (!ticketFilters.company.length || ticketFilters.company.includes(ticket.companyName))
   );
   const saveProfile = () => {
-    onUpdateEmployee({
-      role: profileDraft.role,
-      departmentId: profileDraft.departmentId,
-      teamId: profileDraft.teamId,
-      locationId: profileDraft.locationId,
+    const saved = onUpdateEmployee({
+      ...(canManageEmployment ? {
+        role: profileDraft.role,
+        departmentId: profileDraft.departmentId,
+        teamId: profileDraft.teamId,
+        locationId: profileDraft.locationId,
+        supportSchedule: profileDraft.supportSchedule?.trim(),
+        eligibleServiceIds: profileDraft.eligibleServiceIds,
+        employmentType: profileDraft.employmentType?.trim(),
+        hireDate: profileDraft.hireDate?.trim(),
+        managerName: profileDraft.managerName?.trim(),
+      } : {}),
       timeZone: profileDraft.timeZone?.trim(),
-      supportSchedule: profileDraft.supportSchedule?.trim(),
-      eligibleServiceIds: profileDraft.eligibleServiceIds,
       dateOfBirth: profileDraft.dateOfBirth?.trim(),
       gender: profileDraft.gender?.trim(),
       personalAddress: profileDraft.personalAddress?.trim(),
-      employmentType: profileDraft.employmentType?.trim(),
-      hireDate: profileDraft.hireDate?.trim(),
-      managerName: profileDraft.managerName?.trim(),
       emergencyContactName: profileDraft.emergencyContactName?.trim(),
       emergencyContactPhone: profileDraft.emergencyContactPhone?.trim(),
       bankName: profileDraft.bankName?.trim(),
@@ -96,9 +102,12 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
       taxId: profileDraft.taxId?.trim(),
       skills: [...new Set(skillsDraft.split(",").map((skill) => skill.trim()).filter(Boolean))],
     });
-    setEditingProfile(false);
+    if (saved) setEditingProfile(false);
   };
-  const profileField = (label: string, key: keyof Employee, value: string) => <label key={label} className="block text-xs font-semibold text-slate-500">{label}<input aria-label={label} readOnly={!editingProfile} value={value} onChange={(event) => setProfileDraft({ ...profileDraft, [key]: event.target.value })} className={`mt-1 block min-h-10 w-full rounded-md border px-3 py-2 text-sm font-normal text-slate-900 outline-none ${editingProfile ? "border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100" : "border-slate-200 bg-slate-50"}`} /></label>;
+  const profileField = (label: string, key: keyof Employee, value: string, type: "text" | "date" = "text", editable = true) => {
+    const isEditable = editingProfile && editable;
+    return <label key={label} className="block text-xs font-semibold text-slate-500">{label}<input type={type} aria-label={label} readOnly={!isEditable} value={value} onChange={(event) => setProfileDraft({ ...profileDraft, [key]: event.target.value })} className={`mt-1 block min-h-10 w-full rounded-md border px-3 py-2 text-sm font-normal text-slate-900 outline-none ${isEditable ? "border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100" : "border-slate-200 bg-slate-50"}`} /></label>;
+  };
 
   return (
     <div className="space-y-3.5">
@@ -114,7 +123,14 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
               <p className="mt-1 text-xs text-slate-200">{employee.roleTitle}</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2 self-center">{canEdit && <><button type="button" onClick={() => setEditingBanner(true)} className="rounded-lg border border-white/30 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10">Edit details</button><button type="button" onClick={() => onUpdateEmployee({ status: employee.status === "Off Shift" ? "Available" : "Off Shift" })} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${employee.status === "Off Shift" ? "border-teal-200/50 text-teal-100 hover:bg-teal-500/20" : "border-white/30 text-white hover:bg-white/10"}`}>{employee.status === "Off Shift" ? "Set active" : "Set off shift"}</button><button type="button" onClick={() => { setDeleteConfirmation(""); setDeleteDialogOpen(true); }} className="rounded-lg border border-red-300/50 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20">Delete employee</button></>}<button type="button" onClick={() => setWorkspaceTab("tickets")} className="shrink-0 rounded-lg bg-teal-500 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-600">View ticket activity</button></div>
+          <div className="flex flex-wrap items-center justify-end gap-2 self-center">
+            {canEdit && <>
+              <button type="button" onClick={() => setEditingBanner(true)} className="rounded-lg border border-white/30 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10">Edit details</button>
+              <button type="button" onClick={() => onUpdateEmployee({ status: employee.status === "Off Shift" ? "Available" : "Off Shift" })} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${employee.status === "Off Shift" ? "border-teal-200/50 text-teal-100 hover:bg-teal-500/20" : "border-white/30 text-white hover:bg-white/10"}`}>{employee.status === "Off Shift" ? "Set active" : "Set off shift"}</button>
+            </>}
+            {onDeleteEmployee && <button type="button" onClick={() => { setDeleteConfirmation(""); setDeleteDialogOpen(true); }} className="rounded-lg border border-red-300/50 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20">Delete employee</button>}
+            {!profileOnly && <button type="button" onClick={() => setWorkspaceTab("tickets")} className="shrink-0 rounded-lg bg-teal-500 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-600">View ticket activity</button>}
+          </div>
         </div>
         <div className="grid grid-cols-2 border-t border-white/15 sm:grid-cols-4">
           {[
@@ -132,11 +148,11 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
       </section>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div role="tablist" aria-label="Employee workspace" className="flex border-b border-slate-200 px-3 sm:px-4">
+        {!profileOnly && <div role="tablist" aria-label="Employee workspace" className="flex border-b border-slate-200 px-3 sm:px-4">
           {([ ["profile", "Profile & Skills"], ["tickets", "Assigned Tickets"] ] as [WorkspaceTab, string][]).map(([tab, label]) => (
             <button key={tab} type="button" role="tab" aria-selected={workspaceTab === tab} onClick={() => setWorkspaceTab(tab)} className={`border-b-2 px-3 py-3 text-xs font-bold transition-colors sm:px-4 ${workspaceTab === tab ? "border-teal-600 text-teal-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{label}</button>
           ))}
-        </div>
+        </div>}
 
         {workspaceTab === "tickets" ? <div className="p-4 sm:p-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -163,28 +179,27 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
           </div>
         </div> : <div className="p-4 sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-slate-900">Employee details</h2>
+            <h2 className="text-base font-bold text-slate-900">{profileOnly ? "Profile details" : "Employee details"}</h2>
             {canEdit && (editingProfile ? <div className="flex gap-2"><button type="button" onClick={() => { setProfileDraft(employee); setSkillsDraft(employee.skills.join(", ")); setEditingProfile(false); }} className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold">Cancel</button><button type="button" onClick={saveProfile} className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">Save</button></div> : <button type="button" onClick={() => { setProfileDraft(employee); setSkillsDraft(employee.skills.join(", ")); setEditingProfile(true); }} className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold">Edit</button>)}
           </div>
           <div className="space-y-5">
-            <section><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Personal details</h3><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{profileField("Date of birth", "dateOfBirth", profileDraft.dateOfBirth ?? "")}{profileField("Gender", "gender", profileDraft.gender ?? "")}{profileField("Personal address", "personalAddress", profileDraft.personalAddress ?? "")}</div></section>
-            <section className="border-t border-slate-100 pt-4"><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Employment and support</h3><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{editingProfile ? <>
+            <section><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Personal details</h3><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{profileField("Date of birth", "dateOfBirth", profileDraft.dateOfBirth ?? "", "date")}{profileField("Gender", "gender", profileDraft.gender ?? "")}{profileField("Personal address", "personalAddress", profileDraft.personalAddress ?? "")}</div></section>
+            <section className="border-t border-slate-100 pt-4"><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Employment and support</h3><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{editingProfile && canManageEmployment ? <>
               <label className="block text-xs font-semibold text-slate-500">Support role<span className="mt-1 block"><SelectDropdown label="Support role" options={roles.map(({ id, name }) => ({ value: id, label: name }))} value={profileDraft.role} onChange={(value) => setProfileDraft({ ...profileDraft, role: value as RoleId })} /></span></label>
               <label className="block text-xs font-semibold text-slate-500">Department<span className="mt-1 block"><SelectDropdown label="Department" options={departments.map(({ id, name }) => ({ value: id, label: name }))} value={profileDraft.departmentId ?? ""} onChange={(value) => setProfileDraft({ ...profileDraft, departmentId: value })} placeholder="Select a department" /></span></label>
               <label className="block text-xs font-semibold text-slate-500">Team<span className="mt-1 block"><SelectDropdown label="Team" options={teams.map(({ id, name }) => ({ value: id, label: name }))} value={profileDraft.teamId ?? ""} onChange={(value) => setProfileDraft({ ...profileDraft, teamId: value })} placeholder="Select a team" /></span></label>
               <label className="block text-xs font-semibold text-slate-500">Work location<span className="mt-1 block"><SelectDropdown label="Work location" options={locations.map(({ id, name }) => ({ value: id, label: name }))} value={profileDraft.locationId ?? ""} onChange={(value) => setProfileDraft({ ...profileDraft, locationId: value })} placeholder="Select a location" /></span></label>
-            </> : <>{profileField("Support role", "roleTitle", roleName)}{profileField("Department", "departmentId", department)}{profileField("Team", "teamId", team)}{profileField("Work location", "locationId", location)}</>}
-              {profileField("Employment type", "employmentType", profileDraft.employmentType ?? "")}{profileField("Hire date", "hireDate", profileDraft.hireDate ?? "")}{profileField("Manager", "managerName", profileDraft.managerName ?? "")}{profileField("Time zone", "timeZone", profileDraft.timeZone ?? "")}{profileField("Shift or on-call schedule", "supportSchedule", profileDraft.supportSchedule ?? "")}
-              {editingProfile ? <div><ComboboxFilter label="Eligible services" options={services.map(({ id, name }) => ({ value: id, label: name }))} selectedValues={profileDraft.eligibleServiceIds ?? []} onChange={(eligibleServiceIds) => setProfileDraft({ ...profileDraft, eligibleServiceIds })} placeholder="Any service" /></div> : profileField("Eligible services", "roleTitle", eligibleServices.join(", ") || "Any service")}
+            </> : <>{profileField("Support role", "roleTitle", roleName, "text", false)}{profileField("Department", "departmentId", department, "text", false)}{!profileOnly && profileField("Team", "teamId", team, "text", false)}{profileField("Work location", "locationId", location, "text", false)}</>}
+              {profileField("Employment type", "employmentType", profileDraft.employmentType ?? "", "text", canManageEmployment)}{profileField("Hire date", "hireDate", profileDraft.hireDate ?? "", "date", canManageEmployment)}{profileField("Manager", "managerName", profileDraft.managerName ?? "", "text", canManageEmployment)}{profileField("Time zone", "timeZone", profileDraft.timeZone ?? "")}{profileField("Shift or on-call schedule", "supportSchedule", profileDraft.supportSchedule ?? "", "text", canManageEmployment)}
+              {editingProfile && canManageEmployment ? <div><ComboboxFilter label="Eligible services" options={services.map(({ id, name }) => ({ value: id, label: name }))} selectedValues={profileDraft.eligibleServiceIds ?? []} onChange={(eligibleServiceIds) => setProfileDraft({ ...profileDraft, eligibleServiceIds })} placeholder="Any service" /></div> : !profileOnly && profileField("Eligible services", "roleTitle", eligibleServices.join(", ") || "Any service", "text", false)}
               {editingProfile ? <label className="block text-xs font-semibold text-slate-500">Skills<input value={skillsDraft} onChange={(event) => setSkillsDraft(event.target.value)} className="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900" /></label> : profileField("Skills", "roleTitle", employee.skills.join(", "))}</div></section>
             <section className="border-t border-slate-100 pt-4"><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Emergency contact</h3><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{profileField("Contact name", "emergencyContactName", profileDraft.emergencyContactName ?? "")}{profileField("Contact phone", "emergencyContactPhone", profileDraft.emergencyContactPhone ?? "")}</div></section>
             <section className="border-t border-slate-100 pt-4"><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Bank and tax details</h3><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{profileField("Bank name", "bankName", profileDraft.bankName ?? "")}{profileField("Account holder", "accountHolderName", profileDraft.accountHolderName ?? "")}{profileField("Account number", "accountNumber", profileDraft.accountNumber ?? "")}{profileField("Routing number", "routingNumber", profileDraft.routingNumber ?? "")}{profileField("Tax ID", "taxId", profileDraft.taxId ?? "")}</div></section>
           </div>
         </div>}
       </section>
-      {editingBanner && <EmployeeEditDialog employee={employee} teams={teams} onCancel={() => setEditingBanner(false)} onSave={(updates) => {
-        onUpdateEmployee(updates);
-        setEditingBanner(false);
+      {editingBanner && <EmployeeEditDialog employee={employee} teams={teams} canManageEmployment={canManageEmployment} onCancel={() => setEditingBanner(false)} onSave={(updates) => {
+        if (onUpdateEmployee(updates)) setEditingBanner(false);
       }} />}
       {deleteDialogOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDeleteDialogOpen(false); }}><section role="alertdialog" aria-modal="true" aria-labelledby="delete-employee-title" className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-5 shadow-2xl"><h2 id="delete-employee-title" className="text-lg font-bold text-slate-900">Remove {employee.name}?</h2><p className="mt-2 text-sm text-slate-600">You can mark this employee unavailable and keep their account, or permanently delete the employee. Permanently deleting them leaves ticket history intact and unassigns their active tickets.{isCurrentUser ? " The active account cannot be permanently deleted while signed in." : ""}</p><div className="mt-4 space-y-3"><button type="button" onClick={() => { onUpdateEmployee({ status: "Off Shift" }); setDeleteDialogOpen(false); }} className="w-full rounded-lg border border-slate-300 px-4 py-3 text-left hover:bg-slate-50"><span className="block text-sm font-semibold text-slate-900">Mark unavailable</span><span className="mt-1 block text-xs text-slate-600">Keep the account and records; they will not receive new tickets.</span></button><div className="rounded-lg border border-red-200 p-3"><p className="text-sm font-semibold text-red-800">Permanently delete employee</p><label className="mt-2 block text-xs font-medium text-slate-700">Type <strong>{employee.name}</strong> to confirm<input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100" /></label><div className="mt-3 flex justify-end gap-2"><button type="button" onClick={() => setDeleteDialogOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button><button type="button" disabled={isCurrentUser || deleteConfirmation !== employee.name} onClick={onDeleteEmployee} className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50">Permanently delete</button></div></div></div></section></div>}
     </div>

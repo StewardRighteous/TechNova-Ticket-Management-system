@@ -2,9 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useTicketStore } from "../../../../store/barrel";
-import { ROLE_PERMISSIONS, canAccessCompany, canAccessEmployee, canAccessService, canAccessTicket } from "../../../../utils/rolePermissions";
+import { ROLE_PERMISSIONS, canAccessService, canAccessTicket, filterTicketsByRole } from "../../../../utils/rolePermissions";
 import { notificationForViewer } from "../../../../utils/notificationDisplay";
-import { filterTicketsByRole } from "../../../../utils/rolePermissions";
 import { StaffAvatar } from "../../StaffAvatar";
 
 
@@ -69,25 +68,24 @@ export const Header: React.FC = () => {
     data.roles.find((r) => r.id === activeRole) || data.roles[0];
   const activeEmployee = currentUser || data.employees[0];
   const permissions = ROLE_PERMISSIONS[activeRole];
-  const accountCompanyIds = data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id);
   const createPage = location.pathname.match(/^\/(tickets|companies|services|employees)\/new$/);
   const createLabels: Record<string, string> = { tickets: "New ticket", companies: "New company", services: "New service", employees: "New employee" };
   const detailPage = createPage ? null : location.pathname.match(/^\/(tickets|companies|services|employees)\/([^/]+)$/);
   const detailId = detailPage ? decodeURIComponent(detailPage[2]) : "";
   const detailLabels: Record<string, string> = {
-    tickets: (() => { const item = data.tickets.find((entry) => entry.id === detailId); return item && canAccessTicket(item, activeRole, currentUser?.id, accountCompanyIds) ? item.code : "Ticket details"; })(),
-    companies: (() => { const item = data.companies.find((entry) => entry.id === detailId); return item && canAccessCompany(item, activeRole, currentUser?.name) ? item.name : "Company details"; })(),
-    services: (() => { const item = data.services.find((entry) => entry.id === detailId); return item && canAccessService(item, activeRole) ? item.name : "Service details"; })(),
-    employees: (() => { const item = data.employees.find((entry) => entry.id === detailId); return item && canAccessEmployee(item, activeRole) ? item.name : "Employee details"; })(),
+    tickets: data.tickets.find((item) => item.id === detailId && canAccessTicket(item, activeRole, currentUser?.id))?.code || "Ticket details",
+    companies: data.companies.find((item) => item.id === detailId)?.name || "Company details",
+    services: data.services.find((item) => item.id === detailId && currentUser && canAccessService(item, currentUser))?.name || "Service details",
+    employees: (permissions.canManageTeam && data.employees.find((item) => item.id === detailId)?.name) || "Employee details",
   };
   const personaId = currentUser?.id ?? activeRole;
-  const myQueueCount = filterTicketsByRole(data.tickets, activeRole, currentUser?.id, accountCompanyIds)
+  const myQueueCount = filterTicketsByRole(data.tickets, activeRole, currentUser?.id)
     .filter((ticket) => ticket.assignedToId === currentUser?.id).length;
   const visibleNotifications = data.notifications
     .filter((notification) => {
       if (!notification.ticketId) return true;
       const ticket = data.tickets.find((item) => item.id === notification.ticketId);
-      return Boolean(ticket && canAccessTicket(ticket, activeRole, currentUser?.id, accountCompanyIds));
+      return Boolean(ticket && canAccessTicket(ticket, activeRole, currentUser?.id));
     })
     .map((notification) => ({
       ...notificationForViewer(notification, data, currentUser),
@@ -112,15 +110,15 @@ export const Header: React.FC = () => {
         isSidebarCollapsed ? "left-15" : "left-64"
       }`}
     >
-      {createPage || detailPage ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
+      {(createPage || detailPage) && permissions.allowedTabs.includes((createPage || detailPage)![1]) ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
         <button type="button" onClick={() => { const section = (createPage || detailPage)![1]; if (section === "tickets" && detailPage) setSelectedTicketId(null); const returnTo = section === "tickets" && detailPage ? (location.state as { returnTo?: string } | null)?.returnTo : undefined; navigate(returnTo || `/${section}`, { state: { ...((location.state as object | null) || {}), ticketScrollY: window.history.state?.usr?.ticketScrollY } }); }} className="capitalize text-indigo-600 hover:text-indigo-800">{(createPage || detailPage)![1]}</button>
         <span className="text-slate-300">›</span>
         <h1 className="truncate font-extrabold tracking-tight text-slate-900">{createPage ? createLabels[createPage[1]] : detailLabels[detailPage![1]]}</h1>
-      </nav> : location.pathname === "/notifications" || location.pathname === "/latest-updates" ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
+      </nav> : permissions.canManageTeam && (location.pathname === "/notifications" || location.pathname === "/latest-updates") ? <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs font-semibold">
         <button type="button" onClick={() => navigate("/dashboard")} className="text-indigo-600 hover:text-indigo-800">Dashboard</button>
         <span aria-hidden="true" className="text-slate-300">›</span>
         <h1 className="font-extrabold tracking-tight text-slate-900">{location.pathname === "/notifications" ? "Notifications" : "Latest Updates"}</h1>
-      </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{location.pathname === "/tickets" ? "All Tickets" : activeTab}</h1>}
+      </nav> : <h1 className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{location.pathname === "/tickets" ? (permissions.canManageTeam ? "All Tickets" : "My Tickets") : activeTab}</h1>}
       <nav aria-label="Header shortcuts" className="ml-auto mr-2 flex shrink-0 items-center justify-end gap-2 sm:mr-4">
         <button type="button" onClick={() => navigate("/tickets?view=mine")} aria-label="My Queue" title="My Queue" className="inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <span aria-hidden="true" className="material-symbols-outlined text-lg">checklist</span>
@@ -129,10 +127,10 @@ export const Header: React.FC = () => {
         <button type="button" onClick={() => navigate("/services")} aria-label="Resources" title="Resources" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <span aria-hidden="true" className="material-symbols-outlined text-lg">menu_book</span>
         </button>
-        <button type="button" onClick={() => navigate("/latest-updates")} aria-label="Recent activity" title="Recent activity" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+        {permissions.canManageTeam && <button type="button" onClick={() => navigate("/latest-updates")} aria-label="Recent activity" title="Recent activity" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <span aria-hidden="true" className="material-symbols-outlined text-lg">history</span>
-        </button>
-        <div className="relative" ref={notificationPopoverRef}>
+        </button>}
+        {permissions.allowedTabs.includes("notifications") && <div className="relative" ref={notificationPopoverRef}>
           <button type="button" onClick={() => setIsNotificationPopoverOpen((open) => !open)} aria-label={`Notifications${unreadNotificationCount > 0 ? `, ${unreadNotificationCount} unread` : ""}`} title="Notifications" aria-expanded={isNotificationPopoverOpen} aria-haspopup="dialog" className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
             <span aria-hidden="true" className="material-symbols-outlined text-lg">notifications</span>
             {unreadNotificationCount > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-indigo-950 px-1 text-center text-[11px] font-bold text-white">{unreadNotificationCount}</span>}
@@ -165,7 +163,7 @@ export const Header: React.FC = () => {
               {!recentNotifications.length && <p className="px-4 py-8 text-center text-sm text-slate-500">No notifications yet.</p>}
             </div>
           </div>}
-        </div>
+        </div>}
       </nav>
       <div className="flex shrink-0 items-center gap-4">
     
@@ -185,7 +183,7 @@ export const Header: React.FC = () => {
               aria-label="User profile"
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
             className="flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-left transition-all hover:bg-slate-50"
-            title="User profile and demo persona"
+            title="User profile"
             aria-expanded={isProfileDropdownOpen}
           >
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-xs font-bold text-white shadow-sm">
@@ -210,15 +208,22 @@ export const Header: React.FC = () => {
           {isProfileDropdownOpen && (
             <div className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 max-h-[75vh] w-full min-w-0 overflow-y-auto rounded-xl border border-slate-100 bg-white p-2 shadow-xl duration-150">
               <div className="border-b border-slate-100 px-2 py-1.5">
-                <span className="block text-xs font-bold text-slate-900">
+                <span className="block truncate text-xs font-bold text-slate-900" title={activeEmployee.name}>
                   {activeEmployee.name}
                 </span>
-                <span className="block font-mono text-[11px] text-slate-500">
+                <span className="block truncate font-mono text-[11px] text-slate-500" title={activeEmployee.email}>
                   {activeEmployee.email}
                 </span>
               </div>
 
               <div className="px-1 pt-1.5">
+                {permissions.allowedTabs.includes("profile") && <button type="button" onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  navigate("/profile");
+                }} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-bold text-slate-700 hover:bg-slate-50">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[16px]">person</span>
+                  <span>Profile</span>
+                </button>}
                 <button
                   onClick={() => {
                     setIsProfileDropdownOpen(false);

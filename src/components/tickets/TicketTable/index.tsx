@@ -17,7 +17,7 @@ interface TicketTableProps {
   departments?: Department[];
   employees?: Employee[];
   onViewTicket: (ticketId: string) => void;
-  onCreateNew: () => void;
+  onCreateNew?: () => void;
   initialPage?: number;
   initialPageSize?: number;
   initialSearch?: string;
@@ -251,13 +251,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           showChannelFilter={false}
           showDepartmentFilter={false}
         />
-        <button type="button" onClick={onCreateNew} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span aria-hidden="true" className="material-symbols-outlined text-base">add</span>New Ticket</button>
+        {onCreateNew && <button type="button" onClick={onCreateNew} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span aria-hidden="true" className="material-symbols-outlined text-base">add</span>New Ticket</button>}
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="ticket-list-table w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
             <tr>
               <th className="px-5 py-2.5">ID</th>
               <th className="px-4 py-2.5">Incident</th>
@@ -287,7 +287,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                   className={`group cursor-pointer transition-colors hover:bg-indigo-50/40 ${selectedTicketRowId === t.id ? "bg-indigo-50" : ""}`}
                 >
                   <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
-                    {t.code}
+                    <span className="cursor-text">{t.code}</span>
                   </td>
                   <td className="max-w-sm px-4 py-2.5">
                     <button type="button" data-ticket-link={t.id} onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ${t.code}: ${t.title}`} title={t.title} className="line-clamp-2 text-left font-bold text-slate-900 transition-colors hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600">
@@ -295,23 +295,23 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                     </button>
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
-                    <PriorityBadge priority={t.priority} />
+                    <span className="cursor-text"><PriorityBadge priority={t.priority} /></span>
                   </td>
 
                   <td className="px-4 py-2.5 whitespace-nowrap">
-                    <span className="font-semibold text-slate-900">{t.companyName}</span>
+                    <span className="cursor-text font-semibold text-slate-900">{t.companyName}</span>
                   </td>
                   <td className="px-4 py-2.5 whitespace-nowrap">
                     <span className="inline-flex items-center gap-2 font-medium text-slate-700">
                       <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-500">
                         <StaffAvatar src={employees.find((employee) => employee.id === t.assignedToId)?.avatar || "person"} alt={`${t.assignedToName} profile`} sizeClassName="h-7 w-7" fallbackClassName="text-[15px]" />
                       </span>
-                      <span>{t.assignedToName || "Unassigned"}</span>
+                      <span className="cursor-text">{t.assignedToName || "Unassigned"}</span>
                     </span>
                   </td>
 
                   <td className="px-3 py-2.5 whitespace-nowrap">
-                    <StatusBadge status={t.status} />
+                    <span className="cursor-text"><StatusBadge status={t.status} /></span>
                   </td>
 
                   <td className="px-5 py-2.5 whitespace-nowrap"><button type="button" onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ticket ${t.code}`} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span>Open ticket</span><span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_forward</span></button></td>
@@ -334,7 +334,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                         {tickets.length === 0 ? "Tickets available to your role will appear here." : "No tickets match the selected search criteria or filter tags."}
                       </p>
                     </div>
-                    <button
+                    {(tickets.length > 0 || onReturnToAllTickets) && <button
                       type="button"
                       onClick={tickets.length === 0 ? onReturnToAllTickets : clearAllFilters}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50"
@@ -342,8 +342,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       <span className="material-symbols-outlined text-[16px]">
                         restart_alt
                       </span>
-                      <span>{tickets.length === 0 ? "Return to all tickets" : "Clear all filters"}</span>
-                    </button>
+                      <span>{tickets.length === 0 ? "Return to ticket queue" : "Clear all filters"}</span>
+                    </button>}
                   </div>
                 </td>
               </tr>

@@ -19,12 +19,13 @@ export const Sidebar: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
-    data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id),
   );
 
   const isTabAllowed = (tab: string) => permissions.allowedTabs.includes(tab);
   const currentTab = location.pathname.split("/")[1] || "dashboard";
   const goTo = (tab: string) => navigate(`/${tab}`);
+  const accountTab = isTabAllowed("profile") ? "profile" : "settings";
+  const accountTabLabel = accountTab === "profile" ? "Profile" : "Settings";
 
   return (
     <aside
@@ -59,8 +60,7 @@ export const Sidebar: React.FC = () => {
         </div>
 
         <div className="space-y-1 px-3 py-3">
-          {/* Dashboard Tab */}
-          <button
+          {isTabAllowed("dashboard") && <button
             onClick={() => goTo("dashboard")}
             aria-current={currentTab === "dashboard" ? "page" : undefined}
             aria-label={isSidebarCollapsed ? "Dashboard" : undefined}
@@ -74,7 +74,7 @@ export const Sidebar: React.FC = () => {
               grid_view
             </span>
             {!isSidebarCollapsed && <span>Dashboard</span>}
-          </button>
+          </button>}
 
           {isTabAllowed("tickets") && (
             <button
@@ -169,21 +169,21 @@ export const Sidebar: React.FC = () => {
             </button>
           )}
 
-          {isTabAllowed("settings") && (
+          {isTabAllowed(accountTab) && (
             <button
-              onClick={() => goTo("settings")}
-              aria-current={currentTab === "settings" ? "page" : undefined}
-              aria-label={isSidebarCollapsed ? "Settings" : undefined}
+              onClick={() => goTo(accountTab)}
+              aria-current={currentTab === accountTab ? "page" : undefined}
+              aria-label={isSidebarCollapsed ? accountTabLabel : undefined}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:outline-none ${
-                currentTab === "settings"
+                currentTab === accountTab
                   ? "bg-indigo-50 font-bold text-indigo-700"
                   : "text-slate-200 hover:bg-slate-800 hover:text-white"
               }`}
             >
               <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[20px]">
-                settings
+                {accountTab === "profile" ? "person" : "settings"}
               </span>
-              {!isSidebarCollapsed && <span>Settings</span>}
+              {!isSidebarCollapsed && <span>{accountTabLabel}</span>}
             </button>
           )}
         </div>

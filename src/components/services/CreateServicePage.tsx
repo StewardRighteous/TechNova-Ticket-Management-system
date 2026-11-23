@@ -13,7 +13,8 @@ export const CreateServicePage: React.FC = () => {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [department, setDepartment] = useState(data.departments?.[0]?.name || "Support");
-  const [lead, setLead] = useState(data.employees[0]?.name || "");
+  const [leadEmployeeId, setLeadEmployeeId] = useState(data.employees[0]?.id || "");
+  const lead = data.employees.find((employee) => employee.id === leadEmployeeId)?.name;
   const [slaValue, setSlaValue] = useState("4");
   const [slaUnit, setSlaUnit] = useState("Hours");
   const [uptimeValue, setUptimeValue] = useState("99.9");
@@ -46,7 +47,7 @@ export const CreateServicePage: React.FC = () => {
     if (!durationMinutes(slaTarget)) { setError("Enter a response time between one minute and one year."); return; }
     if (!/^\d+(?:\.\d+)?$/.test(uptimeValue.trim()) || Number(uptimeValue) <= 0 || Number(uptimeValue) > 100) { setError("Uptime target must be between 0 and 100%."); return; }
     setError("");
-    const service: ServiceLine = { id: `svc-${crypto.randomUUID()}`, name: name.trim(), code: normalizedCode, department, lead, activeTickets: 0, slaTarget, uptime: "", uptimeTarget: uptime, description: description.trim(), technologies, status: "Operational" };
+    const service: ServiceLine = { id: `svc-${crypto.randomUUID()}`, name: name.trim(), code: normalizedCode, department, lead, leadEmployeeId, activeTickets: 0, slaTarget, uptime: "", uptimeTarget: uptime, description: description.trim(), technologies, status: "Operational" };
     addService(service);
     addToast("Service created successfully.", "success");
     navigate(`/services/${encodeURIComponent(service.id)}`);
@@ -65,7 +66,7 @@ export const CreateServicePage: React.FC = () => {
         <FormField label={requiredLabel("Service name")}><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Customer Portal" /></FormField>
         <FormField label={requiredLabel("Service code")}><input className={formControlClassName} required value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. SRV-001" /></FormField>
       <FormField label={requiredLabel("Department")}><SelectDropdown label="Department" value={department} onChange={setDepartment} options={(data.departments || []).map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
-        <FormField label={requiredLabel("Service lead")}><SelectDropdown label="Service lead" value={lead} onChange={setLead} options={data.employees.map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
+        <FormField label={requiredLabel("Service lead")}><SelectDropdown label="Service lead" value={leadEmployeeId} onChange={setLeadEmployeeId} options={data.employees.map((item) => ({ value: item.id, label: item.name }))} required /></FormField>
       </div>
       </div>}
       {step === 2 && <section className="service-create-targets">

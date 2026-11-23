@@ -7,6 +7,7 @@ interface ServiceTableProps {
   employees: Employee[];
   onViewService: (serviceId: string) => void;
   onCreateNew?: () => void;
+  personal?: boolean;
   initialPage?: number;
   initialPageSize?: number;
   initialSearch?: string;
@@ -26,6 +27,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   employees,
   onViewService,
   onCreateNew,
+  personal = false,
   initialPage = 1,
   initialPageSize = 10,
   initialSearch = "",
@@ -89,7 +91,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
-        <h2 className="text-lg font-bold tracking-tight">All Services</h2>
+        <h2 className="text-lg font-bold tracking-tight">{personal ? "My Services" : "All Services"}</h2>
         <p className="mt-1 text-xs text-slate-300">
           Browse and manage service lines.
         </p>
@@ -146,7 +148,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase select-none">
+          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
             <tr>
               <th className="px-5 py-2.5">
                 <div className="flex items-center gap-1">
@@ -192,7 +194,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                 }}
               >
                 <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
-                  {srv.code}
+                  <span className="cursor-text">{srv.code}</span>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2.5">
@@ -214,7 +216,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                     <span className="material-symbols-outlined text-[16px] text-slate-400">
                       corporate_fare
                     </span>
-                    <span className="font-semibold text-slate-800">
+                    <span className="cursor-text font-semibold text-slate-800">
                       {srv.department}
                     </span>
                   </div>
@@ -227,7 +229,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                       alt=""
                       sizeClassName="size-7 shrink-0"
                     />
-                    <span className="font-semibold text-slate-800">
+                    <span className="cursor-text font-semibold text-slate-800">
                       {srv.lead}
                     </span>
                   </div>
@@ -238,7 +240,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                     <span className="material-symbols-outlined text-[13px] text-slate-400">
                       confirmation_number
                     </span>
-                    {srv.activeTickets} Tickets
+                    <span className="cursor-text">{srv.activeTickets} Tickets</span>
                   </span>
                 </td>
                 <td className="px-5 py-3 text-left whitespace-nowrap">
@@ -264,7 +266,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                   className="px-5 py-12 text-center text-sm text-slate-500"
                 >
                   {services.length === 0
-                    ? "No services available."
+                    ? personal ? "No services are assigned to you." : "No services available."
                     : "No matching services. Try adjusting your search or filters."}
                 </td>
               </tr>

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTicketStore } from '../../../store/barrel';
 import { ServiceTable } from '../ServiceTable';
 import { ServiceDetailHero } from '../ServiceDetailHero';
-import { filterTicketsByRole } from '../../../utils/rolePermissions';
+import { canAccessService, filterTicketsByRole, ROLE_PERMISSIONS } from "../../../utils/rolePermissions";
 
 export const ServicesView: React.FC = () => {
   const { data, activeRole, currentUser, updateService, deleteService } = useTicketStore();
@@ -11,7 +11,9 @@ export const ServicesView: React.FC = () => {
   const { serviceId: activeServiceId } = useParams<{ serviceId: string }>();
   const [tableState, setTableState] = useState({ page: 1, pageSize: 10, search: '', departmentFilter: [] as string[], statusFilter: [] as string[] });
 
-  const selectedService = data.services.find((s) => s.id === activeServiceId);
+  const canManageTeam = ROLE_PERMISSIONS[activeRole].canManageTeam;
+  const visibleServices = currentUser ? data.services.filter((service) => canAccessService(service, currentUser)) : [];
+  const selectedService = visibleServices.find((service) => service.id === activeServiceId);
   const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
   const openTickets = roleTickets.filter((ticket) => ticket.status !== "Resolved" && ticket.status !== "Closed");
 
@@ -35,23 +37,27 @@ export const ServicesView: React.FC = () => {
           <ServiceDetailHero
           key={selectedService.id}
           service={selectedService}
-          canEdit={activeRole === "operations_manager" || activeRole === "management"}
+          canEdit
           tickets={roleTickets}
-          companies={data.companies}
+          companies={canManageTeam ? data.companies : data.companies.map((company) => ({
+            ...company,
+            activeTickets: openTickets.filter((ticket) => ticket.companyId === company.id).length,
+          }))}
           services={data.services}
           departments={data.departments}
           employees={data.employees}
           teams={data.teams}
           onUpdateService={handleUpdateService}
-          onDeleteService={handleDeleteService}
+          onDeleteService={canManageTeam ? handleDeleteService : undefined}
           onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>}
         <div hidden={Boolean(activeServiceId)}><ServiceTable
-          services={data.services.map((service) => ({ ...service, activeTickets: openTickets.filter((ticket) => ticket.serviceId === service.id).length }))}
+          services={visibleServices.map((service) => ({ ...service, activeTickets: openTickets.filter((ticket) => ticket.serviceId === service.id).length }))}
           employees={data.employees}
           onViewService={(id) => navigate(`/services/${encodeURIComponent(id)}`)}
-          onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/services/new") : undefined}
+          onCreateNew={canManageTeam ? () => navigate("/services/new") : undefined}
+          personal={!canManageTeam}
           initialPage={tableState.page}
           initialPageSize={tableState.pageSize}
           initialSearch={tableState.search}

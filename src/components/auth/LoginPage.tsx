@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTicketStore } from "../../store/barrel";
 
-export const LoginPage: React.FC = () => {
+export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) => {
   const { login } = useTicketStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,8 +13,11 @@ export const LoginPage: React.FC = () => {
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    setError("");
-    if (!login(email, password)) setError("Invalid email or password.");
+    if (!login(email, password)) {
+      setError("Invalid email or password.");
+      return;
+    }
+    onSignedIn();
   };
 
   return (
@@ -32,6 +35,11 @@ export const LoginPage: React.FC = () => {
           <div className="hidden max-w-lg lg:block">
             <h2 className="text-5xl leading-[1.04] font-bold tracking-[-0.045em] xl:text-6xl">Ticket Management System</h2>
             <p className="mt-5 max-w-sm text-base leading-relaxed text-white">Manage IT support requests and workplace services for TechNova employees.</p>
+            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-relaxed marker:text-teal-200">
+              <li>Report an issue and attach screenshots.</li>
+              <li>See who owns a ticket and track its progress.</li>
+              <li>Check response and resolution deadlines.</li>
+            </ul>
           </div>
         </aside>
 
@@ -75,7 +83,7 @@ export const LoginPage: React.FC = () => {
                     required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="name@technova.example"
+                    placeholder="workposition@technova.com"
                     className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/60 pl-12 pr-12 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-[#10aeb4] focus:ring-4 focus:ring-cyan-100"
                   />
                 </div>

@@ -12,12 +12,11 @@ interface CompanyDetailHeroProps {
   onDeleteCompany?: (permanent: boolean) => void;
   canEdit?: boolean;
   tickets?: Ticket[];
-  relatedTicketCount?: number;
   onOpenTicket?: (ticketId: string) => void;
   services?: ServiceLine[];
   companies?: Company[];
   employees?: Employee[];
-  onOpenService?: (serviceId: string) => void;
+  getServiceHref?: (service: ServiceLine) => string | undefined;
 }
 
 type WorkspaceTab = "contacts" | "tickets" | "contracts";
@@ -28,10 +27,9 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   onDeleteCompany,
   canEdit = true,
   tickets = [],
-  relatedTicketCount = tickets.length,
   onOpenTicket,
   services = [],
-  onOpenService,
+  getServiceHref,
 }) => {
   const [draft, setDraft] = useState<Company>(company);
   const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +64,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
     ?? contacts[0];
   const escalationContact = contacts.find((contact) => contact.id === company.escalationContactId);
   const openTickets = tickets.filter((ticket) => !["Resolved", "Closed"].includes(ticket.status));
+  const relatedTicketCount = tickets.length;
   const contactRoles = [...new Set(contacts.map((contact) => contact.role || "Unspecified"))];
   const filteredContacts = contacts.filter((contact) => {
     const query = contactSearch.trim().toLowerCase();
@@ -185,7 +184,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
               <button type="button" onClick={() => { setNewContact({ name: "", role: "", email: "", phone: "" }); setContactFlags({ primary: false, escalation: false }); setIsAddingContact(true); }} disabled={!canEdit} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#119DA4] px-3 text-xs font-semibold text-white transition hover:bg-[#0E858D] disabled:cursor-not-allowed disabled:opacity-50"><span aria-hidden="true" className="material-symbols-outlined text-base">person_add</span>Add contact</button>
               </div>
             </div>
-              <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-[#4B3F72]"><tr><th className="px-2 py-2">Name</th><th className="px-2 py-2">Role</th><th className="px-2 py-2">Email</th><th className="px-2 py-2">Phone</th><th className="px-2 py-2">Primary</th><th className="px-2 py-2">Escalation</th><th className="px-2 py-2 text-right">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredContacts.length ? filteredContacts.map((contact) => <tr key={contact.id}><td className="whitespace-nowrap px-2 py-2.5 font-semibold text-[#1F2041]">{contact.name}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.role || "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-[#19647E]">{contact.email}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.phone}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === primaryContact.id ? "Yes" : "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === escalationContact?.id ? "Yes" : "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-right"><div className="inline-flex items-center gap-1.5"><button type="button" onClick={() => editContact(contact)} disabled={!canEdit} aria-label={`Edit ${contact.name}`} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">edit</span><span>Edit</span></button><button type="button" onClick={() => deleteContact(contact)} disabled={!canEdit || contacts.length <= 1} aria-label={`Delete ${contact.name}`} title={contacts.length <= 1 ? "A company must have at least one contact" : undefined} className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-slate-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">delete</span><span>Delete</span></button></div></td></tr>) : <tr><td className="px-2 py-6 text-center text-slate-500" colSpan={7}>No contacts match these filters.</td></tr>}</tbody></table></div>
+              <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-[#4B3F72]"><tr><th className="px-2 py-2">Name</th><th className="px-2 py-2">Role</th><th className="px-2 py-2">Email</th><th className="px-2 py-2">Phone</th><th className="px-2 py-2">Primary</th><th className="px-2 py-2">Escalation</th><th scope="col" className="w-[1%] whitespace-nowrap px-2 py-2">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredContacts.length ? filteredContacts.map((contact) => <tr key={contact.id}><td className="whitespace-nowrap px-2 py-2.5 font-semibold text-[#1F2041]">{contact.name}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.role || "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-[#19647E]">{contact.email}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.phone}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === primaryContact.id ? "Yes" : "—"}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === escalationContact?.id ? "Yes" : "—"}</td><td className="whitespace-nowrap px-2 py-2.5"><div className="inline-flex items-center gap-1 align-middle"><button type="button" onClick={() => editContact(contact)} disabled={!canEdit} aria-label={`Edit ${contact.name}`} title="Edit contact" className="inline-flex size-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">edit</span></button><button type="button" onClick={() => deleteContact(contact)} disabled={!canEdit || contacts.length <= 1} aria-label={`Delete ${contact.name}`} title={contacts.length <= 1 ? "A company must have at least one contact" : "Delete contact"} className="inline-flex size-8 items-center justify-center rounded-md text-slate-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"><span aria-hidden="true" className="material-symbols-outlined text-base">delete</span></button></div></td></tr>) : <tr><td className="px-2 py-6 text-center text-slate-500" colSpan={7}>No contacts match these filters.</td></tr>}</tbody></table></div>
           </>}
           {workspaceTab === "tickets" && <>
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -197,7 +196,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
             </div>
             <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500"><tr><th className="px-2 py-2">Ticket</th><th className="px-2 py-2">Subject</th><th className="px-2 py-2">Status</th><th className="px-2 py-2">Priority</th><th className="px-2 py-2">Assignee</th><th className="px-2 py-2">Updated</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredTickets.length ? filteredTickets.map((ticket) => <tr key={ticket.id}><td className="whitespace-nowrap px-2 py-2.5"><button type="button" className="font-bold text-indigo-700 hover:underline" onClick={() => onOpenTicket?.(ticket.id)}>{ticket.code}</button></td><td className="px-2 py-2.5 text-slate-700">{ticket.title}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.status}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.priority}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.assignedToName || "Unassigned"}</td><td className="whitespace-nowrap px-2 py-2.5 text-slate-500">{ticket.timeAgo}</td></tr>) : <tr><td className="px-2 py-6 text-center text-slate-500" colSpan={6}>No active tickets match these filters.</td></tr>}</tbody></table></div>
           </>}
-          {workspaceTab === "contracts" && <CompanyContracts company={company} services={services} canEdit={canEdit} onUpdate={onUpdateCompany} onOpenService={onOpenService} />}
+          {workspaceTab === "contracts" && <CompanyContracts company={company} services={services} canEdit={canEdit} onUpdate={onUpdateCompany} getServiceHref={getServiceHref} />}
         </div>
       </section>
 

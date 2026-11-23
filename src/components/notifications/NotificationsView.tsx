@@ -41,8 +41,7 @@ export const NotificationsView: React.FC = () => {
   const notifications = useMemo(() => data.notifications.filter((notification) => {
     if (!notification.ticketId) return true;
     const ticket = data.tickets.find((item) => item.id === notification.ticketId);
-    const companyIds = data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id);
-    return Boolean(ticket && canAccessTicket(ticket, activeRole, currentUser?.id, companyIds));
+    return Boolean(ticket && canAccessTicket(ticket, activeRole, currentUser?.id));
   }).map((notification) => ({
     ...notificationForViewer(notification, data, currentUser),
     read: notification.readBy ? notification.readBy.includes(personaId) : notification.read,

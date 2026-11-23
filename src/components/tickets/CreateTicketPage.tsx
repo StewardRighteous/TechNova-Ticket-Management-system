@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
+import { canAccessTicket } from "../../utils/rolePermissions";
 import type { Attachment, CustomerContact, InboundChannel, Ticket, TicketDiagnosticData, TicketPriority } from "../../types/barrel";
 import { FormField, formControlClassName } from "../common/barrel";
 import { ChannelSelector } from "../common/modals/ChannelSelector";
@@ -86,9 +87,10 @@ const TicketCombobox: React.FC<TicketComboboxProps> = ({ label, value, options, 
 };
 
 export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreated }) => {
-  const { data, addTicket, addToast } = useTicketStore();
+  const { data, activeRole, currentUser, addTicket, addToast } = useTicketStore();
   const navigate = useNavigate();
-  const [draft] = useState<IntakeDraft>(() => { try { return JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null") || {}; } catch { return {}; } });
+  const draftKey = `${DRAFT_KEY}.${currentUser?.id}`;
+  const [draft] = useState<IntakeDraft>(() => { try { return JSON.parse(sessionStorage.getItem(draftKey) || "null") || {}; } catch { return {}; } });
   const [step, setStep] = useState<1 | 2>(draft.step || 1);
   const [channel, setChannel] = useState<InboundChannel>(draft.channel || "whatsapp");
   const [companyId, setCompanyId] = useState(draft.companyId || "");
@@ -114,8 +116,8 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const hasDraftData = Boolean(channel !== "whatsapp" || category !== "Technical/Bug" || title || companyId || contactId || serviceId || assigneeId || priority || description || initialNote || attachments.length || categoryValue || diagnostics.errorMessage || diagnostics.errorCode || diagnostics.stepsToReproduce);
   useEffect(() => {
-    if (hasDraftData) sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ step, channel, companyId, contactId, title, serviceId, assigneeId, supportSite, priority, category, description, initialNote, diagnostics, categoryValue, attachments } satisfies IntakeDraft));
-  }, [hasDraftData, step, channel, companyId, contactId, title, serviceId, assigneeId, supportSite, priority, category, description, initialNote, diagnostics, categoryValue, attachments]);
+    if (hasDraftData) sessionStorage.setItem(draftKey, JSON.stringify({ step, channel, companyId, contactId, title, serviceId, assigneeId, supportSite, priority, category, description, initialNote, diagnostics, categoryValue, attachments } satisfies IntakeDraft));
+  }, [draftKey, hasDraftData, step, channel, companyId, contactId, title, serviceId, assigneeId, supportSite, priority, category, description, initialNote, diagnostics, categoryValue, attachments]);
   useEffect(() => { headingRef.current?.focus({ preventScroll: true }); window.scrollTo(0, 0); }, [step]);
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => { if (hasDraftData) { event.preventDefault(); event.returnValue = ""; } };
@@ -186,7 +188,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
     });
     setSubmitting(false);
     if (!created) { addToast("Ticket could not be saved. Check your access and the selected customer details.", "error"); return; }
-    sessionStorage.removeItem(DRAFT_KEY);
+    sessionStorage.removeItem(draftKey);
     setSavedTicket(created);
     onCreated?.();
     addToast(`${created.code} created successfully.`, "success");
@@ -235,7 +237,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
         </section>
 
         <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
-          <button type="button" onClick={() => navigate(`/tickets/${encodeURIComponent(savedTicket.id)}`, { state: { receipt: true } })} className="rounded-lg bg-brand-indigo px-4 py-2 text-sm font-semibold text-white">Open saved ticket</button>
+          {canAccessTicket(savedTicket, activeRole, currentUser?.id) && <button type="button" onClick={() => navigate(`/tickets/${encodeURIComponent(savedTicket.id)}`, { state: { receipt: true } })} className="rounded-lg bg-brand-indigo px-4 py-2 text-sm font-semibold text-white">Open saved ticket</button>}
           <button type="button" onClick={() => navigate("/tickets")} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Back to ticket queue</button>
         </div>
       </div>
@@ -264,7 +266,9 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
         }} options={data.services.map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a service" required />
         <TicketCombobox label="Assign to" value={assignee?.id ?? ""} onChange={setAssigneeId} options={eligibleAssignees.map((item) => ({
           value: item.id,
-          label: `${item.name} · ${item.status} · ${activeLoad.get(item.id) ?? 0}/${item.capacityMax}`,
+          label: activeRole === "operations_manager"
+            ? `${item.name} · ${item.status} · ${activeLoad.get(item.id) ?? 0}/${item.capacityMax}`
+            : `${item.name} · ${item.status}`,
         }))} placeholder="Select an owner" required />
         {!!company?.supportSites?.length && <TicketCombobox label="Affected site or tenant" value={supportSite} onChange={setSupportSite} options={[
           { value: "", label: "Unspecified" }, ...company.supportSites.map((site) => ({ value: site, label: site })),

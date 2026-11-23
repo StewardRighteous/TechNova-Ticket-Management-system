@@ -36,9 +36,6 @@ export const LatestUpdatesView: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
-    data.companies
-      .filter((company) => company.accountManager === currentUser?.name)
-      .map((company) => company.id),
   );
   const [range, setRange] = useState<"7" | "28">("7");
   const [companyId, setCompanyId] = useState("all");
@@ -206,7 +203,11 @@ export const LatestUpdatesView: React.FC = () => {
                 <tr
                   key={ticket.id}
                   tabIndex={0}
-                  onClick={() => openTicket(ticket.id)}
+                  onClick={(event) => {
+                    if (event.detail === 0 || !window.getSelection()?.toString()) {
+                      openTicket(ticket.id);
+                    }
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
@@ -215,10 +216,10 @@ export const LatestUpdatesView: React.FC = () => {
                   }}
                   className="cursor-pointer transition hover:bg-slate-50 focus:bg-indigo-50/50 focus:outline-none"
                 >
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-600">{displayDate(ticket.updatedAt)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-600"><span className="cursor-text">{displayDate(ticket.updatedAt)}</span></td>
                   <td className="px-4 py-3">
-                    <span className="block font-mono text-xs font-bold text-slate-500">{ticket.code}</span>
-                    <span className="mt-1 block max-w-[360px] truncate text-xs font-semibold text-slate-900">{ticket.title}</span>
+                    <span className="block w-fit cursor-text font-mono text-xs font-bold text-slate-500">{ticket.code}</span>
+                    <span className="mt-1 block w-fit max-w-[360px] cursor-text truncate text-xs font-semibold text-slate-900">{ticket.title}</span>
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -233,13 +234,13 @@ export const LatestUpdatesView: React.FC = () => {
                     >
                       {ticket.companyName}
                     </button>
-                    <span className="mt-1 block max-w-[200px] truncate text-[11px] text-slate-500">{ticket.serviceName}</span>
+                    <span className="mt-1 block w-fit max-w-[200px] cursor-text truncate text-[11px] text-slate-500">{ticket.serviceName}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-semibold ${statusStyles[ticket.status]}`}>{ticket.status}</span>
+                    <span className={`inline-flex cursor-text whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-semibold ${statusStyles[ticket.status]}`}>{ticket.status}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-semibold ring-1 ring-inset ${priorityStyles[ticket.priority]}`}>{ticket.priority}</span>
+                    <span className={`inline-flex cursor-text whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-semibold ring-1 ring-inset ${priorityStyles[ticket.priority]}`}>{ticket.priority}</span>
                   </td>
                   <td className="px-4 py-3">
                     <button

@@ -2,12 +2,13 @@ import React from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { ClientNotificationChannel } from "../../types/barrel";
 import { useTicketStore } from "../../store/barrel";
+import { canAccessTicket, canTransitionTicket } from "../../utils/rolePermissions";
 
 export const ClientNotificationPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
-  const { data, notifyTicketClient, updateTicketStatus, addToast } = useTicketStore();
-  const ticket = data.tickets.find((item) => item.id === ticketId);
+  const { data, activeRole, currentUser, notifyTicketClient, updateTicketStatus, addToast } = useTicketStore();
+  const ticket = data.tickets.find((item) => item.id === ticketId && canAccessTicket(item, activeRole, currentUser?.id));
   const company = ticket ? data.companies.find((item) => item.id === ticket.companyId) : undefined;
   const contact = company?.contacts?.find((item) => item.id === ticket?.contactId);
   const clientEmail = contact?.email || (ticket?.channel === "email" ? ticket.channelIdentifier : company?.contactEmail) || "";
@@ -22,7 +23,7 @@ export const ClientNotificationPage: React.FC = () => {
     notifyTicketClient(ticket.id, channel);
     addToast(`Client notification recorded via ${channel === "whatsapp" ? "WhatsApp" : channel}`, "success");
   };
-  const canClose = Boolean(ticket.clientNotifiedVia) && ticket.status === "Resolved";
+  const canClose = Boolean(ticket.clientNotifiedVia) && canTransitionTicket(activeRole, ticket.status, "Closed");
   const closeTicket = () => {
     if (!canClose) return;
     updateTicketStatus(ticket.id, "Closed");

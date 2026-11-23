@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import type { Company, ServiceLine, SupportContract } from "../../types/barrel";
 import { matchesService } from "../../utils/matchesService";
 import { contractStatus, durationMinutes, isContractActive, policyError } from "../../utils/supportPolicy";
@@ -6,12 +7,12 @@ import { SelectDropdown, formControlClassName } from "../common/barrel";
 import { DetailEditDialog } from "../common/DetailEditDialog";
 import { SlaPolicyFields } from "../common/SlaPolicyFields";
 
-export function CompanyContracts({ company, services, canEdit, onUpdate, onOpenService }: {
+export function CompanyContracts({ company, services, canEdit, onUpdate, getServiceHref }: {
   company: Company;
   services: ServiceLine[];
   canEdit: boolean;
   onUpdate: (updates: Partial<Company>) => void;
-  onOpenService?: (id: string) => void;
+  getServiceHref?: (service: ServiceLine) => string | undefined;
 }) {
   const [draft, setDraft] = useState<SupportContract | null>(null);
   const [subscriptions, setSubscriptions] = useState<string[] | null>(null);
@@ -72,7 +73,8 @@ export function CompanyContracts({ company, services, canEdit, onUpdate, onOpenS
       {company.subscribedServices.length ? <ul className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
         {company.subscribedServices.map((reference) => {
           const service = services.find((item) => matchesService(item, reference));
-          return <li key={reference}>{service && onOpenService ? <button type="button" className="font-semibold text-teal-700 hover:underline" onClick={() => onOpenService(service.id)}>{service.name}</button> : reference}</li>;
+          const href = service && getServiceHref?.(service);
+          return <li key={reference}>{service && href ? <Link to={href} className="font-semibold text-teal-700 hover:underline">{service.name}</Link> : service?.name ?? reference}</li>;
         })}
       </ul> : <p className="text-slate-600">No subscribed services.</p>}
       {draft && <DetailEditDialog title={contracts.some((contract) => contract.id === draft.id) ? "Edit support contract" : "Add support contract"} onCancel={() => setDraft(null)} onSave={saveContract}>

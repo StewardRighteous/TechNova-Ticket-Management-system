@@ -229,6 +229,7 @@ export interface ServiceLine {
   code: string;
   department: string;
   lead: string;
+  leadEmployeeId?: string | null;
   activeTickets: number;
   slaTarget: string;
   uptime: string;

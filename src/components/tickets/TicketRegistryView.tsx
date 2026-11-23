@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useLayoutEffect } from "react";
 import { useTicketStore } from "../../store/barrel";
 import { TicketTable } from "./TicketTable";
 import { TicketDetailHero } from "./TicketDetailHero";
-import { filterTicketsByRole } from "../../utils/barrel";
+import { filterTicketsByRole, ROLE_PERMISSIONS } from "../../utils/barrel";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { loadWorkspacePreferences } from "../../utils/workspacePreferences";
 
@@ -28,6 +28,7 @@ export const TicketRegistryView: React.FC = () => {
     removeTicket,
     addToast,
   } = useTicketStore();
+  const permissions = ROLE_PERMISSIONS[activeRole];
   const preferredView = loadWorkspacePreferences(currentUser?.id).defaultView;
 
   const queryFocus = searchParams.get("scope");
@@ -97,7 +98,6 @@ export const TicketRegistryView: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
-    data.companies.filter((company) => company.accountManager === currentUser?.name).map((company) => company.id),
   );
   const visibleTickets = validFocus || explicitView === "all"
     ? roleTickets
@@ -106,7 +106,7 @@ export const TicketRegistryView: React.FC = () => {
         if (defaultView === "urgent") return ticket.priority === "P1 Urgent";
         return true;
       });
-  const viewTitle = defaultView === "mine" ? "My Tickets" : defaultView === "urgent" ? "Urgent Tickets" : undefined;
+  const viewTitle = defaultView === "urgent" ? "Urgent Tickets" : defaultView === "mine" || !permissions.canManageTeam ? "My Tickets" : undefined;
   const selectedTicket =
     roleTickets.find((t) => t.id === ticketId);
   React.useEffect(() => {
@@ -137,7 +137,7 @@ export const TicketRegistryView: React.FC = () => {
         <TicketDetailHero
           key={selectedTicket.id}
           ticket={selectedTicket}
-          employees={activeRole === "operations_manager" || activeRole === "management" ? data.employees : data.employees.filter((employee) => employee.id === selectedTicket.assignedToId)}
+          employees={permissions.canManageTeam ? data.employees : data.employees.filter((employee) => employee.id === selectedTicket.assignedToId)}
           companies={data.companies}
           services={data.services}
           onUpdateTicket={(updates) => updateTicket(selectedTicket.id, updates)}
@@ -152,7 +152,7 @@ export const TicketRegistryView: React.FC = () => {
           onAssigneeChange={(empId, note) =>
             assignTicket(selectedTicket.id, empId, note)
           }
-          onViewEmployee={(employeeId) => navigate(`/employees/${encodeURIComponent(employeeId)}`)}
+          onViewEmployee={(employeeId) => navigate(permissions.canManageTeam ? `/employees/${encodeURIComponent(employeeId)}` : "/profile")}
           onViewCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}
         />
       ) : (
@@ -162,7 +162,7 @@ export const TicketRegistryView: React.FC = () => {
           departments={data.departments}
           employees={data.employees}
           onViewTicket={handleViewTicket}
-          onCreateNew={() => navigate("/tickets/new")}
+          onCreateNew={permissions.canCreateTicket ? () => navigate("/tickets/new") : undefined}
           initialPage={Number(searchParams.get("page")) || tableStateRef.current.page}
           initialPageSize={Number(searchParams.get("size")) || tableStateRef.current.pageSize}
           initialSearch={searchParams.get("q") ?? tableStateRef.current.search}
@@ -176,7 +176,7 @@ export const TicketRegistryView: React.FC = () => {
           activeScope={validFocus}
           viewTitle={viewTitle}
           onClearScope={() => { const params = new URLSearchParams(searchParams); params.delete("scope"); setSearchParams(params, { replace: true }); }}
-          onReturnToAllTickets={() => navigate("/tickets?view=all")}
+          onReturnToAllTickets={permissions.canManageTeam || validFocus || defaultView === "urgent" ? () => navigate("/tickets?view=all") : undefined}
           onTableStateChange={updateUrlState}
         />
       )}

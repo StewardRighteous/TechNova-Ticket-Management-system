@@ -3,9 +3,10 @@ import type { Employee, Team } from "../../types/barrel";
 import { formControlClassName, SelectDropdown } from "../common/barrel";
 import { DetailEditDialog } from "../common/DetailEditDialog";
 
-export function EmployeeEditDialog({ employee, teams, onCancel, onSave }: {
+export function EmployeeEditDialog({ employee, teams, canManageEmployment, onCancel, onSave }: {
   employee: Employee;
   teams: Team[];
+  canManageEmployment: boolean;
   onCancel: () => void;
   onSave: (updates: Partial<Employee>) => void;
 }) {
@@ -17,17 +18,20 @@ export function EmployeeEditDialog({ employee, teams, onCancel, onSave }: {
     event.preventDefault();
     const name = draft.name.trim();
     const roleTitle = draft.roleTitle.trim();
-    if (!name || !roleTitle || !draft.email.trim()) { setError("Enter a name, job title, and work email."); return; }
-    onSave({ name, roleTitle, email: draft.email.trim(), phone: draft.phone.trim(), avatar: draft.avatar, status: draft.status, teamId: draft.teamId });
+    if (!name || !draft.email.trim() || (canManageEmployment && !roleTitle)) { setError("Complete all required fields."); return; }
+    onSave({
+      name, email: draft.email.trim(), phone: draft.phone.trim(), avatar: draft.avatar, status: draft.status,
+      ...(canManageEmployment ? { roleTitle, teamId: draft.teamId } : {}),
+    });
   };
-  return <DetailEditDialog title="Edit employee banner" onCancel={onCancel} onSave={submit}>
+  return <DetailEditDialog title={canManageEmployment ? "Edit employee banner" : "Edit profile details"} onCancel={onCancel} onSave={submit}>
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-xs">Full name<input className={formControlClassName} required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-      <label className="text-xs">Job title<input className={formControlClassName} required value={draft.roleTitle} onChange={(event) => setDraft({ ...draft, roleTitle: event.target.value })} /></label>
+      {canManageEmployment && <label className="text-xs">Job title<input className={formControlClassName} required value={draft.roleTitle} onChange={(event) => setDraft({ ...draft, roleTitle: event.target.value })} /></label>}
       <label className="text-xs">Work email<input className={formControlClassName} required type="email" value={draft.email} onChange={(event) => setDraft({ ...draft, email: event.target.value })} /></label>
       <label className="text-xs">Work phone<input className={formControlClassName} type="tel" value={draft.phone} onChange={(event) => setDraft({ ...draft, phone: event.target.value })} /></label>
       <SelectDropdown label="Availability" options={["Available", "Off Shift"].map((value) => ({ value, label: value }))} value={draft.status} onChange={(value) => setDraft({ ...draft, status: value as "Available" | "Off Shift" })} />
-      <SelectDropdown label="Team" options={teams.map((team) => ({ value: team.id, label: team.name }))} value={draft.teamId ?? ""} onChange={(teamId) => setDraft({ ...draft, teamId })} placeholder="Select a team" />
+      {canManageEmployment && <SelectDropdown label="Team" options={teams.map((team) => ({ value: team.id, label: team.name }))} value={draft.teamId ?? ""} onChange={(teamId) => setDraft({ ...draft, teamId })} placeholder="Select a team" />}
       <div className="text-xs sm:col-span-2"><span className="font-semibold text-slate-700">Profile photo</span><input ref={photoInputRef} className="sr-only" type="file" accept="image/*" aria-label="Upload profile photo" onChange={(event) => {
         const file = event.target.files?.[0];
         if (!file?.type.startsWith("image/")) return;

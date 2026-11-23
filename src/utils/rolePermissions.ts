@@ -1,4 +1,4 @@
-import type { RoleId, Ticket, Company, Employee, ServiceLine } from '../types/barrel';
+import type { RoleId, Ticket, Employee, ServiceLine } from "../types/barrel";
 
 export interface RolePermissions {
   allowedTabs: string[];
@@ -7,8 +7,8 @@ export interface RolePermissions {
   canCreateTicket: boolean;
 }
 
-export function canAccessTicket(ticket: Ticket, role: RoleId, employeeId?: string, companyIds?: string[]): boolean {
-  return filterTicketsByRole([ticket], role, employeeId, companyIds).length > 0;
+export function canAccessTicket(ticket: Ticket, role: RoleId, employeeId?: string): boolean {
+  return role === "operations_manager" || Boolean(employeeId && ticket.assignedToId === employeeId);
 }
 
 const allowedTransitions: Record<Ticket["status"], Ticket["status"][]> = {
@@ -47,17 +47,20 @@ export function getAllowedTicketTransitions(role: RoleId, from: Ticket["status"]
   return allowedTransitions[from].filter((to) => canChangeTicketStatus(role, to));
 }
 
-export function canAccessCompany(company: Company, role: RoleId, employeeName?: string): boolean {
-  return filterCompaniesByRole([company], role, employeeName).length > 0;
+export function canAccessService(service: ServiceLine, employee: Employee): boolean {
+  return employee.role === "operations_manager" ||
+    Boolean(employee.eligibleServiceIds?.includes(service.id)) ||
+    service.leadEmployeeId === employee.id ||
+    service.onCallContactId === employee.id ||
+    Boolean(employee.teamId && [service.defaultTeamId, service.escalationTeamId].includes(employee.teamId));
 }
 
-export function canAccessEmployee(employee: Employee, role: RoleId): boolean {
-  return filterEmployeesByRole([employee], role).length > 0;
-}
-
-export function canAccessService(service: ServiceLine, role: RoleId): boolean {
-  return filterServicesByRole([service], role).length > 0;
-}
+const employeePermissions: RolePermissions = {
+  allowedTabs: ["tickets", "companies", "services", "profile"],
+  canManageTeam: false,
+  canConfigureSettings: false,
+  canCreateTicket: false,
+};
 
 export const ROLE_PERMISSIONS: Record<RoleId, RolePermissions> = {
   operations_manager: {
@@ -66,99 +69,15 @@ export const ROLE_PERMISSIONS: Record<RoleId, RolePermissions> = {
     canConfigureSettings: true,
     canCreateTicket: true
   },
-  support_agent: {
-    allowedTabs: ['dashboard', 'tickets', 'notifications'],
-    canManageTeam: false,
-    canConfigureSettings: false,
-    canCreateTicket: true
-  },
-  senior_support: {
-    allowedTabs: ['dashboard', 'tickets', 'services', 'notifications'],
-    canManageTeam: false,
-    canConfigureSettings: false,
-    canCreateTicket: true
-  },
-  development_team: {
-    allowedTabs: ['dashboard', 'tickets', 'services', 'notifications'],
-    canManageTeam: false,
-    canConfigureSettings: false,
-    canCreateTicket: false
-  },
-  qa: {
-    allowedTabs: ['dashboard', 'tickets', 'services', 'notifications'],
-    canManageTeam: false,
-    canConfigureSettings: false,
-    canCreateTicket: false
-  },
-  account_manager: {
-    allowedTabs: ['dashboard', 'tickets', 'companies', 'notifications'],
-    canManageTeam: false,
-    canConfigureSettings: false,
-    canCreateTicket: true
-  },
-  management: {
-    allowedTabs: ['dashboard', 'tickets', 'companies', 'employees', 'services', 'settings', 'notifications'],
-    canManageTeam: true,
-    canConfigureSettings: true,
-    canCreateTicket: true
-  }
+  support_agent: { ...employeePermissions, canCreateTicket: true },
+  senior_support: { ...employeePermissions, canCreateTicket: true },
+  development_team: employeePermissions,
+  qa: employeePermissions,
+  account_manager: { ...employeePermissions, canCreateTicket: true },
+  management: { ...employeePermissions, canCreateTicket: true },
 };
 
-export function filterTicketsByRole(tickets: Ticket[], role: RoleId, employeeId?: string, companyIds: string[] = []): Ticket[] {
-  switch (role) {
-    case 'operations_manager':
-      return tickets;
-    case 'support_agent':
-      return tickets.filter((t) =>
-        t.currentStageRole === 'support_agent' ||
-        t.priority.includes('P2') ||
-        t.priority.includes('P3') ||
-        t.assignedToId === employeeId
-      );
-    case 'senior_support':
-      return tickets.filter((t) =>
-        t.currentStageRole === 'senior_support' ||
-        t.priority.includes('P1') ||
-        t.status === 'Escalated' ||
-        t.assignedToId === employeeId
-      );
-    case 'development_team':
-      return tickets.filter((t) =>
-        t.currentStageRole === 'development_team' ||
-        t.assignedToId === employeeId ||
-        t.tags.some(tag => ['React', 'SSO', 'OAuth2', 'Redis', 'Bug'].includes(tag))
-      );
-    case 'qa':
-      return tickets.filter((t) =>
-        t.currentStageRole === 'qa' ||
-        t.status === 'Pending QA' ||
-        t.assignedToId === employeeId ||
-        t.tags.includes('Compliance') ||
-        t.tags.includes('Security')
-      );
-    case 'account_manager':
-      return tickets.filter((t) =>
-        t.currentStageRole === 'account_manager' ||
-        t.assignedToId === employeeId ||
-        companyIds.includes(t.companyId)
-      );
-    default:
-      return tickets;
-  }
-}
-
-export function filterCompaniesByRole(companies: Company[], role: RoleId, employeeName?: string): Company[] {
-  if (role === 'operations_manager' || role === 'management') return companies;
-  if (role !== 'account_manager') return [];
-  if (!employeeName) return [];
-  return companies.filter((c) => c.accountManager === employeeName);
-}
-
-export function filterEmployeesByRole(employees: Employee[], role: RoleId): Employee[] {
-  if (role === 'operations_manager' || role === 'management') return employees;
-  return [];
-}
-
-export function filterServicesByRole(services: ServiceLine[], role: RoleId): ServiceLine[] {
-  return ROLE_PERMISSIONS[role].allowedTabs.includes('services') ? services : [];
+export function filterTicketsByRole(tickets: Ticket[], role: RoleId, employeeId?: string): Ticket[] {
+  if (role === "operations_manager") return tickets;
+  return tickets.filter((ticket) => canAccessTicket(ticket, role, employeeId));
 }

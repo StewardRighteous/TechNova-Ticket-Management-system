@@ -3,21 +3,23 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeDetailHero } from "./EmployeeDetailHero";
-import { filterEmployeesByRole, filterTicketsByRole, ROLE_PERMISSIONS } from "../../utils/barrel";
+import { filterTicketsByRole, ROLE_PERMISSIONS } from "../../utils/barrel";
 
-export const EmployeesView: React.FC = () => {
+export const EmployeesView: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
   const { data, activeRole, currentUser, updateEmployee, deleteEmployee, addToast } = useTicketStore();
   const navigate = useNavigate();
   const { employeeId: activeEmployeeId } = useParams<{ employeeId: string }>();
 
-  const roleEmployees = filterEmployeesByRole(data.employees, activeRole);
+  const canManageTeam = ROLE_PERMISSIONS[activeRole].canManageTeam;
   const roleTickets = filterTicketsByRole(data.tickets, activeRole, currentUser?.id);
-  const selectedEmployee = roleEmployees.find((e) => e.id === activeEmployeeId);
+  const selectedEmployee = personal ? currentUser : data.employees.find((employee) => employee.id === activeEmployeeId);
 
   const handleUpdateEmployee = (
     updates: Partial<import("../../types/barrel").Employee>,
   ) => {
-    if (activeEmployeeId) { updateEmployee(activeEmployeeId, updates); addToast("Employee changes saved", "success"); }
+    if (!selectedEmployee || !updateEmployee(selectedEmployee.id, updates)) return false;
+    addToast(personal ? "Profile changes saved" : "Employee changes saved", "success");
+    return true;
   };
 
   const handleDeleteEmployee = () => {
@@ -46,19 +48,21 @@ export const EmployeesView: React.FC = () => {
             locations={data.locations}
             roles={data.roles}
             services={data.services}
-            canEdit={ROLE_PERMISSIONS[activeRole].canManageTeam}
+            canEdit={personal || canManageTeam}
+            canManageEmployment={canManageTeam}
+            profileOnly={personal}
             isCurrentUser={selectedEmployee.id === currentUser?.id}
             onUpdateEmployee={handleUpdateEmployee}
-            onDeleteEmployee={handleDeleteEmployee}
+            onDeleteEmployee={canManageTeam && !personal ? handleDeleteEmployee : undefined}
             onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>}
-        <div hidden={Boolean(activeEmployeeId)}><EmployeeTable
-          employees={roleEmployees}
+        {!personal && <div hidden={Boolean(activeEmployeeId)}><EmployeeTable
+          employees={data.employees}
           activeRoleId={activeRole}
           onViewEmployee={(id) => navigate(`/employees/${encodeURIComponent(id)}`)}
-          onCreateNew={activeRole === "operations_manager" || activeRole === "management" ? () => navigate("/employees/new") : undefined}
-        /></div>
+          onCreateNew={canManageTeam ? () => navigate("/employees/new") : undefined}
+        /></div>}
       </>}
     </div>
   );

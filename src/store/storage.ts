@@ -4,6 +4,18 @@ import type { MockupDatabase } from '../types/barrel';
 export const STORAGE_KEY = 'technova_tickets_state_v1';
 export const PERSONA_SESSION_KEY = 'technova_demo_persona';
 
+const previousEmployeeEmails: Readonly<Record<string, string>> = {
+  "emp-1": "a.pendelton@technova.com",
+  "emp-2": "s.noor@technova.com",
+  "emp-3": "a.mercer@technova.com",
+  "emp-4": "e.shaw@technova.com",
+  "emp-5": "p.sharma@technova.com",
+  "emp-6": "k.patel@technova.com",
+  "emp-7": "m.vance@technova.com",
+  "emp-8": "d.vance@technova.com",
+  "emp-9": "v.malhotra@technova.com",
+};
+
 export function getSessionPersonaId(): string | null {
   try {
     return sessionStorage.getItem(PERSONA_SESSION_KEY);
@@ -41,6 +53,8 @@ function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
       return {
         ...employee,
         ...(seedEmployee ? {
+          email: employee.email === previousEmployeeEmails[employee.id] ? seedEmployee.email : employee.email,
+          eligibleServiceIds: employee.eligibleServiceIds ?? seedEmployee.eligibleServiceIds,
           dateOfBirth: employee.dateOfBirth ?? seedEmployee.dateOfBirth,
           gender: employee.gender ?? seedEmployee.gender,
           personalAddress: employee.personalAddress ?? seedEmployee.personalAddress,
@@ -62,6 +76,10 @@ function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
     }),
     services: state.services.map((service) => {
       const seedService = (initialData as MockupDatabase).services.find((item) => item.id === service.id);
+      const matchingLeads = state.employees.filter((employee) => employee.name === service.lead);
+      const leadEmployeeId = service.leadEmployeeId === undefined
+        ? matchingLeads.length === 1 ? matchingLeads[0].id : null
+        : service.leadEmployeeId;
       const previousDescriptions: Record<string, string> = {
         "srv-1": "Full-stack web application development, microservices, multi-tenant architectures, and scalable API platforms.",
         "srv-2": "Container orchestration, Kubernetes cluster governance, AWS/GCP architecture, CI/CD pipelines, and high availability systems.",
@@ -69,9 +87,12 @@ function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
         "srv-4": "Round-the-clock incident response, triage routing, patch releases, security monitoring, and proactive maintenance.",
         "srv-5": "SOC-2 Type II audit readiness, PCI-DSS ledger verification, security vulnerability scans, and IT architecture advisory.",
       };
-      return seedService && service.description === previousDescriptions[service.id]
-        ? { ...service, description: seedService.description }
-        : service;
+      return {
+        ...service,
+        leadEmployeeId,
+        ...(seedService && service.description === previousDescriptions[service.id]
+          ? { description: seedService.description } : {}),
+      };
     }),
     tickets: state.tickets.map((ticket) => {
       const company = state.companies.find((item) => item.id === ticket.companyId);

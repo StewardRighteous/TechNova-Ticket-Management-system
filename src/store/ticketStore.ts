@@ -21,7 +21,7 @@ import {
   authenticateByEmail,
   addTimelineNoteToTicket,
 } from "./authHelpers";
-import { ROLE_PERMISSIONS, canAccessTicket, canTransitionTicket } from "../utils/rolePermissions";
+import { ROLE_PERMISSIONS, canAccessService, canAccessTicket, canTransitionTicket } from "../utils/rolePermissions";
 import { calculateTicketSla, isEligibleAssignee } from "../utils/supportPolicy";
 import { matchesService } from "../utils/matchesService";
 
@@ -46,8 +46,6 @@ interface TicketStore {
   setActiveTab: (tab: string) => void;
   setSelectedTicketId: (id: string | null) => void;
   setTicketTableFocus: (focus: TicketTableFocus | null) => void;
-  setActiveRole: (role: RoleId) => void;
-  setActivePersona: (role: RoleId) => void;
   setSearchQuery: (query: string) => void;
   toggleSidebarCollapse: () => void;
   resetDemoData: () => void;
@@ -76,7 +74,7 @@ interface TicketStore {
   addCompany: (company: Company) => void;
   addService: (service: ServiceLine) => void;
   addEmployee: (employee: Employee) => void;
-  updateEmployee: (id: string, updates: Partial<Employee>) => void;
+  updateEmployee: (id: string, updates: Partial<Employee>) => boolean;
   deleteEmployee: (id: string) => void;
   updateCompany: (id: string, updates: Partial<Company>) => void;
   deleteCompany: (id: string) => void;
@@ -89,11 +87,14 @@ function canAccessTicketByState(
   ticketId: string,
 ): boolean {
   const ticket = state.data.tickets.find((item) => item.id === ticketId);
-  const companyIds = state.data.companies
-    .filter((company) => company.accountManager === state.currentUser?.name)
-    .map((company) => company.id);
-  return Boolean(ticket && canAccessTicket(ticket, state.activeRole, state.currentUser?.id, companyIds));
+  return Boolean(ticket && state.currentUser && canAccessTicket(ticket, state.activeRole, state.currentUser.id));
 }
+
+const editableProfileFields: ReadonlySet<string> = new Set<keyof Employee>([
+  "name", "email", "phone", "avatar", "status", "timeZone", "skills",
+  "dateOfBirth", "gender", "personalAddress", "emergencyContactName", "emergencyContactPhone",
+  "bankName", "accountHolderName", "accountNumber", "routingNumber", "taxId",
+]);
 
 const initialDb = loadInitialState();
 const savedPersonaId = getSessionPersonaId();
@@ -121,7 +122,9 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
         currentUser: matched,
         activeRole: matched.role,
         isAuthenticated: true,
-        activeTab: "dashboard",
+        activeTab: matched.role === "operations_manager" ? "dashboard" : "tickets",
+        selectedTicketId: null,
+        ticketTableFocus: null,
       });
       setSessionPersonaId(matched.id);
       return true;
@@ -136,24 +139,9 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedTicketId: (id) => set({ selectedTicketId: id }),
   setTicketTableFocus: (focus) => set({ ticketTableFocus: focus }),
-  setActiveRole: (role) => {
-    const matchedEmployee =
-      get().data.employees.find((e) => e.role === role && e.accountStatus !== "Disabled");
-    if (matchedEmployee) set({ activeRole: role, currentUser: matchedEmployee });
-  },
-  setActivePersona: (role) => {
-    const matchedEmployee =
-      get().data.employees.find((e) => e.role === role && e.accountStatus !== "Disabled");
-    if (!matchedEmployee) return;
-    set({
-      activeRole: role,
-      currentUser: matchedEmployee,
-      isAuthenticated: true,
-    });
-    setSessionPersonaId(matchedEmployee.id);
-  },
   resetDemoData: () => {
     const state = get();
+    if (!state.currentUser || !ROLE_PERMISSIONS[state.activeRole].canConfigureSettings) return;
     const pristine = resetStoredState();
     const activeEmployee = state.currentUser
       ? pristine.employees.find((employee) => employee.id === state.currentUser?.id)
@@ -426,24 +414,36 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   updateEmployee: (id, updates) => {
     const state = get();
     const employee = state.data.employees.find((item) => item.id === id);
-    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam || !employee) return;
+    if (!state.currentUser || !employee) return false;
     const editingCurrentUser = state.currentUser?.id === id;
-    if (editingCurrentUser && updates.accountStatus === "Disabled") return;
-    const revised = { ...employee, ...updates, id };
+    const canManageTeam = ROLE_PERMISSIONS[state.activeRole].canManageTeam;
+    if (!editingCurrentUser && !canManageTeam) return false;
+    if (editingCurrentUser && updates.accountStatus === "Disabled") return false;
+    const allowedUpdates = canManageTeam ? updates : Object.fromEntries(
+      Object.entries(updates).filter(([key]) => editableProfileFields.has(key)),
+    ) as Partial<Employee>;
+    if (!Object.keys(allowedUpdates).length) return false;
+    const revised = { ...employee, ...allowedUpdates, id };
+    if (revised.email !== employee.email && state.data.employees.some((item) =>
+      item.id !== id && item.email.toLowerCase() === revised.email.toLowerCase())) {
+      state.addToast("An employee with this email already exists.", "error");
+      return false;
+    }
     const renamed = revised.name !== employee.name;
     const updatedData = {
       ...state.data,
       employees: state.data.employees.map((item) => item.id === id ? revised : item),
-      companies: renamed ? state.data.companies.map((item) =>
+      companies: renamed && canManageTeam ? state.data.companies.map((item) =>
         item.accountManager === employee.name ? { ...item, accountManager: revised.name } : item) : state.data.companies,
       services: renamed ? state.data.services.map((item) =>
-        item.lead === employee.name ? { ...item, lead: revised.name } : item) : state.data.services,
+        item.leadEmployeeId === id ? { ...item, lead: revised.name } : item) : state.data.services,
       tickets: state.data.tickets.map((item) => item.assignedToId === id ? {
         ...item, assignedToName: revised.name, assignedToRole: revised.roleTitle,
       } : item),
     };
     persistState(updatedData);
     set({ data: updatedData, ...(editingCurrentUser ? { currentUser: revised, activeRole: revised.role } : {}) });
+    return true;
   },
   deleteEmployee: (id) => {
     const state = get();
@@ -453,7 +453,8 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       ...state.data,
       employees: state.data.employees.filter((item) => item.id !== id),
       companies: state.data.companies.map((company) => company.accountManager === employee.name ? { ...company, accountManager: "Unassigned" } : company),
-      services: state.data.services.map((service) => service.lead === employee.name ? { ...service, lead: "Unassigned" } : service),
+      services: state.data.services.map((service) => service.leadEmployeeId === id
+        ? { ...service, lead: "Unassigned", leadEmployeeId: null } : service),
       tickets: state.data.tickets.map((ticket) => ticket.assignedToId === id ? { ...ticket, assignedToId: "", assignedToName: "Unassigned", assignedToRole: "Unassigned" } : ticket),
     };
     persistState(updatedData);
@@ -486,7 +487,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
   updateService: (id, updates) => {
     const state = get();
     const service = state.data.services.find((item) => item.id === id);
-    if (!ROLE_PERMISSIONS[state.activeRole].canManageTeam || !service) return;
+    if (!service || !state.currentUser || !canAccessService(service, state.currentUser)) return;
     const revised = { ...service, ...updates, id };
     const changedReference = revised.name !== service.name || revised.code !== service.code;
     const updatedData = {

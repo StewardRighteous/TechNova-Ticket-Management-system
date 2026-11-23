@@ -45,9 +45,6 @@ export const DashboardView: React.FC = () => {
     data.tickets,
     activeRole,
     currentUser?.id,
-    data.companies
-      .filter((company) => company.accountManager === currentUser?.name)
-      .map((company) => company.id),
   );
 
   const referenceNow = new Date();
