@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import type { Ticket, InboundChannel } from "../../types/barrel";
-import {
+import { SortableTableHeader, Button, DataTable, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow,
   ChannelBadge,
   PriorityBadge,
   StatusBadge,
-  TablePagination,
+  NumericPagination,
   TableHeaderSection,
-} from "../common/barrel";
+} from "../../ui/barrel";
 import { DashboardChannelFilters } from "./DashboardChannelFilters";
 
 interface DashboardTicketTableProps {
@@ -88,96 +88,71 @@ export const DashboardTicketTable: React.FC<DashboardTicketTableProps> = ({
       </TableHeaderSection>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase">
-            <tr>
-              <th
-                className="cursor-pointer select-none px-5 py-2.5"
-                onClick={() => handleSort("code")}
-              >
-                <span>Ticket</span>
-              </th>
-              <th className="px-3 py-2.5">Channel</th>
-              <th
-                className="cursor-pointer select-none px-3 py-2.5"
-                onClick={() => handleSort("company")}
-              >
-                <span>Client</span>
-              </th>
-              <th
-                className="cursor-pointer select-none px-3 py-2.5"
-                onClick={() => handleSort("title")}
-              >
-                <span>Incident</span>
-              </th>
-              <th
-                className="cursor-pointer select-none px-3 py-2.5"
-                onClick={() => handleSort("priority")}
-              >
-                <span>Priority</span>
-              </th>
-              <th className="px-3 py-2.5">Assignee</th>
-              <th
-                className="cursor-pointer select-none px-3 py-2.5"
-                onClick={() => handleSort("status")}
-              >
-                <span>Status</span>
-              </th>
-              <th className="px-5 py-2.5 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
+        <DataTable className="border-collapse">
+          <TableHead tone="inverse">
+            <TableRow>
+              <SortableTableHeader density="edge" onSort={() => handleSort("code")} direction={sortField === "code" ? (sortAsc ? "ascending" : "descending") : undefined}>Ticket</SortableTableHeader>
+              <TableHeader density="narrow">Channel</TableHeader>
+              <SortableTableHeader density="narrow" onSort={() => handleSort("company")} direction={sortField === "company" ? (sortAsc ? "ascending" : "descending") : undefined}>Client</SortableTableHeader>
+              <SortableTableHeader density="narrow" onSort={() => handleSort("title")} direction={sortField === "title" ? (sortAsc ? "ascending" : "descending") : undefined}>Incident</SortableTableHeader>
+              <SortableTableHeader density="narrow" onSort={() => handleSort("priority")} direction={sortField === "priority" ? (sortAsc ? "ascending" : "descending") : undefined}>Priority</SortableTableHeader>
+              <TableHeader density="narrow">Assignee</TableHeader>
+              <SortableTableHeader density="narrow" onSort={() => handleSort("status")} direction={sortField === "status" ? (sortAsc ? "ascending" : "descending") : undefined}>Status</SortableTableHeader>
+              <TableHeader density="edge" className="text-left">Action</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody className="bg-white">
             {paginated.map((t) => (
-              <tr
+              <TableRow
                 key={t.id}
                 className="group transition-colors hover:bg-indigo-50/40"
               >
-                <td className="px-5 py-2.5 font-mono font-bold whitespace-nowrap text-indigo-700">
+                <TableCell density="edge" className="font-mono font-bold whitespace-nowrap text-indigo-700">
                   {t.code}
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">
+                </TableCell>
+                <TableCell density="narrow" className="whitespace-nowrap">
                   <ChannelBadge channel={t.channel} showText={false} />
-                </td>
-                <td className="px-3 py-2.5 font-semibold whitespace-nowrap text-slate-800">
+                </TableCell>
+                <TableCell density="narrow" className="font-semibold whitespace-nowrap text-slate-800">
                   {t.companyName}
-                </td>
-                <td className="max-w-xs px-3 py-2.5">
+                </TableCell>
+                <TableCell density="narrow" className="max-w-xs">
                   <span className="block truncate font-bold text-slate-900 transition-colors group-hover:text-indigo-600">
                     {t.title}
                   </span>
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">
+                </TableCell>
+                <TableCell density="narrow" className="whitespace-nowrap">
                   <PriorityBadge priority={t.priority} />
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap text-slate-700">
+                </TableCell>
+                <TableCell density="narrow" className="whitespace-nowrap text-slate-700">
                   <div className="flex items-center gap-1 text-[11px]">
-                    <span className="material-symbols-outlined text-[14px] text-slate-400">
+                    <Icon className="text-[14px] text-slate-400">
                       person
-                    </span>
+                    </Icon>
                     <span className="font-medium">{t.assignedToName}</span>
                   </div>
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap">
+                </TableCell>
+                <TableCell density="narrow" className="whitespace-nowrap">
                   <StatusBadge status={t.status} />
-                </td>
-                <td className="px-5 py-2.5 whitespace-nowrap">
-                  <button
+                </TableCell>
+                <TableCell density="edge" className="whitespace-nowrap">
+                  <Button tone="plain"
                     onClick={() => onSelectTicket(t.id)}
                     className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 shadow-sm transition-all hover:bg-indigo-600 hover:text-white"
                   >
-                    <span className="material-symbols-outlined text-[14px]">
+                    <Icon className="text-[14px]">
                       visibility
-                    </span>
+                    </Icon>
                     <span>View</span>
-                  </button>
-                </td>
-              </tr>
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </DataTable>
       </div>
 
-      <TablePagination
+      <NumericPagination
         totalItems={filtered.length}
         currentPage={page}
         pageSize={pageSize}

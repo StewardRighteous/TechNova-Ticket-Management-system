@@ -1,6 +1,6 @@
 import React from "react";
 import type { Ticket } from "../../types/barrel";
-import { ChannelBadge, PriorityBadge, StatusBadge } from "../common/barrel";
+import { Heading, ChannelBadge, PriorityBadge, StatusBadge } from "../../ui/barrel";
 
 interface TicketListItemProps {
   ticket: Ticket;
@@ -35,9 +35,9 @@ export const TicketListItem: React.FC<TicketListItemProps> = ({
       </div>
 
       <div>
-        <h4 className="line-clamp-1 text-xs font-bold text-slate-900 group-hover:text-indigo-600">
+        <Heading as="h4" variant="plain" className="line-clamp-1 text-xs font-bold text-slate-900 group-hover:text-indigo-600">
           {ticket.title}
-        </h4>
+        </Heading>
         <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-500">
           {ticket.description}
         </p>

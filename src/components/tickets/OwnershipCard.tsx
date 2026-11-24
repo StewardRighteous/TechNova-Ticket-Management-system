@@ -1,3 +1,4 @@
+import { Heading } from "../../ui/barrel";
 import React from "react";
 import type { Employee, Ticket } from "../../types/barrel";
 
@@ -14,9 +15,9 @@ export const OwnershipCard: React.FC<OwnershipCardProps> = ({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">
+      <Heading as="h4" variant="plain" className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">
         Ownership
-      </h4>
+      </Heading>
 
       {/* Assignee */}
       <div className="flex items-center gap-3 rounded-xl bg-indigo-50 p-3">

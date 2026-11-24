@@ -1,8 +1,9 @@
+import { Button, Heading } from "../../../ui/barrel";
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useTicketStore } from '../../../store/barrel';
-import { ServiceTable } from '../ServiceTable';
-import { ServiceDetailHero } from '../ServiceDetailHero';
+import { useTicketStore } from "../../../store/barrel";
+import { ServiceTable } from "../ServiceTable";
+import { ServiceDetailHero } from "../ServiceDetailHero";
 import { canAccessService, filterTicketsByRole, ROLE_PERMISSIONS } from "../../../utils/rolePermissions";
 
 export const ServicesView: React.FC = () => {
@@ -28,9 +29,9 @@ export const ServicesView: React.FC = () => {
     <div className="space-y-4 p-2">
       {activeServiceId && !selectedService ? (
         <section role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-6">
-          <h1 className="text-lg font-semibold text-slate-900">Service unavailable</h1>
+          <Heading as="h1" variant="notice">Service unavailable</Heading>
           <p className="mt-2 text-sm text-slate-700">This service may not exist or may not be available to your role.</p>
-          <button type="button" onClick={() => navigate('/services')} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to services</button>
+          <Button tone="plain" type="button" onClick={() => navigate('/services')} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to services</Button>
         </section>
       ) : <>
         {selectedService && <>

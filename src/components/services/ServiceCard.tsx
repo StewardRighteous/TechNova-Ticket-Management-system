@@ -1,5 +1,6 @@
+import { Heading } from "../../ui/barrel";
 import React from 'react';
-import type { ServiceLine } from '../../types/barrel';
+import type { ServiceLine } from "../../types/barrel";
 
 interface ServiceCardProps {
   service: ServiceLine;
@@ -14,7 +15,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
             <span className="text-[10px] font-mono font-bold text-indigo-600 block mb-0.5">
               {service.code}
             </span>
-            <h3 className="text-sm font-bold text-slate-900">{service.name}</h3>
+            <Heading as="h3" variant="subsection">{service.name}</Heading>
             <span className="text-[11px] text-slate-500 font-medium">{service.department}</span>
           </div>
           <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">

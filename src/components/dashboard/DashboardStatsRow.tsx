@@ -1,3 +1,4 @@
+import { Icon } from "../../ui/barrel";
 import React from "react";
 
 interface DashboardStatsRowProps {
@@ -24,9 +25,9 @@ export const DashboardStatsRow: React.FC<DashboardStatsRowProps> = ({
       <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-900 p-5 shadow-md transition-shadow hover:shadow-lg">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-emerald-600">
+            <Icon className="text-[18px] text-emerald-600">
               hub
-            </span>
+            </Icon>
             <span className="text-xs font-bold tracking-wider text-white uppercase">
               Ticket Channels
             </span>
@@ -35,9 +36,9 @@ export const DashboardStatsRow: React.FC<DashboardStatsRowProps> = ({
 
         <div className="my-3 grid grid-cols-3 gap-3 text-center">
           <div className="flex flex-col items-center rounded-xl border border-emerald-100 bg-white/90 p-3 shadow-sm">
-            <span className="material-symbols-outlined text-[18px] text-emerald-600">
+            <Icon className="text-[18px] text-emerald-600">
               chat
-            </span>
+            </Icon>
             <span className="mt-0.5 text-[11px] font-bold text-emerald-800">
               WhatsApp
             </span>
@@ -47,9 +48,9 @@ export const DashboardStatsRow: React.FC<DashboardStatsRowProps> = ({
           </div>
 
           <div className="flex flex-col items-center rounded-xl border border-blue-100 bg-white/90 p-3 shadow-sm">
-            <span className="material-symbols-outlined text-[18px] text-blue-600">
+            <Icon className="text-[18px] text-blue-600">
               mail
-            </span>
+            </Icon>
             <span className="mt-0.5 text-[11px] font-bold text-blue-800">
               Email
             </span>
@@ -59,9 +60,9 @@ export const DashboardStatsRow: React.FC<DashboardStatsRowProps> = ({
           </div>
 
           <div className="flex flex-col items-center rounded-xl border border-purple-100 bg-white/90 p-3 shadow-sm">
-            <span className="material-symbols-outlined text-[18px] text-purple-600">
+            <Icon className="text-[18px] text-purple-600">
               call
-            </span>
+            </Icon>
             <span className="mt-0.5 text-[11px] font-bold text-purple-800">
               Phone
             </span>
@@ -75,9 +76,9 @@ export const DashboardStatsRow: React.FC<DashboardStatsRowProps> = ({
       <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-900 p-5 shadow-md transition-shadow hover:shadow-lg">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-indigo-600">
+            <Icon className="text-[18px] text-indigo-600">
               signal_cellular_alt
-            </span>
+            </Icon>
             <span className="text-xs font-bold tracking-wider text-white uppercase">
               Ticket Severity
             </span>

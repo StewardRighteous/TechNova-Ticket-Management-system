@@ -1,3 +1,4 @@
+import { Button, Heading } from "../../ui/barrel";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
@@ -33,9 +34,9 @@ export const EmployeesView: React.FC<{ personal?: boolean }> = ({ personal = fal
     <div className="space-y-4 p-2">
       {activeEmployeeId && !selectedEmployee ? (
         <section role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-6">
-          <h1 className="text-lg font-semibold text-slate-900">Employee unavailable</h1>
+          <Heading as="h1" variant="notice">Employee unavailable</Heading>
           <p className="mt-2 text-sm text-slate-700">This employee may not exist or may not be available to your role.</p>
-          <button type="button" onClick={() => navigate("/employees")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to employees</button>
+          <Button tone="plain" type="button" onClick={() => navigate("/employees")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to employees</Button>
         </section>
       ) : <>
         {selectedEmployee && <>

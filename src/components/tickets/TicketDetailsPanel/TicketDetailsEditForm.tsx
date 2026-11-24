@@ -1,6 +1,6 @@
 import React from "react";
 import type { Company, ServiceLine, Ticket } from "../../../types/barrel";
-import { DiagnosticInput, Input, Read, Select, TextArea } from "./shared";
+import { DiagnosticInput, TicketDetailField, Read, Select, TextArea } from "./shared";
 import type { Draft, TicketDetailsTab } from "./types";
 
 type Props = {
@@ -38,7 +38,7 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
       {activeTab === "overview" && (
         <>
           <Read label="Ticket no." value={ticket.code} />
-          <Input
+          <TicketDetailField
             label="Title"
             value={draft.title}
             set={(v) => set("title", v)}
@@ -88,7 +88,7 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             set={(v) => set("priority", v as Draft["priority"])}
             readonly={readonly}
           />
-          <Input
+          <TicketDetailField
             label="Client contact"
             value={draft.clientContact}
             set={(v) => set("clientContact", v)}
@@ -98,7 +98,7 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
       )}
       {activeTab === "context" && (
         <>
-          <Input
+          <TicketDetailField
             label="Title"
             value={draft.title}
             set={(v) => set("title", v)}
@@ -119,14 +119,14 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             set={(v) => set("serviceId", v)}
             readonly={readonly}
           />
-          <Input
+          <TicketDetailField
             label="Due date and time"
             type="datetime-local"
             value={draft.dueAt}
             set={(v) => set("dueAt", v)}
             readonly={readonly}
           />
-          <Input
+          <TicketDetailField
             label="SLA target"
             value={draft.slaDeadline}
             set={(v) => set("slaDeadline", v)}
@@ -156,13 +156,13 @@ export const TicketDetailsEditForm: React.FC<Props> = ({
             readonly={readonly}
           />
 
-          <Input
+          <TicketDetailField
             label="Tags"
             value={draft.tagsText}
             set={(v) => set("tagsText", v)}
             readonly={readonly}
           />
-          <Input
+          <TicketDetailField
             label="Environment"
             value={draft.environment}
             set={(v) => set("environment", v)}

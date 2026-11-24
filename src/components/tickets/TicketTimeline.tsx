@@ -1,3 +1,4 @@
+import { Button, Heading, Icon, Input, Label } from "../../ui/barrel";
 import React from "react";
 import type { TicketTimelineItem } from "../../types/barrel";
 
@@ -17,12 +18,12 @@ export const TicketTimeline: React.FC<TicketTimelineProps> = ({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-          <span className="material-symbols-outlined text-[18px] text-indigo-600">
+        <Heading as="h3" variant="plain" className="flex items-center gap-2 text-sm font-bold text-slate-900">
+          <Icon className="text-[18px] text-indigo-600">
             history
-          </span>
+          </Icon>
           <span>Incident Activity & Audit Trail</span>
-        </h3>
+        </Heading>
         <span className="font-mono text-xs font-semibold text-slate-400">
           {timeline.length} Events
         </span>
@@ -61,11 +62,11 @@ export const TicketTimeline: React.FC<TicketTimelineProps> = ({
 
       {/* Quick Add Note */}
       <div className="border-t border-slate-100 pt-4">
-        <label className="mb-1.5 block text-xs font-bold text-slate-700">
+        <Label variant="plain" className="mb-1.5 block text-xs font-bold text-slate-700">
           Add Operational Note / Status Update
-        </label>
+        </Label>
         <div className="flex gap-2">
-          <input
+          <Input appearance="plain"
             type="text"
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
@@ -75,13 +76,13 @@ export const TicketTimeline: React.FC<TicketTimelineProps> = ({
             placeholder="Document remediation steps, testing results, or client communications..."
             className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500"
           />
-          <button
+          <Button tone="plain"
             onClick={onAddNote}
             className="flex items-center gap-1 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
           >
-            <span className="material-symbols-outlined text-[16px]">send</span>
+            <Icon className="text-[16px]">send</Icon>
             <span>Post</span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>

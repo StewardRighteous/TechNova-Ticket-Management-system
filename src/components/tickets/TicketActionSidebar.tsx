@@ -1,6 +1,7 @@
+import { Heading, Label } from "../../ui/barrel";
 import React from 'react';
-import type { Ticket, Employee, TicketStatus } from '../../types/barrel';
-import { SelectDropdown } from "../common/SelectDropdown";
+import type { Ticket, Employee, TicketStatus } from "../../types/barrel";
+import { SelectDropdown } from "../../ui/groups/SelectDropdown";
 import { ticketSlaRisk } from "../../utils/supportPolicy";
 
 interface TicketActionSidebarProps {
@@ -30,26 +31,26 @@ export const TicketActionSidebar: React.FC<TicketActionSidebarProps> = ({
     <div className="space-y-6">
       {/* Workflow Dispatch Control */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <Heading as="h4" variant="plain" className="text-xs font-bold uppercase tracking-wider text-slate-400">
           Workflow Controls
-        </h4>
+        </Heading>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Incident Status</label>
+          <Label variant="plain" className="block text-xs font-semibold text-slate-700 mb-1">Incident Status</Label>
           <SelectDropdown label="Incident Status" value={ticket.status} onChange={(value) => onStatusChange(value as TicketStatus)} options={statusOptions.map((value) => ({ value, label: value }))} />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Assigned Engineer</label>
+          <Label variant="plain" className="block text-xs font-semibold text-slate-700 mb-1">Assigned Engineer</Label>
           <SelectDropdown label="Assigned Engineer" value={ticket.assignedToId} onChange={onAssigneeChange} options={employees.map((employee) => ({ value: employee.id, label: `${employee.name} (${employee.roleTitle})` }))} />
         </div>
       </div>
 
       {/* SLA & Diagnostics Metadata */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <Heading as="h4" variant="plain" className="text-xs font-bold uppercase tracking-wider text-slate-400">
           SLA Target & Diagnostics
-        </h4>
+        </Heading>
 
         <div className="flex items-center justify-between text-xs">
           <span className="text-slate-500">SLA Status:</span>

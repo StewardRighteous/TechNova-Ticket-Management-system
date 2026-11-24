@@ -1,7 +1,8 @@
+import { Button, Heading, Icon, Input, Label } from "../../ui/barrel";
 import React, { useState } from "react";
 import type { Employee, Ticket, TicketStatus } from "../../types/barrel";
-import { SelectDropdown } from "../common/SelectDropdown";
-import { StaffAvatar } from "../common/StaffAvatar";
+import { SelectDropdown } from "../../ui/groups/SelectDropdown";
+import { StaffAvatar } from "../../ui/atoms/StaffAvatar";
 
 interface TicketHistoryPanelProps {
   ticket: Ticket;
@@ -48,7 +49,7 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="ticket-history-heading">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 id="ticket-history-heading" className="text-sm font-bold text-slate-900">Assignment &amp; workflow history</h3>
+            <Heading as="h3" variant="subsection" id="ticket-history-heading">Assignment &amp; workflow history</Heading>
             <p className="mt-1 text-xs text-slate-500">See who handled the ticket and what changed.</p>
           </div>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">{history.length} events</span>
@@ -60,14 +61,14 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
                 {(() => {
                   const author = employees.find((employee) => employee.id === item.performedById || employee.name === item.author);
                   return author ? (
-                    <button
+                    <Button tone="plain"
                       type="button"
                       onClick={() => onViewEmployee?.(author.id)}
                       aria-label={`View ${author.name} details`}
                       className="mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-white transition hover:ring-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <StaffAvatar src={author.avatar} alt={`${author.name} profile`} sizeClassName="h-10 w-10" fallbackClassName="text-[18px]" />
-                    </button>
+                    </Button>
                   ) : (
                     <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-600" aria-hidden="true">
                       {item.author.slice(0, 1).toUpperCase()}
@@ -90,10 +91,10 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
 
       <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="ticket-history-actions-heading">
         <div>
-          <h3 id="ticket-history-actions-heading" className="text-sm font-bold text-slate-900">Escalate or reassign</h3>
+          <Heading as="h3" variant="subsection" id="ticket-history-actions-heading">Escalate or reassign</Heading>
           <p className="mt-1 text-xs text-slate-500">Route the ticket to the right person or team.</p>
         </div>
-        <button type="button" onClick={() => assignedEmployee && onViewEmployee?.(assignedEmployee.id)} disabled={!assignedEmployee || !onViewEmployee} className="flex w-full items-center gap-3 rounded-xl bg-indigo-50 px-3 py-3 text-left transition enabled:hover:bg-indigo-100 disabled:cursor-default" aria-label={assignedEmployee ? `View ${assignedEmployee.name} employee details` : undefined}>
+        <Button tone="plain" type="button" onClick={() => assignedEmployee && onViewEmployee?.(assignedEmployee.id)} disabled={!assignedEmployee || !onViewEmployee} className="flex w-full items-center gap-3 rounded-xl bg-indigo-50 px-3 py-3 text-left transition enabled:hover:bg-indigo-100 disabled:cursor-default" aria-label={assignedEmployee ? `View ${assignedEmployee.name} employee details` : undefined}>
           <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100">
             <StaffAvatar src={assignedEmployee?.avatar || "person"} alt={`${ticket.assignedToName} profile`} sizeClassName="h-11 w-11" fallbackClassName="text-[21px]" />
           </span>
@@ -102,28 +103,28 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
             <span className="mt-1 block truncate text-sm font-bold text-indigo-700">{ticket.assignedToName}</span>
             <span className="block text-[11px] text-slate-500">{ticket.assignedToRole}</span>
           </span>
-          {assignedEmployee && onViewEmployee && <span className="material-symbols-outlined shrink-0 text-[19px] text-indigo-500" aria-hidden="true">chevron_right</span>}
-        </button>
-        {canEscalate && <button type="button" onClick={onEscalate} className="flex w-full items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-left hover:bg-amber-100">
+          {assignedEmployee && onViewEmployee && <Icon className="shrink-0 text-[19px] text-indigo-500" aria-hidden="true">chevron_right</Icon>}
+        </Button>
+        {canEscalate && <Button tone="plain" type="button" onClick={onEscalate} className="flex w-full items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-left hover:bg-amber-100">
           <span><span className="block text-xs font-bold text-amber-900">Escalate to Senior Support</span><span className="mt-0.5 block text-[11px] text-amber-700">Move this ticket into escalation.</span></span>
-          <span className="material-symbols-outlined text-[18px] text-amber-700">trending_up</span>
-        </button>}
-        {canRequestQa && <button type="button" onClick={onRequestQa} className="flex w-full items-center justify-between rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-3 text-left hover:bg-cyan-100">
+          <Icon className="text-[18px] text-amber-700">trending_up</Icon>
+        </Button>}
+        {canRequestQa && <Button tone="plain" type="button" onClick={onRequestQa} className="flex w-full items-center justify-between rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-3 text-left hover:bg-cyan-100">
           <span><span className="block text-xs font-bold text-cyan-900">Request QA Review</span><span className="mt-0.5 block text-[11px] text-cyan-700">Send the ticket to quality validation.</span></span>
-          <span className="material-symbols-outlined text-[18px] text-cyan-700">fact_check</span>
-        </button>}
-        {canResolve && <button type="button" onClick={onMarkResolved} className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left hover:bg-emerald-100">
+          <Icon className="text-[18px] text-cyan-700">fact_check</Icon>
+        </Button>}
+        {canResolve && <Button tone="plain" type="button" onClick={onMarkResolved} className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-left hover:bg-emerald-100">
           <span><span className="block text-xs font-bold text-emerald-900">Mark Resolved</span><span className="mt-0.5 block text-[11px] text-emerald-700">Record the resolution and close the investigation.</span></span>
-          <span className="material-symbols-outlined text-[18px] text-emerald-700">check_circle</span>
-        </button>}
+          <Icon className="text-[18px] text-emerald-700">check_circle</Icon>
+        </Button>}
         {canManageTeam && <div className="border-t border-slate-100 pt-4">
-          <label htmlFor="history-reassign" className="block text-xs font-bold text-slate-700">Reassign ticket</label>
+          <Label variant="plain" htmlFor="history-reassign" className="block text-xs font-bold text-slate-700">Reassign ticket</Label>
           <SelectDropdown label="Reassign ticket" value={assigneeId} onChange={setAssigneeId} options={employees.map((employee) => ({ value: employee.id, label: `${employee.name} · ${employee.roleTitle}` }))} className="mt-2 w-full" />
-          <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a handoff note (optional)" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500" />
-          <button type="button" onClick={reassign} disabled={assigneeId === ticket.assignedToId} className="mt-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white enabled:hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40">Apply reassignment</button>
+          <Input appearance="plain" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a handoff note (optional)" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500" />
+          <Button tone="plain" type="button" onClick={reassign} disabled={assigneeId === ticket.assignedToId} className="mt-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white enabled:hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40">Apply reassignment</Button>
         </div>}
         <div className="border-t border-slate-100 pt-4">
-          <label htmlFor="history-status" className="block text-xs font-bold text-slate-700">Update status</label>
+          <Label variant="plain" htmlFor="history-status" className="block text-xs font-bold text-slate-700">Update status</Label>
           <SelectDropdown label="Update status" value={ticket.status} onChange={(value) => onStatusChange(value as TicketStatus)} options={["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"].map((value) => ({ value, label: value }))} className="mt-2 w-full" />
         </div>
       </section>

@@ -1,94 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { canAccessTicket } from "../../utils/rolePermissions";
 import type { Attachment, CustomerContact, InboundChannel, Ticket, TicketDiagnosticData, TicketPriority } from "../../types/barrel";
-import { FormField, formControlClassName } from "../common/barrel";
-import { ChannelSelector } from "../common/modals/ChannelSelector";
+import { StepAction, ConfirmationDialog, FieldHint, FormActions, Button, Heading, Icon, Input, Textarea, FormField, SelectDropdown } from "../../ui/barrel";
+import { ChannelSelector } from "../../ui/groups/ChannelSelector";
 import { formatSupportDeadline, isEligibleAssignee, ticketPriorities } from "../../utils/supportPolicy";
 
 type IncidentCategory = "Technical/Bug" | "Login" | "Billing" | "Feature Request";
 const DRAFT_KEY = "technova.ticket-intake-draft";
 type IntakeDraft = { step?: 1 | 2; channel: InboundChannel; companyId: string; contactId: string; title: string; serviceId: string; assigneeId: string; supportSite?: string; priority: TicketPriority | ""; category: IncidentCategory; description: string; initialNote: string; diagnostics: TicketDiagnosticData; categoryValue: string; attachments: Attachment[] };
 
-interface TicketComboboxProps {
-  label: string;
-  value: string;
-  options: { value: string; label: string }[];
-  placeholder: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  required?: boolean;
-  info?: string;
-}
-
-const TicketCombobox: React.FC<TicketComboboxProps> = ({ label, value, options, placeholder, onChange, disabled = false, required = false, info }) => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const listboxRef = useRef<HTMLDivElement>(null);
-  const [listboxPosition, setListboxPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 320 });
-  const selectedLabel = options.find((option) => option.value === value)?.label;
-  const filteredOptions = options.filter((option) => option.label.toLowerCase().includes(query.toLowerCase()));
-
-  const updateListboxPosition = () => {
-    const button = buttonRef.current;
-    if (!button) return;
-    const bounds = button.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - bounds.bottom - 12;
-    const spaceAbove = bounds.top - 12;
-    const opensAbove = spaceBelow < 220 && spaceAbove > spaceBelow;
-    const maxHeight = Math.max(120, Math.min(320, opensAbove ? spaceAbove : spaceBelow));
-    setListboxPosition({
-      top: opensAbove ? Math.max(12, bounds.top - maxHeight - 4) : bounds.bottom + 4,
-      left: bounds.left,
-      width: bounds.width,
-      maxHeight,
-    });
-  };
-
-  useEffect(() => {
-    const closeOnOutsideClick = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!containerRef.current?.contains(target) && !listboxRef.current?.contains(target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", closeOnOutsideClick);
-    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    updateListboxPosition();
-    const reposition = () => updateListboxPosition();
-    window.addEventListener("resize", reposition);
-    window.addEventListener("scroll", reposition, true);
-    return () => {
-      window.removeEventListener("resize", reposition);
-      window.removeEventListener("scroll", reposition, true);
-    };
-  }, [open]);
-
-  return <div ref={containerRef} className="relative min-w-0">
-    <span className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">{label}{required && <span className="text-red-600" aria-hidden="true">*</span>}{info && <span className="group relative inline-flex"><button type="button" aria-label={`${label} information`} className="material-symbols-outlined rounded-full text-[15px] text-slate-500 hover:text-brand-indigo focus:outline-none focus:ring-2 focus:ring-brand-indigo" title={info}>info</button><span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs font-normal text-white group-hover:block group-focus-within:block">{info}</span></span>}</span>
-    <input type="hidden" value={value} required={required} disabled={disabled} aria-label={label} />
-    <button ref={buttonRef} type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open} onClick={() => { setOpen((current) => !current); setQuery(""); }} className={`${formControlClassName} flex items-center justify-between text-left disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400`}>
-      <span className={selectedLabel ? "truncate" : "truncate text-slate-400"}>{selectedLabel || placeholder}</span>
-      <span aria-hidden="true" className="material-symbols-outlined ml-2 shrink-0 text-[18px] text-slate-500">{open ? "expand_less" : "expand_more"}</span>
-    </button>
-    {open && createPortal(<div ref={listboxRef} role="listbox" aria-label={label} className="fixed z-[100] overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl" style={{ top: listboxPosition.top, left: listboxPosition.left, width: listboxPosition.width, maxHeight: listboxPosition.maxHeight }}>
-      <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${label.toLowerCase()}...`} className="mb-1.5 w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-sm text-slate-900 outline-none focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/20" />
-      <div className="overflow-y-auto" style={{ maxHeight: Math.max(80, listboxPosition.maxHeight - 58) }}>
-        {filteredOptions.length ? filteredOptions.map((option) => <button key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => { onChange(option.value); setOpen(false); setQuery(""); }} className={`flex w-full items-center rounded-md px-2.5 py-2 text-left text-sm transition-colors ${option.value === value ? "bg-slate-100 font-semibold text-brand-indigo" : "text-slate-700 hover:bg-slate-50"}`}>{option.label}</button>) : <p className="px-2.5 py-2 text-sm text-slate-500">No matching options</p>}
-      </div>
-    </div>, document.body)}
-  </div>;
-};
-
 export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreated }) => {
   const { data, activeRole, currentUser, addTicket, addToast } = useTicketStore();
   const navigate = useNavigate();
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const draftKey = `${DRAFT_KEY}.${currentUser?.id}`;
   const [draft] = useState<IntakeDraft>(() => { try { return JSON.parse(sessionStorage.getItem(draftKey) || "null") || {}; } catch { return {}; } });
   const [step, setStep] = useState<1 | 2>(draft.step || 1);
@@ -124,7 +50,10 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [hasDraftData]);
-  const leaveIntake = () => { if (!hasDraftData || window.confirm("Save this ticket draft to continue later? Choose Cancel to stay on this form.")) navigate("/tickets"); };
+  const leaveIntake = () => {
+    if (hasDraftData) setConfirmLeave(true);
+    else navigate("/tickets");
+  };
 
   const company = data.companies.find((item) => item.id === companyId);
   const service = data.services.find((item) => item.id === serviceId);
@@ -164,7 +93,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (submitting || savedTicket) return;
+    if (step === 1 || submitting || savedTicket) return;
     setAttemptedCreate(true);
     if (!description.trim()) return;
     const selectedContact = contacts.find((contact) => contact.id === contactId);
@@ -206,8 +135,8 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
       <header className="border-b border-slate-200 bg-white px-6 py-5 sm:px-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><span className="material-symbols-outlined text-[18px]">check_circle</span>Ticket saved successfully</p>
-            <h1 id="ticket-created-heading" className="mt-2 text-2xl font-bold text-slate-900">{savedTicket.code}</h1>
+            <p className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><Icon className="text-[18px]">check_circle</Icon>Ticket saved successfully</p>
+            <Heading as="h1" variant="plain" id="ticket-created-heading" className="mt-2 text-2xl font-bold text-slate-900">{savedTicket.code}</Heading>
             <p className="mt-1 text-sm text-slate-600">Your ticket has been added to the support queue.</p>
           </div>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{savedTicket.status}</span>
@@ -216,29 +145,29 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
 
       <div className="space-y-6 px-6 py-6 sm:px-8">
         <section aria-labelledby="ticket-summary-heading">
-          <h2 id="ticket-summary-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Ticket summary</h2>
+          <Heading variant="plain" id="ticket-summary-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Ticket summary</Heading>
           <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <h3 className="text-lg font-bold text-slate-900">{savedTicket.title}</h3>
+            <Heading as="h3" variant="dialog">{savedTicket.title}</Heading>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{savedTicket.description}</p>
           </div>
         </section>
 
         <section aria-labelledby="ticket-details-heading">
-          <h2 id="ticket-details-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Details</h2>
+          <Heading variant="plain" id="ticket-details-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Details</Heading>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[['Company', `${savedTicket.companyName} (${savedTicket.companyCode})`], ['Customer contact', savedTicket.clientContact], ['Service', savedTicket.serviceName], ['Priority', savedTicket.priority], ['Channel', channelLabel], ['Assigned to', `${savedTicket.assignedToName} · ${savedTicket.assignedToRole}`], ...(savedTicket.firstResponseDueAt ? [['First response due', formatSupportDeadline(savedTicket.firstResponseDueAt)]] : []), ...(savedTicket.dueAt ? [['Resolution due', formatSupportDeadline(savedTicket.dueAt)]] : []), ['Channel reference', savedTicket.channelIdentifier], ['Attachments', `${savedTicket.attachments?.length || 0} image${savedTicket.attachments?.length === 1 ? "" : "s"}`]].map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 px-3 py-2.5"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd></div>)}
           </dl>
         </section>
 
         <section aria-labelledby="diagnostic-summary-heading">
-          <div className="flex items-center justify-between gap-3"><h2 id="diagnostic-summary-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Diagnostics captured</h2><span className="text-xs font-semibold text-slate-500">System revision {savedTicket.systemRevision}</span></div>
+          <div className="flex items-center justify-between gap-3"><Heading variant="plain" id="diagnostic-summary-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Diagnostics captured</Heading><span className="text-xs font-semibold text-slate-500">System revision {savedTicket.systemRevision}</span></div>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{diagnosticEntries.map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 px-3 py-2.5"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd></div>)}</dl>
           {savedTicket.diagnosticData?.errorMessage && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900"><strong>Error message:</strong> {savedTicket.diagnosticData.errorMessage}</p>}
         </section>
 
         <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
-          {canAccessTicket(savedTicket, activeRole, currentUser?.id) && <button type="button" onClick={() => navigate(`/tickets/${encodeURIComponent(savedTicket.id)}`, { state: { receipt: true } })} className="rounded-lg bg-brand-indigo px-4 py-2 text-sm font-semibold text-white">Open saved ticket</button>}
-          <button type="button" onClick={() => navigate("/tickets")} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Back to ticket queue</button>
+          {canAccessTicket(savedTicket, activeRole, currentUser?.id) && <Button tone="plain" type="button" onClick={() => navigate(`/tickets/${encodeURIComponent(savedTicket.id)}`, { state: { receipt: true } })} className="rounded-lg bg-brand-indigo px-4 py-2 text-sm font-semibold text-white">Open saved ticket</Button>}
+          <Button tone="plain" type="button" onClick={() => navigate("/tickets")} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Back to ticket queue</Button>
         </div>
       </div>
     </section></div>;
@@ -247,7 +176,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
   const detailsValid = Boolean(title.trim() && company && contacts.some((contact) => contact.id === contactId) && service && assignee && priority);
   return <div className="w-full bg-white">
     <form onSubmit={submit} className="space-y-4 px-4 py-4 sm:px-6 sm:py-5">
-      <h2 ref={headingRef} tabIndex={-1} className="sr-only focus:outline-none">{step === 1 ? "Create a ticket · Ticket details" : "Ticket diagnostics"}</h2>
+      <Heading variant="plain" ref={headingRef} tabIndex={-1} className="sr-only focus:outline-none">{step === 1 ? "Create a ticket · Ticket details" : "Ticket diagnostics"}</Heading>
       <div className="flex items-center gap-3" aria-label={`Step ${step} of 2`}>
         <span className="shrink-0 text-xs font-bold text-slate-700">{step} of 2</span>
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-brand-indigo transition-all" style={{ width: `${step === 1 ? 50 : 100}%` }} /></div>
@@ -256,42 +185,59 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
 
       {step === 1 ? <div className="grid gap-x-4 gap-y-3 lg:grid-cols-2">
         <ChannelSelector channel={channel} setChannel={setChannel} />
-        <FormField label="Ticket title *"><input className={formControlClassName} required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField>
-        <div><TicketCombobox label="Company" value={companyId} onChange={(value) => { setCompanyId(value); setContactId(""); setSupportSite(""); }} options={matchingCompanies.map((item) => ({ value: item.id, label: `${item.name} (${item.code})` }))} placeholder="Select a company" required /></div>
-        <TicketCombobox label="Customer contact" value={contactId} onChange={setContactId} options={contacts.map((contact) => ({ value: contact.id, label: `${contact.name} · ${contact.email}` }))} placeholder={company ? "Select a contact" : "Choose a company first"} disabled={!company} required />
-        <TicketCombobox label="Priority" value={priority} onChange={(value) => setPriority(value as TicketPriority | "")} options={ticketPriorities.map((item) => ({ value: item, label: item }))} placeholder="Select priority" required info="P1 is reserved for critical incidents." />
-        <TicketCombobox label="Service" value={serviceId} onChange={(value) => {
+        <FormField label="Ticket title" required><Input required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField>
+        <div><SelectDropdown showLabel label="Company" value={companyId} onChange={(value) => { setCompanyId(value); setContactId(""); setSupportSite(""); }} options={matchingCompanies.map((item) => ({ value: item.id, label: `${item.name} (${item.code})` }))} placeholder="Select a company" required /></div>
+        <SelectDropdown showLabel label="Customer contact" value={contactId} onChange={setContactId} options={contacts.map((contact) => ({ value: contact.id, label: `${contact.name} · ${contact.email}` }))} placeholder={company ? "Select a contact" : "Choose a company first"} disabled={!company} required />
+        <SelectDropdown showLabel label="Priority" value={priority} onChange={(value) => setPriority(value as TicketPriority | "")} options={ticketPriorities.map((item) => ({ value: item, label: item }))} placeholder="Select priority" required info="P1 is reserved for critical incidents." />
+        <SelectDropdown showLabel label="Service" value={serviceId} onChange={(value) => {
           setServiceId(value);
           if (assignee && !isEligibleAssignee(assignee, value)) setAssigneeId("");
         }} options={data.services.map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a service" required />
-        <TicketCombobox label="Assign to" value={assignee?.id ?? ""} onChange={setAssigneeId} options={eligibleAssignees.map((item) => ({
+        <SelectDropdown showLabel label="Assign to" value={assignee?.id ?? ""} onChange={setAssigneeId} options={eligibleAssignees.map((item) => ({
           value: item.id,
           label: activeRole === "operations_manager"
             ? `${item.name} · ${item.status} · ${activeLoad.get(item.id) ?? 0}/${item.capacityMax}`
             : `${item.name} · ${item.status}`,
         }))} placeholder="Select an owner" required />
-        {!!company?.supportSites?.length && <TicketCombobox label="Affected site or tenant" value={supportSite} onChange={setSupportSite} options={[
+        {!!company?.supportSites?.length && <SelectDropdown showLabel label="Affected site or tenant" value={supportSite} onChange={setSupportSite} options={[
           { value: "", label: "Unspecified" }, ...company.supportSites.map((site) => ({ value: site, label: site })),
         ]} placeholder="Select a site or tenant" />}
       </div> : <div className="space-y-3">
-        <div className="grid gap-3 lg:grid-cols-2"><TicketCombobox label="Incident category" value={category} onChange={(value) => { setCategory(value as IncidentCategory); setCategoryValue(""); }} options={["Technical/Bug", "Login", "Billing", "Feature Request"].map((item) => ({ value: item, label: item }))} placeholder="Select a category" />
-          {category === "Technical/Bug" ? <FormField label="Error message"><input className={formControlClassName} value={diagnostics.errorMessage || ""} onChange={(event) => updateDiagnostic("errorMessage", event.target.value)} /></FormField> : <FormField label={category === "Billing" ? "Invoice or transaction ID" : category === "Login" ? "Affected account or username" : "Business impact and justification"}><input className={formControlClassName} value={categoryValue} onChange={(event) => setCategoryValue(event.target.value)} /></FormField>}</div>
-        {category === "Technical/Bug" && <div className="grid gap-3 lg:grid-cols-2"><FormField label="Error code"><input className={formControlClassName} value={diagnostics.errorCode || ""} onChange={(event) => updateDiagnostic("errorCode", event.target.value)} /></FormField><FormField label="Cluster / server node"><input className={formControlClassName} value={diagnostics.clusterNode || ""} onChange={(event) => updateDiagnostic("clusterNode", event.target.value)} /></FormField><div className="lg:col-span-2"><FormField label="Steps to reproduce"><textarea className={formControlClassName} rows={2} value={diagnostics.stepsToReproduce || ""} onChange={(event) => updateDiagnostic("stepsToReproduce", event.target.value)} /></FormField></div></div>}
-        <label className="block space-y-1.5 text-[15px] font-semibold text-[#384b68]"> <span>Problem description <span className="text-red-600">*</span></span><textarea className={formControlClassName} rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe symptoms, impacted users, and relevant logs" /></label>
-        <div className="grid gap-3 lg:grid-cols-2"><div><div className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">Files (optional)<span className="group relative inline-flex"><button type="button" aria-label="File upload information" className="material-symbols-outlined rounded-full text-[15px] text-slate-500 hover:text-brand-indigo focus:outline-none focus:ring-2 focus:ring-brand-indigo" title="Any file type, up to 5 MB per file.">info</button><span role="tooltip" className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs font-normal text-white group-hover:block group-focus-within:block">Any file type, up to 5 MB per file.</span></span></div><input ref={attachmentInputRef} className="sr-only" type="file" multiple onChange={handleAttachments} /><button type="button" onClick={() => attachmentInputRef.current?.click()} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"><span className="material-symbols-outlined text-[18px]" aria-hidden="true">upload</span>Upload file</button></div><FormField label="Internal note (optional)"><input className={formControlClassName} value={initialNote} onChange={(event) => setInitialNote(event.target.value)} /></FormField></div>
+        <div className="grid gap-3 lg:grid-cols-2"><SelectDropdown showLabel label="Incident category" value={category} onChange={(value) => { setCategory(value as IncidentCategory); setCategoryValue(""); }} options={["Technical/Bug", "Login", "Billing", "Feature Request"].map((item) => ({ value: item, label: item }))} placeholder="Select a category" />
+          {category === "Technical/Bug" ? <FormField label="Error message"><Input value={diagnostics.errorMessage || ""} onChange={(event) => updateDiagnostic("errorMessage", event.target.value)} /></FormField> : <FormField label={category === "Billing" ? "Invoice or transaction ID" : category === "Login" ? "Affected account or username" : "Business impact and justification"}><Input value={categoryValue} onChange={(event) => setCategoryValue(event.target.value)} /></FormField>}</div>
+        {category === "Technical/Bug" && <div className="grid gap-3 lg:grid-cols-2"><FormField label="Error code"><Input value={diagnostics.errorCode || ""} onChange={(event) => updateDiagnostic("errorCode", event.target.value)} /></FormField><FormField label="Cluster / server node"><Input value={diagnostics.clusterNode || ""} onChange={(event) => updateDiagnostic("clusterNode", event.target.value)} /></FormField><div className="lg:col-span-2"><FormField label="Steps to reproduce"><Textarea rows={2} value={diagnostics.stepsToReproduce || ""} onChange={(event) => updateDiagnostic("stepsToReproduce", event.target.value)} /></FormField></div></div>}
+        <FormField label="Problem description" required><Textarea rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe symptoms, impacted users, and relevant logs" /></FormField>
+        <div className="grid gap-3 lg:grid-cols-2"><div><div className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">Files (optional)<FieldHint label="file upload">Any file type, up to 5 MB per file.</FieldHint></div><Input appearance="plain" ref={attachmentInputRef} className="sr-only" type="file" multiple onChange={handleAttachments} /><Button tone="plain" type="button" onClick={() => attachmentInputRef.current?.click()} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"><Icon className="text-[18px]" aria-hidden="true">upload</Icon>Upload file</Button></div><FormField label="Internal note (optional)"><Input value={initialNote} onChange={(event) => setInitialNote(event.target.value)} /></FormField></div>
         {attachmentError && <p role="alert" className="text-sm text-amber-800">{attachmentError}</p>}
         {attachmentsLoading && <p role="status" className="text-sm text-slate-600" aria-live="polite">Reading selected images…</p>}
-        {attachments.length > 0 && <ul className="space-y-1 text-xs text-slate-600">{attachments.map((item) => <li key={item.id} className="flex justify-between">{item.name}<button type="button" onClick={() => setAttachments((current) => current.filter((attachment) => attachment.id !== item.id))} className="text-red-600">Remove</button></li>)}</ul>}
+        {attachments.length > 0 && <ul className="space-y-1 text-xs text-slate-600">{attachments.map((item) => <li key={item.id} className="flex justify-between">{item.name}<Button tone="plain" type="button" onClick={() => setAttachments((current) => current.filter((attachment) => attachment.id !== item.id))} className="text-red-600">Remove</Button></li>)}</ul>}
       </div>}
 
-      <footer className="flex flex-col items-end gap-2 border-t border-slate-100 pt-3">
+      <FormActions className="flex-col items-end">
         {step === 1 && attemptedContinue && !detailsValid && <p className="text-right text-xs text-amber-800" role="status">Complete all fields marked * to continue.</p>}
         {step === 2 && attemptedCreate && !description.trim() && <p className="text-right text-xs text-amber-800" role="status">Add a problem description to create this ticket.</p>}
         <div className="flex w-full justify-end gap-2">
-          <button type="button" onClick={step === 1 ? leaveIntake : () => setStep(1)} className="rounded-lg border border-brand-indigo px-4 py-2 text-sm font-semibold text-brand-indigo">{step === 1 ? "Cancel" : "Back"}</button>
-          {step === 1 ? <button type="button" onClick={() => { if (!detailsValid) { setAttemptedContinue(true); return; } setAttemptedContinue(false); setStep(2); }} className="rounded-lg bg-brand-indigo px-5 py-2 text-sm font-semibold text-white">Continue to diagnostics <span aria-hidden="true">→</span></button> : <button type="submit" disabled={submitting || attachmentsLoading || !detailsValid} className="rounded-lg bg-brand-indigo px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Saving ticket…" : "Create ticket"}</button>}
+          <Button type="button" onClick={step === 1 ? leaveIntake : () => setStep(1)}>{step === 1 ? "Cancel" : "Back"}</Button>
+          <StepAction
+            onContinue={step === 1 ? () => {
+              if (!detailsValid) { setAttemptedContinue(true); return; }
+              setAttemptedContinue(false);
+              setStep(2);
+            } : undefined}
+            continueLabel="Continue to diagnostics"
+            submitLabel={submitting ? "Saving ticket…" : "Create ticket"}
+            submitDisabled={submitting || attachmentsLoading || !detailsValid}
+          />
         </div>
-      </footer>
+      </FormActions>
     </form>
+    {confirmLeave && <ConfirmationDialog
+      title="Save this ticket draft?"
+      description="You can return to the new ticket form to continue later."
+      cancelLabel="Keep editing"
+      confirmLabel="Save draft and exit"
+      onCancel={() => setConfirmLeave(false)}
+      onConfirm={() => navigate("/tickets")}
+    />}
   </div>;
 };

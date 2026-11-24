@@ -1,7 +1,8 @@
+import { Dialog, ActionLink, Heading } from "./ui/barrel";
 import React from "react";
-import { Link, Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { useTicketStore } from "./store/barrel";
-import { Layout } from "./components/common/layout/barrel";
+import { Layout } from "./components/layout/barrel";
 import { LoginPage } from "./components/auth/barrel";
 import { DashboardView } from "./components/dashboard/barrel";
 import { ClientNotificationPage, TicketRegistryView } from "./components/tickets/barrel";
@@ -15,7 +16,7 @@ import { CreateServicePage } from "./components/services/CreateServicePage";
 import { SettingsView } from "./components/settings/barrel";
 import { NotificationsView } from "./components/notifications/NotificationsView";
 import { LatestUpdatesView } from "./components/dashboard/LatestUpdatesView";
-import { ToastNotificationContainer } from "./components/common/barrel";
+import { ToastNotificationContainer } from "./components/layout/ToastNotificationContainer";
 import { canAccessService, canAccessTicket, ROLE_PERMISSIONS } from "./utils/barrel";
 
 const tabByPath: Record<string, string> = {
@@ -27,9 +28,9 @@ const tabByPath: Record<string, string> = {
 const AccessDenied: React.FC<{ destination: string }> = ({ destination }) => (
   <Layout>
     <section role="status" className="m-6 rounded-xl border border-amber-200 bg-amber-50 p-6">
-      <h1 className="text-lg font-semibold text-slate-900">This section isn’t available</h1>
+      <Heading as="h1" variant="notice">This section isn’t available</Heading>
       <p className="mt-2 text-sm text-slate-700">Your current role doesn’t have access to this page.</p>
-      <Link to={destination} className="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to an available page</Link>
+      <ActionLink to={destination} className="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to an available page</ActionLink>
     </section>
   </Layout>
 );
@@ -45,35 +46,12 @@ interface CreateModalRouteProps {
 const CreateModalRoute: React.FC<CreateModalRouteProps> = ({ section, title, children, background, showCloseButton = true }) => {
   const navigate = useNavigate();
 
-  React.useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") navigate(`/${section}`);
-    };
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [navigate, section]);
-
+  const close = () => navigate(`/${section}`);
   return <>
     {background}
-    <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/55 p-3 sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) navigate(`/${section}`); }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="create-modal-title" className={`create-modal-shell relative flex max-h-[calc(100vh-1.5rem)] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-h-[calc(100vh-3rem)] ${section === "companies" || section === "services" || section === "employees" ? "max-w-2xl" : "max-w-4xl"}`}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3.5 sm:px-7">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#0e858d]">{section}</p>
-            <h1 id="create-modal-title" className="truncate text-xl font-bold tracking-[-0.02em] text-[#1f2041] sm:text-2xl">{title}</h1>
-          </div>
-          {showCloseButton && <button type="button" onClick={() => navigate(`/${section}`)} aria-label="Close" title="Close" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-indigo focus-visible:ring-offset-2">
-            <span aria-hidden="true" className="material-symbols-outlined text-[22px]">close</span>
-          </button>}
-        </div>
-        <div className="min-h-0 overflow-y-auto">{children}</div>
-      </section>
-    </div>
+    <Dialog section={section} title={title} onClose={close} width={section === "tickets" ? "wide" : "medium"} showCloseButton={showCloseButton} className="create-modal-shell">
+      {children}
+    </Dialog>
   </>;
 };
 
@@ -160,7 +138,7 @@ const RouteContent: React.FC = () => {
       <Route path="/services/new" element={ROLE_PERMISSIONS[activeRole].canManageTeam ? <CreateModalRoute section="services" title="Add a service" background={<ServicesView />}><CreateServicePage /></CreateModalRoute> : <Navigate to="/services" replace />} />
       <Route path="/services/:serviceId" element={<ServicesView />} />
       <Route path="/settings" element={<SettingsView />} />
-      <Route path="*" element={<section role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-8"><h1 className="text-xl font-bold text-slate-900">Page not found</h1><p className="mt-2 text-sm text-slate-600">This address does not match a TechNova page.</p><Link to={home} className="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to workspace</Link></section>} />
+      <Route path="*" element={<section role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-8"><Heading as="h1" variant="plain" className="text-xl font-bold text-slate-900">Page not found</Heading><p className="mt-2 text-sm text-slate-600">This address does not match a TechNova page.</p><ActionLink to={home} className="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to workspace</ActionLink></section>} />
     </Routes>
     <ToastNotificationContainer />
   </Layout>;

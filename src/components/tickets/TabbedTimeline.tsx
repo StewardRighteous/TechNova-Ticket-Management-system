@@ -1,3 +1,4 @@
+import { Button, Icon, Label, Textarea } from "../../ui/barrel";
 import React, { useState } from "react";
 import type { Employee, TicketTimelineItem, InternalNote } from "../../types/barrel";
 
@@ -84,7 +85,7 @@ const TabTrigger: React.FC<{
   id: string;
   controls: string;
 }> = ({ active, onClick, icon, label, count, id, controls }) => (
-  <button
+  <Button tone="plain"
     role="tab"
     id={id}
     aria-controls={controls}
@@ -98,7 +99,7 @@ const TabTrigger: React.FC<{
         : "border-transparent text-slate-400 hover:text-slate-700"
     }`}
   >
-    <span className="material-symbols-outlined text-[16px]">{icon}</span>
+    <Icon className="text-[16px]">{icon}</Icon>
     <span>{label}</span>
     <span
       className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
@@ -109,7 +110,7 @@ const TabTrigger: React.FC<{
     >
       {count}
     </span>
-  </button>
+  </Button>
 );
 
 /* ------------------------------------------------------------------ */
@@ -219,14 +220,14 @@ const InternalNotesPanel: React.FC<{
 
     {/* Composer */}
     <div className="border-t border-slate-100 pt-4">
-      <label className="mb-1.5 block text-xs font-bold text-slate-700">
-        <span className="material-symbols-outlined mr-1 align-middle text-[14px] text-amber-500">
+      <Label variant="plain" className="mb-1.5 block text-xs font-bold text-slate-700">
+        <Icon className="mr-1 align-middle text-[14px] text-amber-500">
           lock
-        </span>
+        </Icon>
         Staff-only internal note
-      </label>
+      </Label>
       <div className="flex gap-2">
-        <textarea
+        <Textarea appearance="plain"
           value={noteBody}
           onChange={(e) => setNoteBody(e.target.value)}
           onKeyDown={(e) => {
@@ -236,14 +237,14 @@ const InternalNotesPanel: React.FC<{
           rows={2}
           className="flex-1 resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500"
         />
-        <button
+        <Button tone="plain"
           type="button"
           onClick={onPost}
           className="flex h-fit items-center gap-1 self-end rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
         >
-          <span className="material-symbols-outlined text-[16px]">send</span>
+          <Icon className="text-[16px]">send</Icon>
           <span>Post</span>
-        </button>
+        </Button>
       </div>
       <p className="mt-1 text-[10px] text-slate-400">
         Press Ctrl+Enter to post

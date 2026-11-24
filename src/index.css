@@ -39,63 +39,6 @@
   --color-blue-900: #103342;
 }
 
-/* Create dialogs are intentionally denser than their full-page counterparts so the first step fits common laptop viewports. */
-.create-modal-shell input:not([type="checkbox"]):not([type="file"]),
-.create-modal-shell select,
-.create-modal-shell textarea {
-  min-height: 2.35rem;
-  border-width: 1px;
-  padding-top: 0.45rem;
-  padding-bottom: 0.45rem;
-}
-
-.create-modal-shell label {
-  gap: 0.25rem;
-}
-
-.create-modal-shell .service-create-page {
-  padding-top: 0.65rem;
-  padding-bottom: 0.75rem;
-}
-
-.create-modal-shell .service-create-heading,
-.create-modal-shell .service-create-banner {
-  display: none;
-}
-
-.create-modal-shell .service-create-card {
-  margin-top: 0;
-  border: 0;
-  box-shadow: none;
-  padding-top: 0.5rem;
-}
-
-.create-modal-shell .service-create-section-heading {
-  margin-bottom: 0.55rem;
-}
-
-.create-modal-shell .service-create-targets {
-  margin-top: 0.75rem;
-  padding-top: 0.65rem;
-}
-
-.create-modal-shell .max-w-6xl {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-
-.create-modal-shell .max-w-6xl > form {
-  padding: 1rem;
-}
-
-.create-modal-shell .max-w-6xl .gap-y-5 {
-  row-gap: 0.75rem;
-}
-
-.create-modal-shell .max-w-6xl .space-y-5 > :not(:first-child) {
-  margin-top: 0.75rem;
-}
-
 /* A saved ticket is already inside the create dialog. Remove the full-page
    receipt chrome so the dialog reads as one continuous surface. */
 .create-modal-shell .ticket-success-page {
@@ -112,6 +55,8 @@
 }
 
 @layer base {
+  body:has(dialog:modal) { overflow: hidden; }
+
   :root {
     --brand-navy: #1f2041;
     --brand-purple: #4b3f72;
@@ -314,64 +259,13 @@
     box-shadow: none;
   }
 
-  .service-create-page { min-height: 100%; padding: 0 1.25rem 1.5rem; background: #fff; color: #1f2041; }
-  .service-create-breadcrumb { display: flex; align-items: center; gap: 0.7rem; min-height: 3.4rem; border-bottom: 1px solid #e2e8f0; color: #1f2041; font-size: 0.95rem; font-weight: 700; }
-  .service-create-breadcrumb button { border: 0; background: transparent; color: #0d858d; cursor: pointer; font-weight: 700; }
-  .service-create-breadcrumb > span:nth-child(2) { color: #94a3b8; font-size: 1.35rem; font-weight: 400; }
-  .service-create-heading { padding: 0.85rem 0 1.15rem; }
-  .service-create-heading h1 { margin: 0; font-size: clamp(1.65rem, 2vw, 2rem); font-weight: 750; letter-spacing: -0.035em; }
-  .service-create-heading p { margin: 0.2rem 0 0; color: #64748b; font-size: 1rem; }
-  .service-create-banner { display: flex; align-items: center; gap: 1rem; min-height: 5.1rem; padding: 0.85rem 1.35rem; border-left: 5px solid #ffc12f; border-radius: 0.85rem; background: linear-gradient(100deg, #fff7e5, #fff8e9); }
-  .service-create-banner-icon { display: grid; width: 3.3rem; height: 3.3rem; flex: 0 0 auto; place-items: center; border-radius: 0.75rem; background: #ffedbf; color: #d98b00; }
-  .service-create-banner-icon .material-symbols-outlined { font-size: 2rem; }
-  .service-create-banner-copy { display: grid; gap: 0.15rem; padding-left: 1rem; border-left: 1px solid #e8bd67; }
-  .service-create-banner-copy strong { font-size: 1.2rem; line-height: 1.2; }
-  .service-create-banner-copy span { color: #475569; font-size: 0.9rem; }
-  .service-create-card { margin-top: 0.9rem; padding: 1rem 1.35rem 0; border: 1px solid #d8e0ea; border-radius: 1rem; background: white; box-shadow: 0 2px 4px rgb(15 23 42 / 8%); }
-  .service-create-section-heading { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.9rem; }
-  .service-create-icon { display: grid; width: 3.1rem; height: 3.1rem; flex: 0 0 auto; place-items: center; border-radius: 0.8rem; background: #e3f5f4; color: #087b82; }
-  .service-create-icon .material-symbols-outlined { font-size: 1.8rem; }
-  .service-create-section-heading > div { padding-left: 1rem; border-left: 1px solid #b8c4d7; }
-  .service-create-section-heading h2 { margin: 0; font-size: 1.35rem; font-weight: 750; letter-spacing: -0.025em; line-height: 1.2; }
-  .service-create-section-heading p { margin: 0.1rem 0 0; color: #64748b; font-size: 0.9rem; }
-  .service-create-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; row-gap: 0.8rem; padding: 0 0.1rem; }
-  .service-create-grid label { display: block; min-width: 0; color: #18213d; font-size: 0.875rem; font-weight: 700; }
-  .service-create-grid label b { color: #d92d20; font-weight: 700; }
-  .service-create-grid input:not([type=checkbox]), .service-create-grid select, .service-create-grid textarea { min-height: 2.6rem; border: 1.5px solid #bdc9dc; border-radius: 0.6rem; padding: 0.55rem 0.8rem; color: #1f2041; box-shadow: 0 1px 2px rgb(15 23 42 / 4%); }
-  .service-create-grid input::placeholder, .service-create-grid textarea::placeholder { color: #8993a8; }
-  .service-create-grid textarea { min-height: 4.7rem; resize: vertical; }
-  .service-create-error { grid-column: 1 / -1; margin: 0; border-radius: 0.6rem; background: #fff1f2; padding: 0.7rem 0.85rem; color: #be123c; font-size: 0.875rem; }
-  .service-create-targets { margin-top: 1.15rem; padding-top: 0.9rem; border-top: 1px solid #dce3ed; }
-  .service-create-targets .service-create-section-heading { margin-bottom: 0.85rem; }
-  .service-create-uptime { display: inline-flex; align-items: center; gap: 0.45rem; margin-left: auto; border-radius: 0.7rem; background: #e3f5f4; padding: 0.55rem 0.8rem; color: #087b82; font-size: 0.85rem; font-weight: 750; white-space: nowrap; }
-  .service-create-uptime .material-symbols-outlined { font-size: 1.35rem; }
-  .service-create-composite { display: flex; align-items: center; gap: 0.75rem; }
-  .service-create-composite > input { width: 5.8rem; flex: 0 0 auto; }
-  .service-create-composite > select { width: 9rem; flex: 0 0 auto; }
-  .service-create-composite > span:not(.service-create-suffix) { color: #64748b; font-size: 0.85rem; font-weight: 400; white-space: nowrap; }
-  .service-create-composite.service-create-percent > input { width: 8rem; }
-  .service-create-suffix { align-self: stretch; display: grid; min-width: 2.6rem; place-items: center; margin-left: -0.75rem; border: 1.5px solid #bdc9dc; border-left: 0; border-radius: 0 0.6rem 0.6rem 0; background: #f8fafc; color: #1f2041; }
+  .service-create-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem 2rem; }
+  .service-create-targets { padding-top: 0.9rem; border-top: 1px solid #dce3ed; }
   .service-create-wide { grid-column: 1 / -1; }
-  .service-create-tags { display: flex; min-height: 2.9rem; align-items: center; gap: 0.5rem; flex-wrap: wrap; border: 1.5px solid #bdc9dc; border-radius: 0.6rem; padding: 0.35rem 0.65rem; cursor: text; }
-  .service-create-tags:focus-within { border-color: #119da4; box-shadow: 0 0 0 2px #d4eeee; }
-  .service-create-tags input { min-width: 9rem; min-height: 1.8rem !important; flex: 1; border: 0 !important; padding: 0.15rem !important; box-shadow: none !important; outline: none; }
-  .service-create-tags > .material-symbols-outlined { margin-left: auto; font-size: 1.25rem; }
-  .service-create-tag { display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 0.55rem; background: #eee9f4; padding: 0.35rem 0.55rem; color: #342b4d; font-size: 0.8rem; font-weight: 500; }
-  .service-create-tag button { border: 0; background: transparent; padding: 0; color: #5b506e; font-size: 1.1rem; line-height: 1; cursor: pointer; }
-  .service-create-actions { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1rem; padding: 0.9rem 0 1rem; border-top: 1px solid #dce3ed; }
-  .service-create-actions button { min-height: 2.8rem; border: 1px solid #a695c3; border-radius: 0.7rem; background: white; padding: 0.6rem 1.5rem; color: #4b3f72; font-weight: 700; cursor: pointer; }
-  .service-create-actions button[type=submit] { min-width: 10.8rem; border-color: #0e858d; background: #0e939a; color: white; }
-  .service-create-actions button[type=submit]:hover { background: #0d777e; }
 
   @media (max-width: 700px) {
-    .service-create-page { padding: 0 0.8rem 1rem; }
-    .service-create-card { padding: 0.9rem 0.9rem 0; }
-    .service-create-grid { grid-template-columns: 1fr; gap: 0.8rem; }
-    .service-create-wide, .service-create-error { grid-column: auto; }
-    .service-create-uptime { display: none; }
-    .service-create-banner { align-items: flex-start; padding: 0.8rem; }
-    .service-create-banner-copy span { line-height: 1.4; }
-    .service-create-composite { flex-wrap: wrap; }
+    .service-create-grid { grid-template-columns: minmax(0, 1fr); }
+    .service-create-wide { grid-column: auto; }
   }
 
   #high-attention-incidents > div:first-child {

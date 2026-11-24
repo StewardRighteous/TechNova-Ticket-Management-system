@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Company } from '../../types/barrel';
-import { ChannelBadge } from '../common/barrel';
+import type { Company } from "../../types/barrel";
+import { Heading, ChannelBadge } from "../../ui/barrel";
 
 interface CompanyCardProps {
   company: Company;
@@ -16,7 +16,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
               {company.code}
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">{company.name}</h3>
+              <Heading as="h3" variant="subsection">{company.name}</Heading>
               <span className="text-[11px] text-slate-500 font-medium">{company.tier}</span>
             </div>
           </div>

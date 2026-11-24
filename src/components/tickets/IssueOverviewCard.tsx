@@ -1,3 +1,4 @@
+import { Heading, Icon } from "../../ui/barrel";
 import React from "react";
 import type { Ticket } from "../../types/barrel";
 
@@ -12,9 +13,9 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
 
   return (
     <div className="p-5">
-      <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+      <Heading as="h4" variant="plain" className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
         Issue Overview
-      </h4>
+      </Heading>
 
       <p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs leading-relaxed text-slate-700">
         {ticket.description.replace(/\\n/g, "\n")}
@@ -47,9 +48,9 @@ export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
       {/* Steps to reproduce */}
       {diag?.stepsToReproduce && (
         <div className="mt-4">
-          <h5 className="mb-1.5 text-xs font-bold text-slate-600">
+          <Heading as="h5" variant="plain" className="mb-1.5 text-xs font-bold text-slate-600">
             Steps to Reproduce
-          </h5>
+          </Heading>
           <p className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600 whitespace-pre-line">
             {diag.stepsToReproduce.replace(/\\n/g, "\n")}
           </p>
@@ -66,9 +67,9 @@ const DiagField: React.FC<{
   value: string;
 }> = ({ icon, label, value }) => (
   <div className="flex items-start gap-2 rounded-lg border border-slate-100 bg-slate-50 p-2.5">
-    <span className="material-symbols-outlined mt-0.5 text-[14px] text-slate-400">
+    <Icon className="mt-0.5 text-[14px] text-slate-400">
       {icon}
-    </span>
+    </Icon>
     <div>
       <p className="text-[10px] font-medium text-slate-400">{label}</p>
       <p className="text-xs font-semibold text-slate-700">{value}</p>

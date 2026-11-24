@@ -1,3 +1,4 @@
+import { Heading } from "../../ui/barrel";
 import React, { useMemo } from "react";
 
 interface DashboardBannerProps {
@@ -59,9 +60,9 @@ export const DashboardBanner: React.FC<DashboardBannerProps> = ({
           <span className="text-xs font-semibold tracking-wider text-indigo-300 uppercase">
             Overview Dashboard
           </span>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <Heading as="h1" variant="plain" className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
             {greeting}, {userName.split(" ")[0]} 👋
-          </h1>
+          </Heading>
           <p className="mt-1 text-xs text-slate-300 sm:text-sm">
             Here is a snapshot of your system metrics and operations for today.
           </p>

@@ -1,8 +1,9 @@
+import { Button } from "../../../ui/barrel";
 import React, { useEffect, useRef, useState } from "react";
 import type { Ticket } from "../../../types/barrel";
 import { createDraft, localDueAt } from "./draft";
 import { TicketDetailsEditForm } from "./TicketDetailsEditForm";
-import { ConfirmationDialog } from "./shared";
+import { TicketEditConfirmation } from "./shared";
 
 import type { Draft, TicketDetailsPanelProps, TicketDetailsTab } from "./types";
 export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
@@ -71,7 +72,7 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
           {(
             tabs
           ).map(([key, label], index) => (
-            <button
+            <Button tone="plain"
               key={key}
               role="tab"
               id={`ticket-tab-${key}`}
@@ -84,27 +85,27 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
               className={`rounded-lg px-3 py-2 text-xs font-semibold ${activeTab === key ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
         {editing ? (
           <div className="flex gap-2">
-            <button
+            <Button tone="plain"
               ref={cancelButtonRef}
               onClick={() => isDirty ? setConfirmation("cancel") : cancel()}
               className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button tone="primary"
               onClick={save}
-              className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
+
             >
               Save
-            </button>
+            </Button>
           </div>
         ) : (
-              <button
+              <Button tone="plain"
             onClick={() => {
               setDraft(createDraft(ticket, companies));
               setEditing(true);
@@ -112,7 +113,7 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
             className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700"
           >
             Edit {activeTab}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -140,7 +141,7 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
       )}
       </div>
       {confirmation && (
-        <ConfirmationDialog
+        <TicketEditConfirmation
           action={confirmation}
           onConfirm={() => {
             if (confirmation === "save") save();

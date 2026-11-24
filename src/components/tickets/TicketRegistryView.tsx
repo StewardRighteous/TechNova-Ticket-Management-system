@@ -1,3 +1,4 @@
+import { Button, Heading } from "../../ui/barrel";
 import React, { useRef, useCallback, useLayoutEffect } from "react";
 import { useTicketStore } from "../../store/barrel";
 import { TicketTable } from "./TicketTable";
@@ -129,9 +130,9 @@ export const TicketRegistryView: React.FC = () => {
     <div className="space-y-6 p-2">
       {ticketId && !selectedTicket ? (
         <section role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-6">
-          <h1 className="text-lg font-semibold text-slate-900">Ticket unavailable</h1>
+          <Heading as="h1" variant="notice">Ticket unavailable</Heading>
           <p className="mt-2 text-sm text-slate-700">This ticket may not exist or may not be available to your role.</p>
-          <button type="button" onClick={() => navigate("/tickets")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to tickets</button>
+          <Button tone="plain" type="button" onClick={() => navigate("/tickets")} className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Return to tickets</Button>
         </section>
       ) : selectedTicket ? (
         <TicketDetailHero
@@ -172,6 +173,14 @@ export const TicketRegistryView: React.FC = () => {
           initialDepartmentFilter={parseList("department").length ? parseList("department") : tableStateRef.current.departmentFilter}
           initialSortField={sortField}
           initialSortAsc={sortAsc}
+          onSortChange={(field, ascending) => {
+            const params = new URLSearchParams(searchParams);
+            params.set("sort", field);
+            if (ascending) params.delete("dir");
+            else params.set("dir", "desc");
+            params.delete("page");
+            setSearchParams(params, { replace: true });
+          }}
           initialFocus={tableFocus ?? undefined}
           activeScope={validFocus}
           viewTitle={viewTitle}

@@ -1,5 +1,6 @@
+import { Button, Icon } from "../../ui/barrel";
 import React from "react";
-import { ComboboxFilter } from "../common/ComboboxFilter/index";
+import { ComboboxFilter } from "../../ui/groups/ComboboxFilter";
 
 export interface TicketDepartmentOption {
   id: string;
@@ -112,13 +113,13 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
       />}
 
       {hasActiveFilters && onClearAll && (
-        <button
+        <Button tone="plain"
           type="button"
           onClick={onClearAll}
           className="flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
         >
-          <span className="material-symbols-outlined text-[14px]">filter_alt_off</span>
-        </button>
+          <Icon className="text-[14px]">filter_alt_off</Icon>
+        </Button>
       )}
     </div>
   );

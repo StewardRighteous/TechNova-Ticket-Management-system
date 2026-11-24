@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Employee } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination, StaffAvatar, TableSearch } from "../common/barrel";
+import { CallToAction, TableToolbar, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, NumericPagination, StaffAvatar, TableSearch } from "../../ui/barrel";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -54,7 +54,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
       <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div>
-            <h2 className="text-lg font-bold tracking-tight">All Employees</h2>
+            <Heading variant="plain" className="text-lg font-bold tracking-tight">All Employees</Heading>
             <p className="mt-1 text-xs text-slate-300">
               Manage your team and availability.
             </p>
@@ -100,202 +100,192 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
-        <TableSearch id="employee-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Search employees by name, role, or email..." aria-label="Search employees by name, role, or email" className="min-w-52 max-w-[480px] flex-1" />
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
-          <ComboboxFilter
-            label="Location"
-            selectedValues={locationFilter}
-            onChange={(v) => {
-              setLocationFilter(v);
-              setPage(1);
-            }}
-            options={[
-              ...new Set(employees.map((e) => e.locationId || "Unassigned")),
-            ].map((v) => ({ value: v, label: v }))}
-          />
-          <ComboboxFilter
-            label="Role"
-            singleSelect
-            selectedValues={roleFilter === "all" ? [] : [roleFilter]}
-            onChange={(v) => {
-              setRoleFilter(v[0] || "all");
-              setPage(1);
-            }}
-            options={[...new Set(employees.map((e) => e.role))].map((v) => ({
-              value: v,
-              label:
-                {
-                  support_agent: "Support Agent",
-                  senior_support: "Senior Support",
-                  development_team: "Development Team",
-                  qa: "QA & Test",
-                  account_manager: "Account Manager",
-                  operations_manager: "Operations Manager",
-                  management: "Management",
-                }[v] || v,
-            }))}
-          />
-          <ComboboxFilter
-            label="Status"
-            singleSelect
-            selectedValues={statusFilter === "all" ? [] : [statusFilter]}
-            onChange={(values) => {
-              setStatusFilter(values[0] || "all");
-              setPage(1);
-            }}
-            options={["Available", "Busy", "Off Shift"].map((value) => ({
-              value,
-              label: value,
-            }))}
-          />
-        </div>
-        {onCreateNew && (
-          <button
-            type="button"
-            onClick={onCreateNew}
-            className="flex shrink-0 items-center gap-1 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-700"
-          >
-            <span
-              aria-hidden="true"
-              className="material-symbols-outlined text-[16px]"
-            >
-              add
-            </span>{" "}
-            New
-          </button>
-        )}
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
-            <tr>
-              <th className="px-5 py-2.5">Staff Member</th>
-              <th className="px-4 py-2.5">
-                <span> Staff Role </span>
-              </th>
-              <th className="px-4 py-2.5">Email</th>
-              <th className="px-4 py-2.5">
-                <span>Phone</span>
-              </th>
-              <th className="px-4 py-2.5">
-                <span>Status</span>
-              </th>
-              <th className="px-5 py-2.5 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
-            {paginated.map((emp) => {
-              const isCurrent = emp.role === activeRoleId;
-
-              return (
-                <tr
-                  key={emp.id}
-                  className={`group cursor-pointer transition-colors hover:bg-teal-50/50 ${selectedEmployeeId === emp.id ? "bg-teal-50" : ""}`}
-                  onClick={() => setSelectedEmployeeId(emp.id)}
-                  onDoubleClick={() => onViewEmployee(emp.id)}
-                >
-                  <td className="px-5 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-teal-600 text-xs font-bold text-white shadow-sm">
-                        <StaffAvatar src={emp.avatar} alt={`${emp.name} profile`} sizeClassName="h-8 w-8" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="cursor-text font-bold text-slate-900 group-hover:text-teal-700">
-                            {emp.name}
-                          </span>
-                          {isCurrent && (
-                            <span className="cursor-text rounded bg-teal-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                              YOU
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-break-spaces">
-                    <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-800">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">
-                        badge
-                      </span>
-                      <span className="cursor-text">{emp.roleTitle}</span>
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3 text-[11px] whitespace-nowrap text-slate-800">
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">
-                        email
-                      </span>
-                      <span className="cursor-text">{emp.email}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[11px] whitespace-nowrap text-slate-800">
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[15px] text-slate-400">
-                        phone
-                      </span>
-                      <span className="cursor-text">{emp.phone}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                        className={`inline-flex cursor-text items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        emp.status === "Available"
-                          ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
-                          : emp.status === "Busy"
-                            ? "border border-amber-300 bg-amber-50 text-amber-800"
-                            : "border border-slate-300 bg-slate-50 text-slate-700"
-                      }`}
-                    >
-                      {emp.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-left whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onViewEmployee(emp.id);
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
-                    >
-                      <span className="material-symbols-outlined text-[15px]">
-                        visibility
-                      </span>
-                      <span>View</span>
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-5 py-12 text-center text-sm text-slate-500"
-                >
-                  {employees.length === 0
-                    ? "No employees available."
-                    : "No matching employees. Try adjusting your search or filters."}
-                </td>
-              </tr>
+      <DataTable className="border-collapse"
+        scroll
+        toolbar={
+          <TableToolbar>
+            <TableSearch id="employee-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Search employees by name, role, or email..." aria-label="Search employees by name, role, or email" className="min-w-52 max-w-[480px] flex-1" />
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
+              <ComboboxFilter
+                label="Location"
+                selectedValues={locationFilter}
+                onChange={(v) => {
+                  setLocationFilter(v);
+                  setPage(1);
+                }}
+                options={[
+                  ...new Set(employees.map((e) => e.locationId || "Unassigned")),
+                ].map((v) => ({ value: v, label: v }))}
+              />
+              <ComboboxFilter
+                label="Role"
+                singleSelect
+                selectedValues={roleFilter === "all" ? [] : [roleFilter]}
+                onChange={(v) => {
+                  setRoleFilter(v[0] || "all");
+                  setPage(1);
+                }}
+                options={[...new Set(employees.map((e) => e.role))].map((v) => ({
+                  value: v,
+                  label:
+                    {
+                      support_agent: "Support Agent",
+                      senior_support: "Senior Support",
+                      development_team: "Development Team",
+                      qa: "QA & Test",
+                      account_manager: "Account Manager",
+                      operations_manager: "Operations Manager",
+                      management: "Management",
+                    }[v] || v,
+                }))}
+              />
+              <ComboboxFilter
+                label="Status"
+                singleSelect
+                selectedValues={statusFilter === "all" ? [] : [statusFilter]}
+                onChange={(values) => {
+                  setStatusFilter(values[0] || "all");
+                  setPage(1);
+                }}
+                options={["Available", "Busy", "Off Shift"].map((value) => ({
+                  value,
+                  label: value,
+                }))}
+              />
+            </div>
+            {onCreateNew && (
+              <CallToAction icon="add" onClick={onCreateNew} className="shrink-0">New</CallToAction>
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableToolbar>
+        }
+        pagination={
+          <NumericPagination
+            totalItems={filtered.length}
+            currentPage={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 25, 50]}
+          />
+        }
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader density="edge">Staff Member</TableHeader>
+            <TableHeader>
+              <span> Staff Role </span>
+            </TableHeader>
+            <TableHeader>Email</TableHeader>
+            <TableHeader>
+              <span>Phone</span>
+            </TableHeader>
+            <TableHeader>
+              <span>Status</span>
+            </TableHeader>
+            <TableHeader density="edge" className="text-left">Action</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody className="bg-white">
+          {paginated.map((emp) => {
+            const isCurrent = emp.role === activeRoleId;
 
-      <NumericPagination
-        totalItems={filtered.length}
-        currentPage={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-        pageSizeOptions={[10, 25, 50]}
-      />
+            return (
+              <TableRow selected={selectedEmployeeId === emp.id}
+                key={emp.id}
+
+                onSelect={() => setSelectedEmployeeId(emp.id)}
+                onOpen={() => onViewEmployee(emp.id)}
+              >
+                <TableCell density="edge" className="whitespace-nowrap">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-teal-600 text-xs font-bold text-white shadow-sm">
+                      <StaffAvatar src={emp.avatar} alt={`${emp.name} profile`} sizeClassName="h-8 w-8" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="cursor-text font-bold text-slate-900 group-hover:text-teal-700">
+                          {emp.name}
+                        </span>
+                        {isCurrent && (
+                          <span className="cursor-text rounded bg-teal-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                            YOU
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="whitespace-break-spaces">
+                  <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-800">
+                    <Icon className="text-[15px] text-slate-400">
+                      badge
+                    </Icon>
+                    <span className="cursor-text">{emp.roleTitle}</span>
+                  </span>
+                </TableCell>
+
+                <TableCell className="text-[11px] whitespace-nowrap text-slate-800">
+                  <div className="flex items-center gap-1">
+                    <Icon className="text-[15px] text-slate-400">
+                      email
+                    </Icon>
+                    <span className="cursor-text">{emp.email}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-[11px] whitespace-nowrap text-slate-800">
+                  <div className="flex items-center gap-1">
+                    <Icon className="text-[15px] text-slate-400">
+                      phone
+                    </Icon>
+                    <span className="cursor-text">{emp.phone}</span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="whitespace-nowrap">
+                  <span
+                      className={`inline-flex cursor-text items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      emp.status === "Available"
+                        ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
+                        : emp.status === "Busy"
+                          ? "border border-amber-300 bg-amber-50 text-amber-800"
+                          : "border border-slate-300 bg-slate-50 text-slate-700"
+                    }`}
+                  >
+                    {emp.status}
+                  </span>
+                </TableCell>
+                <TableCell density="edge" className="text-left whitespace-nowrap">
+                  <Button tone="plain"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onViewEmployee(emp.id);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                  >
+                    <Icon className="text-[15px]">
+                      visibility
+                    </Icon>
+                    <span>View</span>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          {filtered.length === 0 && (
+            <TableRow>
+              <TableCell density="plain"
+                colSpan={6}
+                className="px-5 py-12 text-center text-sm text-slate-500"
+              >
+                {employees.length === 0
+                  ? "No employees available."
+                  : "No matching employees. Try adjusting your search or filters."}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </DataTable>
     </div>
   );
 };

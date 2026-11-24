@@ -1,3 +1,4 @@
+import { Button, Heading } from "../../ui/barrel";
 import React, { useState } from "react";
 import type { Ticket, Team, Department, InboundChannel } from "../../types/barrel";
 import { computeChannelBreakdown, computeDepartmentBreakdown, computeVolumeComparisons } from "./dashboardMetrics";
@@ -39,14 +40,14 @@ export const VolumeBreakdownCards: React.FC<VolumeBreakdownCardsProps> = ({ tick
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div className="flex min-w-0 items-center gap-2">
           <span className={`material-symbols-outlined rounded-lg p-1.5 text-[18px] ${isChannel ? "bg-indigo-50 text-indigo-600" : "bg-sky-50 text-sky-600"}`}>{isChannel ? "hub" : "corporate_fare"}</span>
-          <h2 className="truncate text-sm font-bold text-slate-900">Incoming Tickets</h2>
+          <Heading variant="plain" className="truncate text-sm font-bold text-slate-900">Incoming Tickets</Heading>
         </div>
         <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">{isChannel ? `${tickets.length} total` : `${deptBreakdown.length} units`}</span>
       </div>
 
       <div className="mt-3 flex gap-1 border-b border-slate-100 pb-2" role="tablist" aria-label="Ticket breakdown">
-        <button type="button" role="tab" aria-selected={!isChannel} onClick={() => setActiveTab("department")} className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${!isChannel ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50"}`}>Department</button>
-        <button type="button" role="tab" aria-selected={isChannel} onClick={() => setActiveTab("channel")} className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${isChannel ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50"}`}>Intake channel</button>
+        <Button tone="plain" type="button" role="tab" aria-selected={!isChannel} onClick={() => setActiveTab("department")} className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${!isChannel ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50"}`}>Department</Button>
+        <Button tone="plain" type="button" role="tab" aria-selected={isChannel} onClick={() => setActiveTab("channel")} className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${isChannel ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50"}`}>Intake channel</Button>
       </div>
 
       {isChannel ? (

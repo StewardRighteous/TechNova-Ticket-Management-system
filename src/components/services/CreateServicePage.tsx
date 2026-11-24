@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import type { ServiceLine } from "../../types/barrel";
-import { FormField, formControlClassName, SelectDropdown } from "../common/barrel";
+import { StepAction, ConfirmationDialog, TagInput, FormActions, Button, Input, Textarea, FormField, SelectDropdown } from "../../ui/barrel";
 import { durationMinutes } from "../../utils/supportPolicy";
-
-const requiredLabel = (label: string) => <>{label} <span className="text-red-600">*</span></>;
 
 export const CreateServicePage: React.FC = () => {
   const { data, addService, addToast } = useTicketStore();
   const navigate = useNavigate();
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [department, setDepartment] = useState(data.departments?.[0]?.name || "Support");
@@ -41,6 +40,10 @@ export const CreateServicePage: React.FC = () => {
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (step === 1) {
+      if (validateStep(1)) setStep(2);
+      return;
+    }
     const normalizedCode = code.trim().toUpperCase();
     if (!name.trim() || !normalizedCode || !department || !lead) { setError("Complete all required fields."); return; }
     if (data.services.some((service) => service.code.toLowerCase() === normalizedCode || service.name.toLowerCase() === name.trim().toLowerCase())) { setError("A service with this name or code already exists."); return; }
@@ -54,30 +57,47 @@ export const CreateServicePage: React.FC = () => {
   };
 
   const cancel = () => {
-    if (name || code || description || technologies.length) {
-      if (window.confirm("Discard this service draft?")) navigate("/services");
-    } else navigate("/services");
+    if (name || code || description || technologies.length) setConfirmDiscard(true);
+    else navigate("/services");
   };
 
   return <main className="px-5 py-5 sm:px-7 sm:py-6"><form onSubmit={submit} className="space-y-5">
       {error && <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
       {step === 1 && <div className="space-y-4">
       <div className="service-create-grid">
-        <FormField label={requiredLabel("Service name")}><input className={formControlClassName} required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Customer Portal" /></FormField>
-        <FormField label={requiredLabel("Service code")}><input className={formControlClassName} required value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. SRV-001" /></FormField>
-      <FormField label={requiredLabel("Department")}><SelectDropdown label="Department" value={department} onChange={setDepartment} options={(data.departments || []).map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
-        <FormField label={requiredLabel("Service lead")}><SelectDropdown label="Service lead" value={leadEmployeeId} onChange={setLeadEmployeeId} options={data.employees.map((item) => ({ value: item.id, label: item.name }))} required /></FormField>
+        <FormField label="Service name" required><Input required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Customer Portal" /></FormField>
+        <FormField label="Service code" required><Input required value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. SRV-001" /></FormField>
+      <FormField label="Department" required><SelectDropdown label="Department" value={department} onChange={setDepartment} options={(data.departments || []).map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
+        <FormField label="Service lead" required><SelectDropdown label="Service lead" value={leadEmployeeId} onChange={setLeadEmployeeId} options={data.employees.map((item) => ({ value: item.id, label: item.name }))} required /></FormField>
       </div>
       </div>}
       {step === 2 && <section className="service-create-targets">
         <div className="mb-3 flex justify-end"><span className="rounded-lg bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-800">Target uptime {uptime}</span></div>
         <div className="service-create-grid service-create-target-grid">
-          <FormField label={requiredLabel("Response time SLA")}><div className="service-create-composite"><input aria-label="Response time" type="number" min="1" step="any" required value={slaValue} onChange={(event) => setSlaValue(event.target.value)} /><SelectDropdown label="Response time unit" value={slaUnit} onChange={setSlaUnit} options={["Minutes", "Hours", "Days"].map((item) => ({ value: item, label: item }))} /><span>e.g. 4 Hours</span></div></FormField>
-          <FormField label={requiredLabel("Uptime target")}><div className="service-create-composite service-create-percent"><input aria-label="Uptime target" type="number" min="0.1" max="100" step="0.1" required value={uptimeValue} onChange={(event) => setUptimeValue(event.target.value)} /><span className="service-create-suffix">%</span><span>e.g. 99.9%</span></div></FormField>
-          <FormField label="Technologies" className="service-create-wide"><div className="service-create-tags" onClick={() => document.getElementById("service-technology-input")?.focus()}>{technologies.map((technology) => <span className="service-create-tag" key={technology}>{technology}<button type="button" aria-label={`Remove ${technology}`} onClick={(event) => { event.stopPropagation(); setTechnologies((items) => items.filter((item) => item !== technology)); }}>×</button></span>)}<input id="service-technology-input" value={technologyInput} onChange={(event) => setTechnologyInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === ",") { event.preventDefault(); addTechnology(technologyInput); } if (event.key === "Backspace" && !technologyInput && technologies.length) setTechnologies((items) => items.slice(0, -1)); }} onBlur={() => technologyInput && addTechnology(technologyInput)} placeholder="Add technology..." /><span className="material-symbols-outlined">expand_more</span></div></FormField>
-          <FormField label="Description" className="service-create-wide"><textarea className={formControlClassName} rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Briefly describe the service, its purpose, and key functionality." /></FormField>
+          <FormField label="Response time SLA" required><div className="flex flex-wrap items-center gap-2"><Input className="max-w-24" aria-label="Response time" type="number" min="1" step="any" required value={slaValue} onChange={(event) => setSlaValue(event.target.value)} /><SelectDropdown label="Response time unit" value={slaUnit} onChange={setSlaUnit} options={["Minutes", "Hours", "Days"].map((item) => ({ value: item, label: item }))} /><span className="text-xs font-normal text-slate-500">e.g. 4 Hours</span></div></FormField>
+          <FormField label="Uptime target" required><div className="flex flex-wrap items-center gap-2"><Input className="max-w-24" aria-label="Uptime target" type="number" min="0.1" max="100" step="0.1" required value={uptimeValue} onChange={(event) => setUptimeValue(event.target.value)} /><span className="text-sm text-slate-600">%</span><span>e.g. 99.9%</span></div></FormField>
+          <FormField label="Technologies" className="service-create-wide"><TagInput
+            tags={technologies}
+            value={technologyInput}
+            onChange={setTechnologyInput}
+            onAdd={addTechnology}
+            onRemove={(value) => setTechnologies((items) => items.filter((item) => item !== value))}
+            label="Technologies"
+            placeholder="Add technology..."
+          /></FormField>
+          <FormField label="Description" className="service-create-wide"><Textarea rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Briefly describe the service, its purpose, and key functionality." /></FormField>
         </div>
       </section>}
-      <footer className="flex justify-end gap-2 border-t border-slate-200 pt-4"><button type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }} className="rounded-lg border border-[#2c3158] px-5 py-2.5 text-sm font-semibold text-[#25294e] hover:bg-slate-50">{step === 1 ? "Cancel" : "Back"}</button>{step === 1 ? <button type="button" onClick={() => { if (validateStep(1)) setStep(2); }} className="rounded-lg bg-[#25294e] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#1d2146]">Continue <span aria-hidden="true">→</span></button> : <button type="submit" className="rounded-lg bg-[#0e858d] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#0b7279]">Create service</button>}</footer>
-    </form></main>;
+      <FormActions><Button type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }}>{step === 1 ? "Cancel" : "Back"}</Button><StepAction onContinue={step === 1 ? () => { if (validateStep(1)) setStep(2); } : undefined} submitLabel="Create service" /></FormActions>
+    </form>
+    {confirmDiscard && <ConfirmationDialog
+        title="Discard this service draft?"
+        description="Your unsaved changes will be lost."
+        cancelLabel="Keep editing"
+        confirmLabel="Discard draft"
+        onCancel={() => setConfirmDiscard(false)}
+        onConfirm={() => navigate("/services")}
+        danger
+      />}
+  </main>;
 };

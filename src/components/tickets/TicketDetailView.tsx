@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import type { Ticket, Employee, TicketStatus } from '../../types/barrel';
-import { ChannelBadge, PriorityBadge, StatusBadge } from '../common/barrel';
-import { TicketTimeline } from './TicketTimeline';
-import { TicketActionSidebar } from './TicketActionSidebar';
+import type { Ticket, Employee, TicketStatus } from "../../types/barrel";
+import { Heading, ChannelBadge, PriorityBadge, StatusBadge } from "../../ui/barrel";
+import { TicketTimeline } from "./TicketTimeline";
+import { TicketActionSidebar } from "./TicketActionSidebar";
 
 interface TicketDetailViewProps {
   ticket: Ticket;
@@ -45,7 +45,7 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
         </div>
 
         <div className="mt-4">
-          <h1 className="text-xl font-bold text-slate-900 leading-snug">{ticket.title}</h1>
+          <Heading as="h1" variant="plain" className="text-xl font-bold text-slate-900 leading-snug">{ticket.title}</Heading>
           <p className="mt-2 text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
             {ticket.description}
           </p>

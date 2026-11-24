@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Company } from "../../types/barrel";
-import { ComboboxFilter, NumericPagination, TableSearch } from "../common/barrel";
+import { CallToAction, TableToolbar, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, NumericPagination, TableSearch } from "../../ui/barrel";
 
 const companyMarks: Record<string, string> = {
   "comp-1": "apex",
@@ -50,134 +50,136 @@ export const CompanyTable: React.FC<CompanyTableProps> = ({
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-slate-900 px-5 py-5 text-white sm:px-6">
-        <h2 className="text-lg font-bold tracking-tight">All Companies</h2>
+        <Heading variant="plain" className="text-lg font-bold tracking-tight">All Companies</Heading>
         <p className="mt-1 text-xs text-slate-300">Browse and manage customer companies.</p>
       </div>
-      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 bg-white px-5 py-3 sm:px-6">
-        <TableSearch id="company-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Filter companies or contacts..." aria-label="Filter companies or contacts" className="min-w-52 max-w-[480px] flex-1" />
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
-          <ComboboxFilter label="Account tier" singleSelect selectedValues={tierFilter === "all" ? [] : [tierFilter]} onChange={(v) => { setTierFilter(v[0] || "all"); setPage(1); }} options={[...new Set(companies.map((c) => c.tier))].map((v) => ({ value: v, label: v }))} />
-          {onCreateNew && <button type="button" onClick={onCreateNew} className="flex shrink-0 items-center gap-1 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-700"><span aria-hidden="true" className="material-symbols-outlined text-[16px]">add</span> New</button>}
-        </div>
-      </div>
+      <DataTable className="border-collapse"
+        scroll
+        toolbar={
+          <TableToolbar>
+            <TableSearch id="company-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Filter companies or contacts..." aria-label="Filter companies or contacts" className="min-w-52 max-w-[480px] flex-1" />
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
+              <ComboboxFilter label="Account tier" singleSelect selectedValues={tierFilter === "all" ? [] : [tierFilter]} onChange={(v) => { setTierFilter(v[0] || "all"); setPage(1); }} options={[...new Set(companies.map((c) => c.tier))].map((v) => ({ value: v, label: v }))} />
+              {onCreateNew && <CallToAction icon="add" onClick={onCreateNew} className="shrink-0">New</CallToAction>}
+            </div>
+          </TableToolbar>
+        }
+        pagination={
+          <NumericPagination
+            totalItems={filtered.length}
+            currentPage={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 25, 50]}
+          />
+        }
+      >
+        <TableHead>
+          <TableRow>
+            <TableHeader density="edge">Company Name</TableHeader>
+            <TableHeader>
+              <span>Primary Executive</span>
+            </TableHeader>
+            <TableHeader>
+              <span>Tier</span>
+            </TableHeader>
+            <TableHeader>
+              <span>Lead</span>
+            </TableHeader>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
-            <tr>
-              <th className="px-5 py-2.5">Company Name</th>
-              <th className="px-4 py-2.5">
-                <span>Primary Executive</span>
-              </th>
-              <th className="px-4 py-2.5">
-                <span>Tier</span>
-              </th>
-              <th className="px-4 py-2.5">
-                <span>Lead</span>
-              </th>
+            <TableHeader>Email</TableHeader>
 
-              <th className="px-4 py-2.5">Email</th>
+            <TableHeader>Tickets</TableHeader>
+            <TableHeader density="edge" className="text-left">Action</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody className="bg-white">
+          {paginated.map((c) => (
+            <TableRow selected={selectedCompanyId === c.id}
+              key={c.id}
 
-              <th className="px-4 py-2.5">Tickets</th>
-              <th className="px-5 py-2.5 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
-            {paginated.map((c) => (
-              <tr
-                key={c.id}
-                className={`group cursor-pointer transition-colors hover:bg-teal-50/50 ${selectedCompanyId === c.id ? "bg-teal-50" : ""}`}
-                onClick={() => setSelectedCompanyId(c.id)}
-                onDoubleClick={() => onViewCompany(c.id)}
-              >
-                <td className="px-5 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-2.5">
-                    {c.logo && !c.logo.includes("#") ? <img src={c.logo} alt="" className="size-8 shrink-0 rounded object-contain" /> : <svg aria-hidden="true" className="size-8 shrink-0" viewBox="0 0 32 32">
-                      <use href={c.logo ? `/${c.logo}` : `/company-marks.svg#${companyMarks[c.id] ?? "company"}`} />
-                    </svg>}
-                    <div>
-                      <button type="button" onClick={(event) => { event.stopPropagation(); onViewCompany(c.id); }} className="block text-left font-bold text-slate-900 transition-colors group-hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-600">
-                        {c.name}
-                      </button>
-                    </div>
+              onSelect={() => setSelectedCompanyId(c.id)}
+              onOpen={() => onViewCompany(c.id)}
+            >
+              <TableCell density="edge" className="whitespace-nowrap">
+                <div className="flex items-center gap-2.5">
+                  {c.logo && !c.logo.includes("#") ? <img src={c.logo} alt="" className="size-8 shrink-0 rounded object-contain" /> : <svg aria-hidden="true" className="size-8 shrink-0" viewBox="0 0 32 32">
+                    <use href={c.logo ? `/${c.logo}` : `/company-marks.svg#${companyMarks[c.id] ?? "company"}`} />
+                  </svg>}
+                  <div>
+                    <Button tone="plain" type="button" onClick={(event) => { event.stopPropagation(); onViewCompany(c.id); }} className="block text-left font-bold text-slate-900 transition-colors group-hover:text-teal-700 focus-visible:outline-2 focus-visible:outline-teal-600">
+                      {c.name}
+                    </Button>
                   </div>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-slate-400">
-                      account_circle
+                </div>
+              </TableCell>
+              <TableCell className="whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <Icon className="text-slate-400">
+                    account_circle
+                  </Icon>
+                  <div>
+                    <span className="block w-fit cursor-text font-semibold text-slate-800">
+                      {c.contactName}
                     </span>
-                    <div>
-                      <span className="block w-fit cursor-text font-semibold text-slate-800">
-                        {c.contactName}
-                      </span>
-                      <span className="cursor-text text-[10px] text-slate-500">
-                        {c.contactRole}
-                      </span>
-                    </div>
+                    <span className="cursor-text text-[10px] text-slate-500">
+                      {c.contactRole}
+                    </span>
                   </div>
-                </td>
-                <td className="px-4 py-3.5 whitespace-nowrap">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
-                    <span className="material-symbols-outlined text-slate-400">
-                      domain
-                    </span>
-                    <span className="cursor-text">{c.tier}</span>
-                  </span>
-                </td>
-                <td className="px-4 py-3.5 whitespace-nowrap">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
-                    <span className="material-symbols-outlined text-slate-400">
-                      person
-                    </span>
-                    <span className="cursor-text">{c.accountManager}</span>
-                  </span>
-                </td>
+                </div>
+              </TableCell>
+              <TableCell className="whitespace-nowrap">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
+                  <Icon className="text-slate-400">
+                    domain
+                  </Icon>
+                  <span className="cursor-text">{c.tier}</span>
+                </span>
+              </TableCell>
+              <TableCell className="whitespace-nowrap">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
+                  <Icon className="text-slate-400">
+                    person
+                  </Icon>
+                  <span className="cursor-text">{c.accountManager}</span>
+                </span>
+              </TableCell>
 
-                <td className="px-4 py-3.5 whitespace-nowrap">
-                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-800">
-                    <span className="material-symbols-outlined text-[13px] text-slate-400">
-                      mail
-                    </span>
-                    <span className="cursor-text">{c.contactEmail}</span>
-                  </span>
-                </td>
+              <TableCell className="whitespace-nowrap">
+                <span className="inline-flex items-center gap-1 text-[11px] text-slate-800">
+                  <Icon className="text-[13px] text-slate-400">
+                    mail
+                  </Icon>
+                  <span className="cursor-text">{c.contactEmail}</span>
+                </span>
+              </TableCell>
 
-                <td className="px-4 py-3.5 whitespace-nowrap text-slate-800">
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[13px] text-slate-400">
-                      confirmation_number
-                    </span>
-                    <span className="cursor-text">{c.activeTickets} Tickets</span>
-                  </span>
-                </td>
-                <td className="px-5 py-3 text-left whitespace-nowrap">
-                  <button
-                    type="button"
-                    onClick={(event) => { event.stopPropagation(); onViewCompany(c.id); }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
-                  >
-                    <span className="material-symbols-outlined text-[15px]">
-                      visibility
-                    </span>
-                    <span>View</span>
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && <tr><td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-500">{companies.length === 0 ? "No companies available." : "No matching companies. Try adjusting your search or filters."}</td></tr>}
-          </tbody>
-        </table>
-      </div>
-
-      <NumericPagination
-        totalItems={filtered.length}
-        currentPage={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-        pageSizeOptions={[10, 25, 50]}
-      />
+              <TableCell className="whitespace-nowrap text-slate-800">
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon className="text-[13px] text-slate-400">
+                    confirmation_number
+                  </Icon>
+                  <span className="cursor-text">{c.activeTickets} Tickets</span>
+                </span>
+              </TableCell>
+              <TableCell density="edge" className="text-left whitespace-nowrap">
+                <Button tone="plain"
+                  type="button"
+                  onClick={(event) => { event.stopPropagation(); onViewCompany(c.id); }}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                >
+                  <Icon className="text-[15px]">
+                    visibility
+                  </Icon>
+                  <span>View</span>
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+          {filtered.length === 0 && <TableRow><TableCell density="plain" colSpan={7} className="px-5 py-12 text-center text-sm text-slate-500">{companies.length === 0 ? "No companies available." : "No matching companies. Try adjusting your search or filters."}</TableCell></TableRow>}
+        </TableBody>
+      </DataTable>
     </div>
   );
 };

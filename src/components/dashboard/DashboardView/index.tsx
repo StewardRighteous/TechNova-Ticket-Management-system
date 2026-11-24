@@ -1,3 +1,4 @@
+import { Heading } from "../../../ui/barrel";
 import React, { useEffect } from "react";
 import { useTicketStore } from "../../../store/barrel";
 import { filterTicketsByRole } from "../../../utils/barrel";
@@ -87,9 +88,9 @@ export const DashboardView: React.FC = () => {
         <div className="dashboard-welcome flex flex-col gap-2 px-4 py-2 text-white sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center">
             <div>
-              <h1 className="text-[20px] font-bold tracking-tight">
+              <Heading as="h1" variant="plain" className="text-[20px] font-bold tracking-tight">
                 {getGreeting()}, {currentUser?.name?.split(" ")[0] || "Team"}
-              </h1>
+              </Heading>
               <p className="mt-0.5 text-xs text-white/75 sm:text-sm">
                 {getDashboardMessage()}
               </p>
@@ -101,9 +102,9 @@ export const DashboardView: React.FC = () => {
           aria-labelledby="dashboard-operations-heading"
           className="bg-slate-50/80 p-2 sm:p-2.5"
         >
-          <h2 id="dashboard-operations-heading" className="sr-only">
+          <Heading variant="plain" id="dashboard-operations-heading" className="sr-only">
             Operational health
-          </h2>
+          </Heading>
           <ExecutiveKpiRibbon
             totalActive={metrics.totalActive}
             overdueCount={metrics.overdueCount}

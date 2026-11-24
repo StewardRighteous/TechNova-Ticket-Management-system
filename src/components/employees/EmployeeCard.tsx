@@ -1,6 +1,7 @@
+import { Heading } from "../../ui/barrel";
 import React from 'react';
-import type { Employee } from '../../types/barrel';
-import { StaffAvatar } from '../common/StaffAvatar';
+import type { Employee } from "../../types/barrel";
+import { StaffAvatar } from "../../ui/atoms/StaffAvatar";
 
 interface EmployeeCardProps {
   employee: Employee;
@@ -26,7 +27,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, isCurrentR
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="text-sm font-bold text-slate-900">{employee.name}</h3>
+                <Heading as="h3" variant="subsection">{employee.name}</Heading>
                 {isCurrentRole && (
                   <span className="text-[9px] bg-indigo-600 text-white font-bold px-1.5 py-0.2 rounded">
                     YOU

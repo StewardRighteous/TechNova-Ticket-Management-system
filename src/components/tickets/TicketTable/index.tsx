@@ -5,9 +5,8 @@ import type {
   Department,
   Employee,
 } from "../../../types/barrel";
-import { PriorityBadge, StatusBadge, NumericPagination, StaffAvatar } from "../../common/barrel";
+import { SortableTableHeader, CallToAction, TableToolbar, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, PriorityBadge, StatusBadge, NumericPagination, StaffAvatar, TableSearch } from "../../../ui/barrel";
 import { TicketTableFilters } from "../TicketTableFilters";
-import { TableSearch } from "../../common/barrel";
 import type { TicketTableFocus } from "../../../store/ticketStore";
 import { getOverdueTickets, isTicketSlaAtRisk } from "../../dashboard/dashboardMetrics";
 
@@ -32,6 +31,7 @@ interface TicketTableProps {
   viewTitle?: string;
   onClearScope?: () => void;
   onReturnToAllTickets?: () => void;
+  onSortChange?: (field: SortField, ascending: boolean) => void;
   onTableStateChange?: (state: {
     page: number;
     pageSize: number;
@@ -68,6 +68,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   viewTitle,
   onClearScope,
   onReturnToAllTickets,
+  onSortChange,
   onTableStateChange,
 }) => {
   const [searchInput, setSearchInput] = useState(initialSearch ?? "");
@@ -83,6 +84,12 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const sortAsc = initialSortAsc ?? true;
   const [page, setPage] = useState<number>(initialPage ?? 1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize ?? 10);
+  const sortBy = (field: SortField) => {
+    setPage(1);
+    onSortChange?.(field, sortField !== field || !sortAsc);
+  };
+  const sortDirection = (field: SortField) => sortField === field ? (sortAsc ? "ascending" : "descending") : undefined;
+
 
   // Debounce search input by 200ms
   useEffect(() => {
@@ -224,143 +231,137 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-col justify-between gap-4 bg-slate-900 px-5 py-5 text-white sm:flex-row sm:items-center sm:px-6">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">{activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}</h2>
+          <Heading variant="plain" className="text-lg font-bold tracking-tight">{activeScope ? ({ active: "Active Tickets", overdue: "Overdue Tickets", "sla-risk": "SLA Risk Tickets", resolved: "Resolved Tickets" } as Record<TicketTableFocus, string>)[activeScope] : viewTitle ?? "All Tickets"}</Heading>
           <p className="mt-1 text-xs text-slate-300">Review, prioritize, and manage support requests.</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {kpiCards.map(([label, count, styles]) => <div key={label} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
-        <TableSearch id="ticket-search" value={searchInput} onChange={setSearchInput} placeholder="Search tickets..." aria-label="Search tickets" className="min-w-52 w-full sm:w-auto sm:flex-1 sm:max-w-[480px]" />
-        {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span><button type="button" aria-label="Remove dashboard scope" onClick={onClearScope} className="rounded-full px-1 text-indigo-700 hover:bg-indigo-100">×</button></div>}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
-        <TicketTableFilters
-          channelFilter={channelFilter}
-          setChannelFilter={(c) => { setChannelFilter(c); setPage(1); }}
-          priorityFilter={priorityFilter}
-          setPriorityFilter={(p) => { setPriorityFilter(p); setPage(1); }}
-          statusFilter={statusFilter}
-          setStatusFilter={(status) => { setStatusFilter(status); setPage(1); }}
-          departmentFilter={departmentFilter}
-          setDepartmentFilter={(d) => { setDepartmentFilter(d); setPage(1); }}
-          departmentOptions={departments}
-          onClearAll={clearAllFilters}
-          showStatus
-          showPriority
-          showChannelFilter={false}
-          showDepartmentFilter={false}
-        />
-        {onCreateNew && <button type="button" onClick={onCreateNew} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span aria-hidden="true" className="material-symbols-outlined text-base">add</span>New Ticket</button>}
-        </div>
-      </div>
+      <DataTable className="ticket-list-table border-collapse"
+        scroll
+        toolbar={
+          <TableToolbar>
+            <TableSearch id="ticket-search" value={searchInput} onChange={setSearchInput} placeholder="Search tickets..." aria-label="Search tickets" className="min-w-52 w-full sm:w-auto sm:flex-1 sm:max-w-[480px]" />
+            {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span><Button tone="plain" type="button" aria-label="Remove dashboard scope" onClick={onClearScope} className="rounded-full px-1 text-indigo-700 hover:bg-indigo-100">×</Button></div>}
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
+            <TicketTableFilters
+              channelFilter={channelFilter}
+              setChannelFilter={(c) => { setChannelFilter(c); setPage(1); }}
+              priorityFilter={priorityFilter}
+              setPriorityFilter={(p) => { setPriorityFilter(p); setPage(1); }}
+              statusFilter={statusFilter}
+              setStatusFilter={(status) => { setStatusFilter(status); setPage(1); }}
+              departmentFilter={departmentFilter}
+              setDepartmentFilter={(d) => { setDepartmentFilter(d); setPage(1); }}
+              departmentOptions={departments}
+              onClearAll={clearAllFilters}
+              showStatus
+              showPriority
+              showChannelFilter={false}
+              showDepartmentFilter={false}
+            />
+            {onCreateNew && <CallToAction icon="add" onClick={onCreateNew} className="shrink-0">New Ticket</CallToAction>}
+            </div>
+          </TableToolbar>
+        }
+        pagination={
+          <NumericPagination
+            totalItems={filtered.length}
+            currentPage={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 25, 50]}
+          />
+        }
+      >
+        <TableHead>
+          <TableRow>
+            <SortableTableHeader density="edge" direction={sortDirection("code")} onSort={() => sortBy("code")}>ID</SortableTableHeader>
+            <SortableTableHeader direction={sortDirection("title")} onSort={() => sortBy("title")}>Incident</SortableTableHeader>
+            <SortableTableHeader density="narrow" direction={sortDirection("priority")} onSort={() => sortBy("priority")}>Priority</SortableTableHeader>
+            <SortableTableHeader direction={sortDirection("company")} onSort={() => sortBy("company")}>Company</SortableTableHeader>
+            <TableHeader>Assignee</TableHeader>
+            <SortableTableHeader density="narrow" direction={sortDirection("status")} onSort={() => sortBy("status")}>Status</SortableTableHeader>
+            <TableHeader density="edge">Action</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody className="bg-white">
+          {paginated.map((t) => {
+            return (
+              <TableRow selected={selectedTicketRowId === t.id}
+                key={t.id}
+                onSelect={() => setSelectedTicketRowId(t.id)}
+                onOpen={() => onViewTicket(t.id)}
 
-      <div className="overflow-x-auto">
-        <table className="ticket-list-table w-full border-collapse text-left text-xs">
-          <thead className="bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase">
-            <tr>
-              <th className="px-5 py-2.5">ID</th>
-              <th className="px-4 py-2.5">Incident</th>
-              <th className="px-3 py-2.5">Priority</th>
-              <th
-                className=" px-4 py-2.5"
-          
               >
-                <div className="flex items-center gap-1">
-                  <span>Company</span>
-             
-                </div>
-              </th>
-        
-              <th className="px-4 py-2.5">Assignee</th>
-              <th className="px-3 py-2.5">Status</th>
-              <th className="px-5 py-2.5">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
-            {paginated.map((t) => {
-              return (
-                <tr
-                  key={t.id}
-                  onClick={() => setSelectedTicketRowId(t.id)}
-                  onDoubleClick={() => onViewTicket(t.id)}
-                  className={`group cursor-pointer transition-colors hover:bg-indigo-50/40 ${selectedTicketRowId === t.id ? "bg-indigo-50" : ""}`}
-                >
-                  <td className="px-5 py-3 font-mono font-bold whitespace-nowrap text-slate-500">
-                    <span className="cursor-text">{t.code}</span>
-                  </td>
-                  <td className="max-w-sm px-4 py-2.5">
-                    <button type="button" data-ticket-link={t.id} onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ${t.code}: ${t.title}`} title={t.title} className="line-clamp-2 text-left font-bold text-slate-900 transition-colors hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600">
-                      {t.title}
-                    </button>
-                  </td>
-                  <td className="px-3 py-2.5 whitespace-nowrap">
-                    <span className="cursor-text"><PriorityBadge priority={t.priority} /></span>
-                  </td>
+                <TableCell density="edge" className="font-mono font-bold whitespace-nowrap text-slate-500">
+                  <span className="cursor-text">{t.code}</span>
+                </TableCell>
+                <TableCell className="max-w-sm">
+                  <Button tone="plain" type="button" data-ticket-link={t.id} onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ${t.code}: ${t.title}`} title={t.title} className="line-clamp-2 text-left font-bold text-slate-900 transition-colors hover:text-indigo-600 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-600">
+                    {t.title}
+                  </Button>
+                </TableCell>
+                <TableCell density="narrow" className="whitespace-nowrap">
+                  <span className="cursor-text"><PriorityBadge priority={t.priority} /></span>
+                </TableCell>
 
-                  <td className="px-4 py-2.5 whitespace-nowrap">
-                    <span className="cursor-text font-semibold text-slate-900">{t.companyName}</span>
-                  </td>
-                  <td className="px-4 py-2.5 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-2 font-medium text-slate-700">
-                      <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-500">
-                        <StaffAvatar src={employees.find((employee) => employee.id === t.assignedToId)?.avatar || "person"} alt={`${t.assignedToName} profile`} sizeClassName="h-7 w-7" fallbackClassName="text-[15px]" />
-                      </span>
-                      <span className="cursor-text">{t.assignedToName || "Unassigned"}</span>
+                <TableCell className="whitespace-nowrap">
+                  <span className="cursor-text font-semibold text-slate-900">{t.companyName}</span>
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  <span className="inline-flex items-center gap-2 font-medium text-slate-700">
+                    <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-500">
+                      <StaffAvatar src={employees.find((employee) => employee.id === t.assignedToId)?.avatar || "person"} alt={`${t.assignedToName} profile`} sizeClassName="h-7 w-7" fallbackClassName="text-[15px]" />
                     </span>
-                  </td>
+                    <span className="cursor-text">{t.assignedToName || "Unassigned"}</span>
+                  </span>
+                </TableCell>
 
-                  <td className="px-3 py-2.5 whitespace-nowrap">
-                    <span className="cursor-text"><StatusBadge status={t.status} /></span>
-                  </td>
+                <TableCell density="narrow" className="whitespace-nowrap">
+                  <span className="cursor-text"><StatusBadge status={t.status} /></span>
+                </TableCell>
 
-                  <td className="px-5 py-2.5 whitespace-nowrap"><button type="button" onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ticket ${t.code}`} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span>Open ticket</span><span aria-hidden="true" className="material-symbols-outlined text-sm">arrow_forward</span></button></td>
-                </tr>
-              );
-            })}
+                <TableCell density="edge" className="whitespace-nowrap"><Button tone="plain" type="button" onClick={(event) => { event.stopPropagation(); onViewTicket(t.id); }} aria-label={`Open ticket ${t.code}`} className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><span>Open ticket</span><Icon aria-hidden="true" className="text-sm">arrow_forward</Icon></Button></TableCell>
+              </TableRow>
+            );
+          })}
 
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={9} className="p-8 text-center text-xs text-slate-500">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <span className="material-symbols-outlined text-4xl text-slate-300">
-                      search_off
-                    </span>
-                    <div>
-                      <p className="font-bold text-slate-800 text-sm">
-                        {tickets.length === 0 ? "No tickets in this queue yet" : "No matching tickets"}
-                      </p>
-                      <p className="text-slate-400 mt-0.5">
-                        {tickets.length === 0 ? "Tickets available to your role will appear here." : "No tickets match the selected search criteria or filter tags."}
-                      </p>
-                    </div>
-                    {(tickets.length > 0 || onReturnToAllTickets) && <button
-                      type="button"
-                      onClick={tickets.length === 0 ? onReturnToAllTickets : clearAllFilters}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">
-                        restart_alt
-                      </span>
-                      <span>{tickets.length === 0 ? "Return to ticket queue" : "Clear all filters"}</span>
-                    </button>}
+          {filtered.length === 0 && (
+            <TableRow>
+              <TableCell density="plain" colSpan={9} className="p-8 text-center text-xs text-slate-500">
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <Icon className="text-4xl text-slate-300">
+                    search_off
+                  </Icon>
+                  <div>
+                    <p className="font-bold text-slate-800 text-sm">
+                      {tickets.length === 0 ? "No tickets in this queue yet" : "No matching tickets"}
+                    </p>
+                    <p className="text-slate-400 mt-0.5">
+                      {tickets.length === 0 ? "Tickets available to your role will appear here." : "No tickets match the selected search criteria or filter tags."}
+                    </p>
                   </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  {(tickets.length > 0 || onReturnToAllTickets) && <Button tone="plain"
+                    type="button"
+                    onClick={tickets.length === 0 ? onReturnToAllTickets : clearAllFilters}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50"
+                  >
+                    <Icon className="text-[16px]">
+                      restart_alt
+                    </Icon>
+                    <span>{tickets.length === 0 ? "Return to ticket queue" : "Clear all filters"}</span>
+                  </Button>}
+                </div>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </DataTable>
 
       <p className="sr-only" role="status" aria-live="polite">{scopeFilteredCount} tickets match the current search and filters. Sorted by {sortField}, {sortAsc ? "ascending" : "descending"}.</p>
-      <NumericPagination
-        totalItems={filtered.length}
-        currentPage={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-        pageSizeOptions={[10, 25, 50]}
-      />
     </div>
   );
 };

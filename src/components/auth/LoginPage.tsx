@@ -1,3 +1,4 @@
+import { Dialog, Button, Heading, Icon, Input, Label } from "../../ui/barrel";
 import React, { useState } from "react";
 import { useTicketStore } from "../../store/barrel";
 
@@ -28,12 +29,12 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
           <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-t from-brand-indigo/95 via-brand-indigo/70 via-45% to-brand-indigo/45" />
           <div className="flex items-center gap-3">
             <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-blue text-white shadow-sm">
-              <span className="material-symbols-outlined text-[20px]">confirmation_number</span>
+              <Icon className="text-[20px]">confirmation_number</Icon>
             </span>
             <span className="text-xl font-bold tracking-tight">TechNova</span>
           </div>
           <div className="hidden max-w-lg lg:block">
-            <h2 className="text-5xl leading-[1.04] font-bold tracking-[-0.045em] xl:text-6xl">Ticket Management System</h2>
+            <Heading variant="plain" className="text-5xl leading-[1.04] font-bold tracking-[-0.045em] xl:text-6xl">Ticket Management System</Heading>
             <p className="mt-5 max-w-sm text-base leading-relaxed text-white">Manage IT support requests and workplace services for TechNova employees.</p>
             <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-relaxed marker:text-teal-200">
               <li>Report an issue and attach screenshots.</li>
@@ -46,9 +47,9 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
         <section className="flex items-center justify-center px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
           <div className="w-full max-w-[420px]">
             <header>
-              <h1 className="text-3xl font-bold tracking-tight text-[#111536] sm:text-4xl">
+              <Heading as="h1" variant="plain" className="text-3xl font-bold tracking-tight text-[#111536] sm:text-4xl">
                 Employee sign in
-              </h1>
+              </Heading>
               <p className="mt-2 text-base text-slate-600">
                 Sign in with your work account.
               </p>
@@ -63,20 +64,20 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
                 </div>
               )}
               <div>
-                <label
+                <Label variant="plain"
                   htmlFor="demo-email"
                   className="mb-1.5 block text-sm font-bold text-[#111536]"
                 >
                   Work email
-                </label>
+                </Label>
                 <div className="relative">
-                  <span
+                  <Icon
                     aria-hidden="true"
-                    className="material-symbols-outlined pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[22px] text-slate-600"
+                    className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[22px] text-slate-600"
                   >
                     mail
-                  </span>
-                  <input
+                  </Icon>
+                  <Input appearance="plain"
                     id="demo-email"
                     type="email"
                     autoComplete="username"
@@ -90,10 +91,10 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
               </div>
               <div>
                 <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                  <label htmlFor="demo-password" className="text-sm font-bold text-[#111536]">
+                  <Label variant="plain" htmlFor="demo-password" className="text-sm font-bold text-[#111536]">
                     Password
-                  </label>
-                  <button
+                  </Label>
+                  <Button tone="plain"
                     type="button"
                     onClick={() =>
                       setError("Please contact support to reset your password.")
@@ -101,16 +102,16 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
                     className="text-xs font-semibold text-indigo-700 hover:underline"
                   >
                     Reset password
-                  </button>
+                  </Button>
                 </div>
                 <div className="relative">
-                  <span
+                  <Icon
                     aria-hidden="true"
-                    className="material-symbols-outlined pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[22px] text-slate-600"
+                    className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[22px] text-slate-600"
                   >
                     lock
-                  </span>
-                  <input
+                  </Icon>
+                  <Input appearance="plain"
                     id="demo-password"
                     autoComplete="current-password"
                     type={showPassword ? "text" : "password"}
@@ -119,7 +120,7 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
                     placeholder="Enter your password"
                     className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50/60 pl-12 pr-12 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-[#10aeb4] focus:ring-4 focus:ring-cyan-100"
                   />
-                  <button
+                  <Button tone="plain"
                     type="button"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
@@ -127,96 +128,61 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
                     onClick={() => setShowPassword((visible) => !visible)}
                     className="absolute top-1/2 right-3 flex -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-[#10aeb4]"
                   >
-                    <span className="material-symbols-outlined text-[22px]">
+                    <Icon className="text-[22px]">
                       {showPassword ? "visibility_off" : "visibility"}
-                    </span>
-                  </button>
+                    </Icon>
+                  </Button>
                 </div>
               </div>
-              <button
+              <Button tone="plain"
                 type="submit"
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#116b72] text-base font-bold text-white shadow-md transition hover:bg-[#10565e] focus-visible:ring-4 focus-visible:ring-cyan-200 focus-visible:outline-none"
               >
-                Sign in <span aria-hidden="true" className="material-symbols-outlined text-lg">arrow_forward</span>
-              </button>
+                Sign in <Icon aria-hidden="true" className="text-lg">arrow_forward</Icon>
+              </Button>
             </form>
             <p className="mt-8 flex items-center justify-center gap-3 text-sm text-slate-500">
-              <span
+              <Icon
                 aria-hidden="true"
-                className="material-symbols-outlined text-[20px]"
+                className="text-[20px]"
               >
                 lock
-              </span>
+              </Icon>
               For TechNova employees only.
             </p>
             <footer className="mt-6 flex items-center justify-center gap-7 border-t border-slate-200 pt-4 text-sm text-[#3269a8]">
-              <button
+              <Button tone="plain"
                 type="button"
                 onClick={() => setSupportModal("help")}
                 className="hover:text-[#111536]"
               >
                 Help
-              </button>
-              <button
+              </Button>
+              <Button tone="plain"
                 type="button"
                 onClick={() => setSupportModal("contact")}
                 className="hover:text-[#111536]"
               >
                 Contact support
-              </button>
+              </Button>
             </footer>
           </div>
         </section>
       </div>
 
-      {supportModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setSupportModal(null);
-          }}
-        >
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="support-modal-title"
-            className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 shadow-2xl"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2
-                  id="support-modal-title"
-                  className="text-lg font-bold text-[#102345]"
-                >
-                  {supportModal === "help" ? "Sign-in help" : "Contact support"}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {supportModal === "help"
-                    ? "Enter your registered email address to sign in. If you need help, contact your workspace administrator."
-                    : "Contact your workspace administrator with a short description of the issue."}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSupportModal(null)}
-                aria-label="Close dialog"
-                className="rounded-md p-1 text-slate-500 hover:bg-slate-100"
-              >
-                <span aria-hidden="true" className="material-symbols-outlined">
-                  close
-                </span>
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSupportModal(null)}
-              className="mt-5 w-full rounded-lg bg-[#102345] px-4 py-2.5 text-sm font-semibold text-white"
-            >
-              Got it
-            </button>
-          </section>
+      {supportModal && <Dialog
+        title={supportModal === "help" ? "Sign-in help" : "Contact support"}
+        description={supportModal === "help"
+          ? "Enter your registered email address to sign in. If you need help, contact your workspace administrator."
+          : "Contact your workspace administrator with a short description of the issue."}
+        onClose={() => setSupportModal(null)}
+        showCloseButton
+        width="small"
+      >
+        <div className="px-5 py-4 sm:px-7">
+          <Button type="button" tone="primary" className="w-full" onClick={() => setSupportModal(null)}>Got it</Button>
         </div>
-      )}
+      </Dialog>}
     </main>
   );
 };
