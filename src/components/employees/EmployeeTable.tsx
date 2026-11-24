@@ -261,7 +261,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                         event.stopPropagation();
                         onViewEmployee(emp.id);
                       }}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-600 hover:text-white"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
                     >
                       <span className="material-symbols-outlined text-[15px]">
                         visibility

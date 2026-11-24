@@ -3,6 +3,7 @@ import type { Department, Employee, Location, RoleId, ServiceLine, Team, Ticket 
 import { ComboboxFilter } from "../common/ComboboxFilter";
 import { SelectDropdown } from "../common/SelectDropdown";
 import { StaffAvatar } from "../common/StaffAvatar";
+import { TableSearch } from "../common/barrel";
 import { EmployeeEditDialog } from "./EmployeeEditDialog";
 import { ticketSlaRisk } from "../../utils/supportPolicy";
 
@@ -53,6 +54,7 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("profile");
+  const [ticketSearch, setTicketSearch] = useState("");
   const [ticketFilters, setTicketFilters] = useState<Record<TicketFilter, string[]>>({ status: [], priority: [], service: [], company: [] });
   useEffect(() => { setProfileDraft(employee); setSkillsDraft(employee.skills.join(", ")); }, [employee]);
   const department = departments.find((item) => item.id === employee.departmentId)?.name || "Not assigned";
@@ -70,7 +72,9 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
     service: [...new Set(tickets.map((ticket) => ticket.serviceName))].sort().map((value) => ({ value, label: value })),
     company: [...new Set(tickets.map((ticket) => ticket.companyName))].sort().map((value) => ({ value, label: value })),
   };
+  const query = ticketSearch.trim().toLowerCase();
   const visibleTickets = tickets.filter((ticket) =>
+    (!query || [ticket.code, ticket.title, ticket.companyName, ticket.serviceName].some((value) => value.toLowerCase().includes(query))) &&
     (!ticketFilters.status.length || ticketFilters.status.includes(ticket.status)) &&
     (!ticketFilters.priority.length || ticketFilters.priority.includes(ticket.priority)) &&
     (!ticketFilters.service.length || ticketFilters.service.includes(ticket.serviceName)) &&
@@ -155,9 +159,10 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
         </div>}
 
         {workspaceTab === "tickets" ? <div className="p-4 sm:p-5">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="relative flex items-center gap-2"><h2 className="text-base font-bold text-slate-900">{visibleTickets.length} of {tickets.length} active {tickets.length === 1 ? "ticket" : "tickets"}</h2><SectionInfo alignWithHeading description="Tickets currently assigned to this employee, with their status, priority, service, and SLA." /></div>
-            <div className="flex flex-wrap items-end justify-end gap-2">
+          <div className="relative flex w-fit items-center gap-2"><h2 className="text-base font-bold text-slate-900">{visibleTickets.length} of {tickets.length} active {tickets.length === 1 ? "ticket" : "tickets"}</h2><SectionInfo alignWithHeading description="Tickets currently assigned to this employee, with their status, priority, service, and SLA." /></div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <TableSearch id="employee-ticket-search" value={ticketSearch} onChange={setTicketSearch} placeholder="Search tickets..." aria-label="Search assigned tickets" compact className="max-w-72" />
+            <div className="flex flex-wrap items-center gap-2">
             {([ ["status", "Status"], ["priority", "Priority"], ["service", "Service"], ["company", "Company"] ] as [TicketFilter, string][]).map(([key, label]) => <ComboboxFilter key={key} label={label} options={filterOptions[key]} selectedValues={ticketFilters[key]} onChange={(values) => setTicketFilters((current) => ({ ...current, [key]: values }))} singleSelect placeholder={`Filter by ${label.toLowerCase()}`} />)}
             {Object.values(ticketFilters).some((values) => values.length > 0) && <button type="button" onClick={() => setTicketFilters({ status: [], priority: [], service: [], company: [] })} className="mb-0.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Clear filters</button>}
             </div>
@@ -173,7 +178,7 @@ export const EmployeeDetailHero: React.FC<EmployeeDetailHeroProps> = ({
                 <td className="py-2.5 pr-3 text-slate-600">{ticket.priority}</td>
                 <td className="py-2.5 text-slate-600">{ticketSlaRisk(ticket)}</td>
               </tr>)}
-                {!visibleTickets.length && <tr><td colSpan={7} className="py-8 text-center text-xs text-slate-500">{tickets.length ? "No tickets match these filters." : "No active assigned tickets."}</td></tr>}
+                {!visibleTickets.length && <tr><td colSpan={7} className="py-8 text-center text-xs text-slate-500">{tickets.length ? "No tickets match your search or filters." : "No active assigned tickets."}</td></tr>}
               </tbody>
             </table>
           </div>
