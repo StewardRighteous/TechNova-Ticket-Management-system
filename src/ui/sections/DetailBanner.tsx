@@ -19,6 +19,7 @@ interface DetailBannerProps {
   statusTone?: BannerStatusTone;
   subtitle?: ReactNode;
   icon: ReactNode;
+  iconAppearance?: "tile" | "plain";
   actions?: ReactNode;
   metrics: readonly (readonly [label: string, value: ReactNode, icon?: string])[];
   columns?: 3 | 4;
@@ -30,6 +31,7 @@ export function DetailBanner({
   statusTone = "positive",
   subtitle,
   icon,
+  iconAppearance = "tile",
   actions,
   metrics,
   columns = 4,
@@ -45,7 +47,7 @@ export function DetailBanner({
         <div className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/10 text-teal-200"
+            className={`flex size-12 shrink-0 items-center justify-center overflow-hidden text-teal-200 ${iconAppearance === "tile" ? "rounded-lg bg-white/10" : ""}`}
           >
             {icon}
           </span>

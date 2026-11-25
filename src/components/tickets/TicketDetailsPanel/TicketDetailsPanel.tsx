@@ -43,7 +43,6 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
     const updates: Partial<Ticket> = {
       ...fields,
       companyName: company?.name ?? ticket.companyName,
-      companyCode: company?.code ?? ticket.companyCode,
       serviceName: service?.name ?? ticket.serviceName,
       categoryId: draft.categoryId || undefined,
       dueAt: draft.dueAt === localDueAt(ticket.dueAt)
@@ -72,7 +71,7 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
           {(
             tabs
           ).map(([key, label], index) => (
-            <Button tone="plain"
+            <Button cancel tone="plain"
               key={key}
               role="tab"
               id={`ticket-tab-${key}`}
@@ -93,11 +92,11 @@ export const TicketDetailsPanel: React.FC<TicketDetailsPanelProps> = ({
             <Button tone="plain"
               ref={cancelButtonRef}
               onClick={() => isDirty ? setConfirmation("cancel") : cancel()}
-              className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"
             >
               Cancel
             </Button>
-            <Button tone="primary"
+            <Button save tone="primary"
               onClick={save}
 
             >

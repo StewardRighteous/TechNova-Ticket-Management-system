@@ -1,6 +1,6 @@
 import { Button, Heading, Icon, Input, Label } from "../../ui/barrel";
 import React, { useState } from "react";
-import type { Employee, Ticket, TicketStatus } from "../../types/barrel";
+import type { Employee, Ticket } from "../../types/barrel";
 import { SelectDropdown } from "../../ui/groups/SelectDropdown";
 import { StaffAvatar } from "../../ui/atoms/StaffAvatar";
 
@@ -15,7 +15,6 @@ interface TicketHistoryPanelProps {
   canResolve: boolean;
   onMarkResolved: () => void;
   onAssigneeChange: (employeeId: string, note?: string) => void;
-  onStatusChange: (status: TicketStatus) => void;
   onViewEmployee?: (employeeId: string) => void;
 }
 
@@ -30,7 +29,6 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
   canResolve,
   onMarkResolved,
   onAssigneeChange,
-  onStatusChange,
   onViewEmployee,
 }) => {
   const [assigneeId, setAssigneeId] = useState(ticket.assignedToId);
@@ -45,7 +43,7 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
   };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="ticket-history-heading">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
@@ -123,11 +121,7 @@ export const TicketHistoryPanel: React.FC<TicketHistoryPanelProps> = ({
           <Input appearance="plain" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add a handoff note (optional)" className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500" />
           <Button tone="plain" type="button" onClick={reassign} disabled={assigneeId === ticket.assignedToId} className="mt-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white enabled:hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40">Apply reassignment</Button>
         </div>}
-        <div className="border-t border-slate-100 pt-4">
-          <Label variant="plain" htmlFor="history-status" className="block text-xs font-bold text-slate-700">Update status</Label>
-          <SelectDropdown label="Update status" value={ticket.status} onChange={(value) => onStatusChange(value as TicketStatus)} options={["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"].map((value) => ({ value, label: value }))} className="mt-2 w-full" />
-        </div>
-      </section>
+</section>
     </div>
   );
 };

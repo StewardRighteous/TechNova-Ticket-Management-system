@@ -54,7 +54,7 @@ export function Dialog({
       className={`m-auto max-h-[calc(100dvh-1.5rem)] w-[calc(100%_-_1.5rem)] overflow-visible rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl backdrop:bg-slate-950/55 ${widths[width]} ${className}`}
     >
       <div className="flex max-h-[calc(100dvh-1.5rem)] flex-col">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-3.5 sm:px-7">
+        <div className="flex items-center justify-between gap-3 px-5 pt-5 sm:px-7 sm:pt-6">
           <div className="min-w-0">
             {section && (
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700">

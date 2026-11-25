@@ -1,78 +1,60 @@
-import { Heading, Icon } from "../../ui/barrel";
-import React from "react";
 import type { Ticket } from "../../types/barrel";
+import { CopyIconButton, ReadOnlyField } from "../../ui/barrel";
+
+const diagnosticFields = [
+  { name: "errorMessage", label: "Error message" },
+  { name: "errorCode", label: "Error code" },
+  { name: "clusterNode", label: "Cluster or server node" },
+  { name: "affectedUsers", label: "Affected users" },
+  { name: "expectedBehavior", label: "Expected behavior", multiline: true },
+  { name: "actualBehavior", label: "Actual behavior", multiline: true },
+  { name: "stepsToReproduce", label: "Steps to reproduce", multiline: true },
+] as const;
+
+function formatFieldValue(value: string | number | undefined) {
+  return String(value ?? "")
+    .replace(/\\n/g, "\n")
+    .split(/\r?\n/)
+    .filter((line) => line.trim())
+    .join("\n")
+    .trim();
+}
 
 interface IssueOverviewCardProps {
   ticket: Ticket;
+  onCopy: (text: string, label: string) => void;
 }
 
-export const IssueOverviewCard: React.FC<IssueOverviewCardProps> = ({
-  ticket,
-}) => {
-  const diag = ticket.diagnosticData;
+export function IssueOverviewCard({ ticket, onCopy }: IssueOverviewCardProps) {
+  const fields = ([
+    { name: "description", label: "Issue overview", multiline: true, value: ticket.description },
+    ...diagnosticFields.map((field) => ({ ...field, value: ticket.diagnosticData?.[field.name] })),
+  ] as const).map((field) => ({ ...field, text: formatFieldValue(field.value) }));
+
+  const issueText = fields
+    .filter(({ text }) => text)
+    .map(({ label, text }) => `${label}\n${text}`)
+    .join("\n\n");
 
   return (
-    <div className="p-5">
-      <Heading as="h4" variant="plain" className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-        Issue Overview
-      </Heading>
-
-      <p className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs leading-relaxed text-slate-700">
-        {ticket.description.replace(/\\n/g, "\n")}
-      </p>
-
-      {/* Diagnostic fields collected by the add-ticket form */}
-      {diag && (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {diag.errorMessage && (
-            <DiagField icon="report" label="Error message" value={diag.errorMessage} />
-          )}
-          {diag.errorCode && (
-            <DiagField icon="error" label="Error code" value={diag.errorCode} />
-          )}
-          {diag.clusterNode && (
-            <DiagField icon="dns" label="Cluster / server node" value={diag.clusterNode} />
-          )}
-          {diag.affectedUsers !== undefined && (
-            <DiagField icon="group" label="Affected users" value={String(diag.affectedUsers)} />
-          )}
-          {diag.expectedBehavior && (
-            <DiagField icon="target" label="Expected behavior" value={diag.expectedBehavior} />
-          )}
-          {diag.actualBehavior && (
-            <DiagField icon="report_problem" label="Actual behavior" value={diag.actualBehavior} />
-          )}
-        </div>
-      )}
-
-      {/* Steps to reproduce */}
-      {diag?.stepsToReproduce && (
-        <div className="mt-4">
-          <Heading as="h5" variant="plain" className="mb-1.5 text-xs font-bold text-slate-600">
-            Steps to Reproduce
-          </Heading>
-          <p className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600 whitespace-pre-line">
-            {diag.stepsToReproduce.replace(/\\n/g, "\n")}
-          </p>
-        </div>
-      )}
-
-    </div>
+    <section aria-label="Ticket issue" className="grid gap-x-6 gap-y-4 p-5 md:grid-cols-2">
+      {fields.map((field) => {
+        const { name, label, text } = field;
+        const wide = name === "description" || name === "stepsToReproduce";
+        return (
+          <ReadOnlyField
+            key={name}
+            label={label}
+            value={text}
+            multiline={"multiline" in field && field.multiline}
+            minRows={name === "stepsToReproduce" ? 4 : 2}
+            className={wide ? "col-span-full min-w-0" : "min-w-0"}
+            labelAction={name === "description" && issueText && (
+              <CopyIconButton label="Issue" variant="labeled" onCopy={() => onCopy(issueText, "Issue")} />
+            )}
+          />
+        );
+      })}
+    </section>
   );
-};
-
-const DiagField: React.FC<{
-  icon: string;
-  label: string;
-  value: string;
-}> = ({ icon, label, value }) => (
-  <div className="flex items-start gap-2 rounded-lg border border-slate-100 bg-slate-50 p-2.5">
-    <Icon className="mt-0.5 text-[14px] text-slate-400">
-      {icon}
-    </Icon>
-    <div>
-      <p className="text-[10px] font-medium text-slate-400">{label}</p>
-      <p className="text-xs font-semibold text-slate-700">{value}</p>
-    </div>
-  </div>
-);
+}

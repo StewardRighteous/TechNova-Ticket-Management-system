@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+#demo-password::-ms-reveal {
+  display: none;
+}
+
 @theme {
   --color-brand-indigo: #1f2041;
   --color-brand-purple: #4b3f72;
@@ -203,7 +207,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.compact-workspace .ticket-list-table th,
 .compact-workspace .ticket-list-table td {
   padding-top: 0.4rem !important;
   padding-bottom: 0.4rem !important;
@@ -274,11 +277,6 @@
 
   #high-attention-incidents > div:first-child p {
     display: none;
-  }
-
-  #high-attention-incidents table th {
-    padding-top: 0.55rem;
-    padding-bottom: 0.55rem;
   }
 
   #high-attention-incidents table td {

@@ -6,16 +6,17 @@ interface StepActionProps {
   continueLabel?: string;
   submitLabel: string;
   submitDisabled?: boolean;
+  showContinueArrow?: boolean;
 }
 
-export function StepAction({ onContinue, continueLabel = "Continue", submitLabel, submitDisabled }: StepActionProps) {
+export function StepAction({ onContinue, continueLabel = "Continue", submitLabel, submitDisabled, showContinueArrow = true }: StepActionProps) {
   if (onContinue) return (
     <Button key="continue" tone="primary" type="button" onClick={(event) => {
       // A step transition can render the submit button before the click's default action.
       event.preventDefault();
       onContinue();
     }}>
-      {continueLabel} <span aria-hidden="true">→</span>
+      {continueLabel} {showContinueArrow && <span aria-hidden="true">→</span>}
     </Button>
   );
 

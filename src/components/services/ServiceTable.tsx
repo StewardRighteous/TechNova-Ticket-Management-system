@@ -1,6 +1,7 @@
+import { useTicketStore } from "../../store/barrel";
 import React, { useState } from "react";
 import type { Employee, ServiceLine } from "../../types/barrel";
-import { CallToAction, TableToolbar, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, NumericPagination, StaffAvatar, TableSearch } from "../../ui/barrel";
+import { TableValue, ClearTableFiltersButton, TableRefreshButton, CallToAction, TableToolbar, Button, DataTable, getTablePageRows, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, StaffAvatar, TableSearch } from "../../ui/barrel";
 
 interface ServiceTableProps {
   services: ServiceLine[];
@@ -35,6 +36,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   initialStatusFilter = [],
   onTableStateChange,
 }) => {
+  const addToast = useTicketStore((state) => state.addToast);
   const [search, setSearch] = useState(initialSearch);
   const [departmentFilter, setDepartmentFilter] = useState(
     initialDepartmentFilter,
@@ -78,7 +80,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
   });
 
   const avatarsByName = new Map(employees.map((employee) => [employee.name, employee.avatar]));
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = getTablePageRows(filtered, page, pageSize);
   React.useEffect(() => {
     setPage((current) =>
       Math.min(current, Math.max(1, Math.ceil(filtered.length / pageSize))),
@@ -96,13 +98,13 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
           Browse and manage service lines.
         </p>
       </div>
-      <DataTable className="border-collapse"
+      <DataTable rowCount={filtered.length} className="border-collapse"
         scroll
         toolbar={
           <TableToolbar>
             <TableSearch id="service-search" value={search} onChange={(value) => { setSearch(value); setPage(1); updateState({ search: value, page: 1 }); }} placeholder="Filter services or lead..." aria-label="Filter services or lead" className="min-w-52 max-w-[480px] flex-1" />
             <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-              <ComboboxFilter
+              <ComboboxFilter hideClear
                 label="Department"
                 options={departmentOptions}
                 selectedValues={departmentFilter}
@@ -113,81 +115,38 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                 }}
                 singleSelect
               />
-              {departmentFilter.length || statusFilter.length ? (
-                <Button tone="plain"
-                  type="button"
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-900"
-                  onClick={() => {
-                    setDepartmentFilter([]);
-                    setStatusFilter([]);
-                    setPage(1);
-                    updateState({
-                      departmentFilter: [],
-                      statusFilter: [],
-                      page: 1,
-                    });
-                  }}
-                >
-                  Clear filters
-                </Button>
-              ) : null}
-            </div>
-            {onCreateNew && (
-              <CallToAction icon="add" onClick={onCreateNew} className="shrink-0">New</CallToAction>
+              {(departmentFilter.length > 0 || statusFilter.length > 0) && <ClearTableFiltersButton onClear={() => { setDepartmentFilter([]); setStatusFilter([]); setPage(1); updateState({ departmentFilter: [], statusFilter: [], page: 1 }); }} />}
+              <TableRefreshButton onRefresh={() => addToast("Services refreshed", "success")} />
+
+              {onCreateNew && (
+              <CallToAction icon="add" onClick={onCreateNew} className="h-8 shrink-0 px-3 py-0 text-xs">New Service</CallToAction>
             )}
+            </div>
           </TableToolbar>
         }
-        pagination={
-          <NumericPagination
-            totalItems={filtered.length}
-            currentPage={page}
-            pageSize={pageSize}
-            onPageChange={(value) => {
-              setPage(value);
-              updateState({ page: value });
-            }}
-            onPageSizeChange={(value) => {
-              setPageSize(value);
-              setPage(1);
-              updateState({ pageSize: value, page: 1 });
-            }}
-            pageSizeOptions={[10, 25, 50]}
-          />
-        }
+        pagination={{
+          currentPage: page,
+          pageSize,
+          onPageChange: (value) => {
+            setPage(value);
+            updateState({ page: value });
+          },
+          onPageSizeChange: (value) => {
+            setPageSize(value);
+            setPage(1);
+            updateState({ pageSize: value, page: 1 });
+          },
+        }}
       >
         <TableHead>
           <TableRow>
-            <TableHeader density="edge">
-              <div className="flex items-center gap-1">
-                <span>Service Code</span>
-              </div>
-            </TableHeader>
-            <TableHeader>
-              <div className="flex items-center gap-1">
-                <span>Service Name</span>
-              </div>
-            </TableHeader>
-            <TableHeader>
-              <div className="flex items-center gap-1">
-                <span>Department</span>
-                <Icon className="text-[15px] opacity-70"></Icon>
-              </div>
-            </TableHeader>
-            <TableHeader>
-              <div className="flex items-center gap-1">
-                <span>Service Lead</span>
-                <Icon className="text-[15px] opacity-70"></Icon>
-              </div>
-            </TableHeader>
+            <TableHeader density="edge">Service Code</TableHeader>
+            <TableHeader>Service Name</TableHeader>
+            <TableHeader>Department</TableHeader>
+            <TableHeader>Service Lead</TableHeader>
 
-            <TableHeader
-
-            >
-              <div className="flex items-center gap-1">
-                <span>Active Tickets</span>
-              </div>
-            </TableHeader>
-            <TableHeader density="edge" className="text-left">Action</TableHeader>
+            <TableHeader>Active Tickets</TableHeader>
+            <TableHeader density="edge">Action</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody className="bg-white">
@@ -216,15 +175,8 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
                   </Button>
                 </div>
               </TableCell>
-              <TableCell className="whitespace-nowrap">
-                <div className="flex items-center gap-1.5">
-                  <Icon className="text-[16px] text-slate-400">
-                    corporate_fare
-                  </Icon>
-                  <span className="cursor-text font-semibold text-slate-800">
-                    {srv.department}
-                  </span>
-                </div>
+              <TableCell className="whitespace-nowrap font-semibold text-slate-800">
+                <TableValue icon="corporate_fare">{srv.department}</TableValue>
               </TableCell>
               <TableCell className="whitespace-nowrap">
                 <div className="flex items-center gap-1.5">
@@ -241,12 +193,7 @@ export const ServiceTable: React.FC<ServiceTableProps> = ({
               </TableCell>
 
               <TableCell className="whitespace-nowrap text-slate-800">
-                <span className="inline-flex items-center gap-1.5">
-                  <Icon className="text-[13px] text-slate-400">
-                    confirmation_number
-                  </Icon>
-                  <span className="cursor-text">{srv.activeTickets} Tickets</span>
-                </span>
+                <TableValue icon="confirmation_number">{srv.activeTickets + " Tickets"}</TableValue>
               </TableCell>
               <TableCell density="edge" className="text-left whitespace-nowrap">
                 <Button tone="plain"

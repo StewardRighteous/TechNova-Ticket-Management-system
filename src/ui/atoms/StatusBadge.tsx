@@ -34,7 +34,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full ${colorStyles} px-2 py-1 text-xs font-semibold`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full ${colorStyles} px-2 py-1 text-xs font-semibold`}
     >
       {status}
     </span>
@@ -43,9 +43,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
 interface PriorityBadgeProps {
   priority: TicketPriority;
+  showCode?: boolean;
 }
 
-export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
+export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, showCode = false }) => {
   let badgeClasses = "bg-surface-container text-on-surface-variant";
 
   if (
@@ -74,9 +75,9 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-1 text-xs font-semibold ${badgeClasses}`}
     >
-      {priority.replace(/^P\d\s*/i, "")}
+      {showCode ? priority : priority.replace(/^P\d\s*/i, "")}
     </span>
   );
 };

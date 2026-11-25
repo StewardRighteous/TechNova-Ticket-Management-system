@@ -1,6 +1,7 @@
+import { useTicketStore } from "../../store/barrel";
 import React, { useState } from "react";
 import type { Employee } from "../../types/barrel";
-import { CallToAction, TableToolbar, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, NumericPagination, StaffAvatar, TableSearch } from "../../ui/barrel";
+import { CategoryBadge, TableValue, ClearTableFiltersButton, TableRefreshButton, CallToAction, TableToolbar, Button, DataTable, getTablePageRows, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, StaffAvatar, TableSearch } from "../../ui/barrel";
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -15,6 +16,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onViewEmployee,
   onCreateNew,
 }) => {
+  const addToast = useTicketStore((state) => state.addToast);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -42,7 +44,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
     return true;
   });
 
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = getTablePageRows(filtered, page, pageSize);
   React.useEffect(() => {
     setPage((current) =>
       Math.min(current, Math.max(1, Math.ceil(filtered.length / pageSize))),
@@ -100,13 +102,13 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
           </div>
         </div>
       </div>
-      <DataTable className="border-collapse"
+      <DataTable rowCount={filtered.length} className="border-collapse"
         scroll
         toolbar={
           <TableToolbar>
             <TableSearch id="employee-search" value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Search employees by name, role, or email..." aria-label="Search employees by name, role, or email" className="min-w-52 max-w-[480px] flex-1" />
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
-              <ComboboxFilter
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+              <ComboboxFilter hideClear
                 label="Location"
                 selectedValues={locationFilter}
                 onChange={(v) => {
@@ -117,7 +119,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                   ...new Set(employees.map((e) => e.locationId || "Unassigned")),
                 ].map((v) => ({ value: v, label: v }))}
               />
-              <ComboboxFilter
+              <ComboboxFilter hideClear
                 label="Role"
                 singleSelect
                 selectedValues={roleFilter === "all" ? [] : [roleFilter]}
@@ -139,7 +141,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     }[v] || v,
                 }))}
               />
-              <ComboboxFilter
+              <ComboboxFilter hideClear
                 label="Status"
                 singleSelect
                 selectedValues={statusFilter === "all" ? [] : [statusFilter]}
@@ -152,22 +154,16 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                   label: value,
                 }))}
               />
-            </div>
-            {onCreateNew && (
-              <CallToAction icon="add" onClick={onCreateNew} className="shrink-0">New</CallToAction>
+
+              {(locationFilter.length > 0 || roleFilter !== "all" || statusFilter !== "all") && <ClearTableFiltersButton onClear={() => { setLocationFilter([]); setRoleFilter("all"); setStatusFilter("all"); setPage(1); }} />}
+              <TableRefreshButton onRefresh={() => addToast("Employees refreshed", "success")} />
+              {onCreateNew && (
+              <CallToAction icon="add" onClick={onCreateNew} className="h-8 shrink-0 px-3 py-0 text-xs">New Employee</CallToAction>
             )}
+            </div>
           </TableToolbar>
         }
-        pagination={
-          <NumericPagination
-            totalItems={filtered.length}
-            currentPage={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-            pageSizeOptions={[10, 25, 50]}
-          />
-        }
+        pagination={{ currentPage: page, pageSize, onPageChange: setPage, onPageSizeChange: setPageSize }}
       >
         <TableHead>
           <TableRow>
@@ -182,7 +178,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
             <TableHeader>
               <span>Status</span>
             </TableHeader>
-            <TableHeader density="edge" className="text-left">Action</TableHeader>
+            <TableHeader density="edge">Action</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody className="bg-white">
@@ -215,44 +211,19 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="whitespace-break-spaces">
-                  <span className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-800">
-                    <Icon className="text-[15px] text-slate-400">
-                      badge
-                    </Icon>
-                    <span className="cursor-text">{emp.roleTitle}</span>
-                  </span>
+                <TableCell className="whitespace-nowrap font-semibold text-slate-800">
+                  <TableValue icon="badge">{emp.roleTitle}</TableValue>
                 </TableCell>
 
                 <TableCell className="text-[11px] whitespace-nowrap text-slate-800">
-                  <div className="flex items-center gap-1">
-                    <Icon className="text-[15px] text-slate-400">
-                      email
-                    </Icon>
-                    <span className="cursor-text">{emp.email}</span>
-                  </div>
+                  <TableValue icon="mail">{emp.email}</TableValue>
                 </TableCell>
                 <TableCell className="text-[11px] whitespace-nowrap text-slate-800">
-                  <div className="flex items-center gap-1">
-                    <Icon className="text-[15px] text-slate-400">
-                      phone
-                    </Icon>
-                    <span className="cursor-text">{emp.phone}</span>
-                  </div>
+                  <TableValue icon="call">{emp.phone}</TableValue>
                 </TableCell>
 
                 <TableCell className="whitespace-nowrap">
-                  <span
-                      className={`inline-flex cursor-text items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      emp.status === "Available"
-                        ? "border border-emerald-300 bg-emerald-50 text-emerald-800"
-                        : emp.status === "Busy"
-                          ? "border border-amber-300 bg-amber-50 text-amber-800"
-                          : "border border-slate-300 bg-slate-50 text-slate-700"
-                    }`}
-                  >
-                    {emp.status}
-                  </span>
+                  <CategoryBadge variant="status" category={emp.status} />
                 </TableCell>
                 <TableCell density="edge" className="text-left whitespace-nowrap">
                   <Button tone="plain"

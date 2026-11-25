@@ -49,7 +49,7 @@ const CreateModalRoute: React.FC<CreateModalRouteProps> = ({ section, title, chi
   const close = () => navigate(`/${section}`);
   return <>
     {background}
-    <Dialog section={section} title={title} onClose={close} width={section === "tickets" ? "wide" : "medium"} showCloseButton={showCloseButton} className="create-modal-shell">
+    <Dialog section={section} title={title} onClose={close} width="medium" showCloseButton={showCloseButton} className="create-modal-shell">
       {children}
     </Dialog>
   </>;

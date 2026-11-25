@@ -52,7 +52,7 @@ export const CreateEmployeePage: React.FC = () => {
       <FormField label="Maximum active tickets"><Input type="number" min={1} required value={capacityMax} onChange={(event) => setCapacityMax(Number(event.target.value))} /></FormField>
       <FormField label="Skills"><Input value={skills} onChange={(event) => setSkills(event.target.value)} placeholder="Comma-separated skills" /></FormField>
     </div>
-    <FormActions><Button type="button" onClick={cancel}>Cancel</Button><Button tone="primary" type="submit">Create employee</Button></FormActions>
+    <FormActions><Button cancel type="button" onClick={cancel}>Cancel</Button><Button tone="primary" type="submit">Create employee</Button></FormActions>
   </form>
     {confirmDiscard && <ConfirmationDialog
         title="Discard this employee draft?"

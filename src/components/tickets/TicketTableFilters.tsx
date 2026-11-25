@@ -1,4 +1,4 @@
-import { Button, Icon } from "../../ui/barrel";
+import { ClearTableFiltersButton } from "../../ui/barrel";
 import React from "react";
 import { ComboboxFilter } from "../../ui/groups/ComboboxFilter";
 
@@ -18,6 +18,7 @@ export interface TicketTableFiltersProps {
   setDepartmentFilter: (departments: string[]) => void;
   departmentOptions: TicketDepartmentOption[];
   onClearAll?: () => void;
+  hasExtraFilters?: boolean;
   showStatus?: boolean;
   showPriority?: boolean;
   showChannelFilter?: boolean;
@@ -58,6 +59,7 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
   setDepartmentFilter,
   departmentOptions,
   onClearAll,
+  hasExtraFilters = false,
   showStatus = true,
   showPriority = true,
   showChannelFilter = true,
@@ -112,15 +114,7 @@ export const TicketTableFilters: React.FC<TicketTableFiltersProps> = ({
         placeholder="Search department..."
       />}
 
-      {hasActiveFilters && onClearAll && (
-        <Button tone="plain"
-          type="button"
-          onClick={onClearAll}
-          className="flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-        >
-          <Icon className="text-[14px]">filter_alt_off</Icon>
-        </Button>
-      )}
+      {(hasActiveFilters || hasExtraFilters) && onClearAll && <ClearTableFiltersButton onClear={onClearAll} />}
     </div>
   );
 };

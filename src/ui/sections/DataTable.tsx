@@ -1,17 +1,25 @@
-import type { ComponentPropsWithRef, ReactNode } from "react";
+import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import { Button } from "../atoms/Button";
 import { Icon } from "../atoms/Icon";
+import { NumericPagination, type NumericPaginationProps } from "../molecules/NumericPagination";
+import { getTablePageRows, minimumTableFooterRows } from "../molecules/tablePagination";
 
-type TableProps = ComponentPropsWithRef<"table"> & {
+type TableLayoutProps = Omit<ComponentPropsWithRef<"table">, "children"> & {
   toolbar?: ReactNode;
-  pagination?: ReactNode;
   scroll?: boolean;
   columnWidths?: readonly string[];
+};
+
+type TableProps = TableLayoutProps & {
+  children: ReactNode;
+  rowCount: number;
+  pagination: Omit<NumericPaginationProps, "totalItems">;
 };
 
 export function DataTable({
   className = "",
   children,
+  rowCount,
   toolbar,
   pagination,
   scroll,
@@ -34,15 +42,50 @@ export function DataTable({
     <>
       {toolbar}
       {scroll ? <div className="overflow-x-auto">{table}</div> : table}
-      {pagination}
+      {rowCount >= minimumTableFooterRows && (
+        <NumericPagination {...pagination} totalItems={rowCount} />
+      )}
     </>
   );
 }
 
+type PaginatedTableProps<Row> = TableLayoutProps & {
+  rows: readonly Row[];
+  children: (pageRows: readonly Row[]) => ReactNode;
+};
+
+export function PaginatedDataTable<Row>({ rows, children, ...props }: PaginatedTableProps<Row>) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  return (
+    <DataTable
+      {...props}
+      rowCount={rows.length}
+      pagination={{ currentPage: page, pageSize, onPageChange: setPage, onPageSizeChange: setPageSize }}
+    >
+      {children(getTablePageRows(rows, page, pageSize))}
+    </DataTable>
+  );
+}
+
+export function ClearTableFiltersButton({ onClear }: { onClear: () => void }) {
+  return <Button type="button" tone="plain" onClick={onClear} aria-label="Clear filters" title="Clear filters" className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"><Icon aria-hidden="true" className="text-[14px]">filter_alt_off</Icon></Button>;
+}
+
+export function TableRefreshButton({ onRefresh }: { onRefresh: () => void }) {
+  return (
+    <Button type="button" tone="plain" onClick={onRefresh} className="inline-flex h-7 items-center gap-1.5 rounded-md border border-slate-200 px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600">
+      <Icon aria-hidden="true" className="text-sm">refresh</Icon>
+      Refresh
+    </Button>
+  );
+}
+
 const headTones = {
-  standard: "bg-white text-[11px] font-bold tracking-wider text-slate-700 uppercase",
-  compact: "bg-slate-50 text-[10px] font-bold tracking-wide text-slate-500 uppercase",
-  inverse: "bg-slate-900 text-[11px] font-semibold tracking-wider text-white uppercase",
+  standard: "text-[11px] font-bold tracking-wider text-slate-500 uppercase",
+  compact: "text-[10px] font-bold tracking-wide text-slate-500 uppercase",
+  inverse: "text-[11px] font-semibold tracking-wider text-slate-500 uppercase",
   plain: "",
 };
 
@@ -53,7 +96,7 @@ export function TableHead({
 }: ComponentPropsWithRef<"thead"> & {
   tone?: keyof typeof headTones;
 }) {
-  return <thead {...props} className={`${headTones[tone]} ${className}`} />;
+  return <thead {...props} className={`bg-slate-100 ${headTones[tone]} ${className}`} />;
 }
 
 export function TableBody({ className = "", ...props }: ComponentPropsWithRef<"tbody">) {
@@ -121,15 +164,16 @@ export function TableRow({
   );
 }
 
-const cellSpacing = {
-  standard: "px-4 py-2.5",
-  narrow: "px-3 py-2.5",
-  edge: "px-5 py-2.5",
-  compact: "px-2 py-2",
+const columnSpacing = {
+  standard: "px-4",
+  narrow: "px-3",
+  edge: "px-5",
+  snug: "px-2.5",
+  compact: "px-2",
   plain: "",
 };
 
-type CellDensity = { density?: keyof typeof cellSpacing };
+type CellDensity = { density?: keyof typeof columnSpacing };
 
 export function TableHeader({
   density = "standard",
@@ -137,7 +181,24 @@ export function TableHeader({
   scope = "col",
   ...props
 }: ComponentPropsWithRef<"th"> & CellDensity) {
-  return <th {...props} scope={scope} className={`${cellSpacing[density]} ${className}`} />;
+  return <th {...props} scope={scope} className={`${columnSpacing[density]} py-1.5 text-left align-middle ${className}`} />;
+}
+
+export function SortableTableHeader({ children, density, direction, onSort }: CellDensity & {
+  children: string;
+  direction?: "ascending" | "descending";
+  onSort: () => void;
+}) {
+  const icon = direction === "ascending" ? "arrow_upward" : direction === "descending" ? "arrow_downward" : "unfold_more";
+
+  return (
+    <TableHeader density={density} aria-sort={direction}>
+      <Button type="button" tone="plain" onClick={onSort} className="inline-flex items-center gap-1 rounded-sm text-left uppercase hover:text-teal-700">
+        {children}
+        <Icon aria-hidden="true" className="text-sm leading-none">{icon}</Icon>
+      </Button>
+    </TableHeader>
+  );
 }
 
 export function TableCell({
@@ -145,42 +206,14 @@ export function TableCell({
   className = "",
   ...props
 }: ComponentPropsWithRef<"td"> & CellDensity) {
-  return <td {...props} className={`${cellSpacing[density]} ${className}`} />;
-}
-
-export function SortableTableHeader({
-  direction,
-  onSort,
-  children,
-  ...props
-}: ComponentPropsWithRef<typeof TableHeader> & {
-  direction?: "ascending" | "descending";
-  onSort: () => void;
-}) {
-  return (
-    <TableHeader {...props} aria-sort={direction}>
-      <Button
-        type="button"
-        tone="plain"
-        onClick={onSort}
-        className="inline-flex items-center gap-1 whitespace-nowrap hover:text-teal-700"
-      >
-        {children}
-        <Icon aria-hidden="true" className="text-[15px]">
-          {direction === "ascending"
-            ? "arrow_upward"
-            : direction === "descending"
-              ? "arrow_downward"
-              : "unfold_more"}
-        </Icon>
-      </Button>
-    </TableHeader>
-  );
+  const rowSpacing = density === "compact" ? "py-2" : "py-2.5";
+  const spacing = density === "plain" ? "" : `${columnSpacing[density]} ${rowSpacing}`;
+  return <td {...props} className={`${spacing} ${className}`} />;
 }
 
 export function TableToolbar({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
       {children}
     </div>
   );

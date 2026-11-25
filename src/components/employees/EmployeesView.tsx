@@ -55,7 +55,6 @@ export const EmployeesView: React.FC<{ personal?: boolean }> = ({ personal = fal
             isCurrentUser={selectedEmployee.id === currentUser?.id}
             onUpdateEmployee={handleUpdateEmployee}
             onDeleteEmployee={canManageTeam && !personal ? handleDeleteEmployee : undefined}
-            onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>}
         {!personal && <div hidden={Boolean(activeEmployeeId)}><EmployeeTable

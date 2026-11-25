@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import type { Company } from "../../types/barrel";
-import { StepAction, ConfirmationDialog, FormActions, Button, Checkbox, Heading, Input, Label, FormField, SelectDropdown } from "../../ui/barrel";
+import { StepAction, StepProgress, ConfirmationDialog, FormActions, Button, Checkbox, Heading, Input, Label, FormField, SelectDropdown } from "../../ui/barrel";
+import { companyTiers } from "./companyTiers";
 
 export const CreateCompanyPage: React.FC = () => {
   const { data, addCompany, addToast } = useTicketStore();
@@ -51,13 +52,13 @@ export const CreateCompanyPage: React.FC = () => {
   };
 
   return <main className="px-5 py-5 sm:px-7 sm:py-6"><form onSubmit={submit} className="space-y-5">
-      <div className="flex items-center gap-4 text-sm font-semibold text-[#384b68]"><span className="hidden text-slate-600 sm:inline">{step === 1 ? "Company details" : "Primary contact"}</span><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#dfe5ef]"><div className="h-full rounded-full bg-[#25294e] transition-all" style={{ width: `${(step / 2) * 100}%` }} /></div><span className="shrink-0">{step} of 2</span></div>
+      <StepProgress steps={["Company details", "Primary contact"]} currentStep={step} />
       {error && <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
       {step === 1 && <section className="space-y-4">
         <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
           <FormField label="Company name" required><Input required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Acme Corporation" /></FormField>
           <FormField label={<span className="flex items-center justify-between gap-2"><span>Company code</span><span className="text-[11px] font-normal text-slate-500">ⓘ Auto-generated</span></span>}><Input className="bg-teal-50 font-semibold text-teal-800" value={code} readOnly placeholder="Generated automatically" /></FormField>
-          <FormField label="Account tier" required><SelectDropdown label="Account tier" value={tier} onChange={setTier} options={["Standard Business", "Premium", "Enterprise"].map((item) => ({ value: item, label: item }))} required /></FormField>
+          <FormField label="Account tier" required><SelectDropdown label="Account tier" value={tier} onChange={setTier} options={companyTiers.map((item) => ({ value: item, label: item }))} required /></FormField>
           <FormField label="Account manager" required><SelectDropdown label="Account manager" value={accountManager} onChange={setAccountManager} options={data.employees.map((item) => ({ value: item.name, label: item.name }))} required /></FormField>
         </div>
       </section>}
@@ -72,7 +73,7 @@ export const CreateCompanyPage: React.FC = () => {
         <section className="space-y-3 border-t border-slate-100 pt-3"><Heading variant="plain" className="text-sm font-bold text-[#1f2041]">Subscribed services <span className="font-normal text-slate-500">(optional)</span></Heading><p className="text-sm text-slate-500">Select the services this company will use.</p><div className="grid gap-2 sm:grid-cols-2">{data.services.map((item) => <Label variant="plain" key={item.id} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg border border-[#c4d2e5] px-3 text-sm font-medium text-slate-800 hover:border-teal-500"><Checkbox checked={subscribedServices.includes(item.id)} onChange={(event) => setSubscribedServices((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} className="h-4 w-4 rounded border-slate-300 accent-teal-700" />{item.name}</Label>)}</div></section>
       </section>}
       <FormActions>
-        <Button type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }}>{step === 1 ? "Cancel" : "Back"}</Button><StepAction onContinue={step === 1 ? nextStep : undefined} submitLabel="Create company" />
+        <Button cancel={step === 1} type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }}>{step === 1 ? "Cancel" : "Back"}</Button><StepAction onContinue={step === 1 ? nextStep : undefined} submitLabel="Create company" />
       </FormActions>
     </form>
     {confirmDiscard && <ConfirmationDialog

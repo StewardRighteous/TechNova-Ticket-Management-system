@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import type { Company, CustomerContact, Employee, ServiceLine, Ticket } from "../../types/barrel";
-import { CheckboxField, ConfirmationDialog, DeleteDialog, DetailBanner, FormField, Button, DataTable, Icon, Input, Label, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, TableSearch } from "../../ui/barrel";
+import { CategoryBadge, TableValue, ClearTableFiltersButton, CheckboxField, ConfirmationDialog, DeleteDialog, DetailBanner, DetailEditDialog, FormField, Button, PaginatedDataTable, Icon, Input, LogoMark, TableBody, TableCell, TableHead, TableHeader, TableRow, ComboboxFilter, TableSearch } from "../../ui/barrel";
+import { RelatedTicketsTable } from "../shared/RelatedTicketsTable";
 import { CompanyContracts } from "./CompanyContracts";
-import { DetailEditDialog } from "../../ui/sections/DetailEditDialog";
-import { SelectDropdown } from "../../ui/barrel";
+import { CompanyGeneralForm } from "./CompanyGeneralForm";
 import { useSearchParams } from "react-router-dom";
 
 interface CompanyDetailHeroProps {
@@ -12,14 +12,13 @@ interface CompanyDetailHeroProps {
   onDeleteCompany?: (permanent: boolean) => void;
   canEdit?: boolean;
   tickets?: Ticket[];
-  onOpenTicket?: (ticketId: string) => void;
   services?: ServiceLine[];
   companies?: Company[];
   employees?: Employee[];
   getServiceHref?: (service: ServiceLine) => string | undefined;
 }
 
-type WorkspaceTab = "contacts" | "tickets" | "contracts";
+type WorkspaceTab = "general" | "contacts" | "tickets" | "contracts";
 
 export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   company,
@@ -27,17 +26,14 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   onDeleteCompany,
   canEdit = true,
   tickets = [],
-  onOpenTicket,
   services = [],
+  companies = [],
   getServiceHref,
 }) => {
-  const [draft, setDraft] = useState<Company>(company);
-  const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editError, setEditError] = useState("");
   const [params, setParams] = useSearchParams();
   const requestedTab = params.get("tab");
-  const workspaceTab: WorkspaceTab = requestedTab === "tickets" || requestedTab === "contracts" ? requestedTab : "contacts";
+  const workspaceTab: WorkspaceTab = requestedTab === "contacts" || requestedTab === "tickets" || requestedTab === "contracts" ? requestedTab : "general";
   const setWorkspaceTab = (tab: WorkspaceTab) => setParams({ tab }, { replace: true });
   const [isAddingContact, setIsAddingContact] = useState(false);
   const [contactFlags, setContactFlags] = useState({ primary: false, escalation: false });
@@ -49,13 +45,6 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
   const [ticketSearch, setTicketSearch] = useState("");
   const [ticketStatusFilter, setTicketStatusFilter] = useState<string[]>([]);
   const [ticketPriorityFilter, setTicketPriorityFilter] = useState<string[]>([]);
-  const uploadCompanyLogo = (file?: File) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => setDraft((current) => ({ ...current, logo: String(reader.result) }));
-    reader.readAsDataURL(file);
-  };
   const contacts: CustomerContact[] = company.contacts?.length ? company.contacts : [{ id: `legacy-${company.id}`, name: company.contactName, role: company.contactRole, email: company.contactEmail, phone: company.contactPhone }];
   const primaryContact = contacts.find((contact) => contact.id === company.primaryContactId)
     ?? contacts.find((contact) => contact.email === company.contactEmail)
@@ -145,11 +134,7 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
         status={company.status}
         statusTone={company.status === "Active" ? "positive" : "neutral"}
         subtitle={company.tier}
-        icon={company.logo?.includes("#")
-          ? <svg className="size-full bg-white p-1" viewBox="0 0 32 32"><use href={`/${company.logo}`} /></svg>
-          : company.logo
-            ? <img src={company.logo} alt="" className="size-full bg-white p-1 object-contain" />
-            : <Icon className="text-[26px]">domain</Icon>}
+        icon={company.logo ? <LogoMark src={company.logo} /> : <Icon className="text-[26px]">domain</Icon>}
         metrics={[
           ["Account manager", company.accountManager, "person"],
           ["Primary contact", primaryContact.name, "support_agent"],
@@ -157,7 +142,6 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
           ["Preferred support channel", company.preferredChannel, "support"],
         ]}
         actions={<>
-          {canEdit && <Button type="button" tone="inverse" size="small" onClick={() => { setDraft(company); setEditError(""); setIsEditing(true); }}>Edit Details</Button>}
           {canEdit && onDeleteCompany && <Button type="button" tone="inverseDanger" size="small" onClick={() => setIsDeleteDialogOpen(true)}>Delete company</Button>}
           <Button type="button" tone="inverse" size="small" onClick={() => setWorkspaceTab("contacts")}>View contacts</Button>
           <Button type="button" tone="primary" size="small" onClick={() => setWorkspaceTab("tickets")}>View ticket activity</Button>
@@ -165,30 +149,35 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
       />
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-3 pt-1.5" role="presentation">
-          <div className="flex min-w-0 gap-1 overflow-x-auto" role="tablist" aria-label="Company workspace">{([ ["contacts", "Contacts"], ["tickets", "Active Tickets"], ["contracts", "Contracts & Services"] ] as [WorkspaceTab, string][]).map(([id, label]) => (
+          <div className="flex min-w-0 gap-1 overflow-x-auto" role="tablist" aria-label="Company workspace">{([ ["general", "General"], ["contacts", "Contacts"], ["tickets", "Active Tickets"], ["contracts", "Contracts & Services"] ] as [WorkspaceTab, string][]).map(([id, label]) => (
             <Button tone="plain" key={id} role="tab" aria-selected={workspaceTab === id} type="button" onClick={() => setWorkspaceTab(id)} className={`border-b-2 px-3 py-2.5 text-xs font-bold ${workspaceTab === id ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{label}{id === "tickets" ? ` (${openTickets.length})` : id === "contacts" ? ` (${contacts.length})` : ""}</Button>
           ))}</div>
         </div>
         <div className="p-3 sm:p-4" role="tabpanel">
+          <div hidden={workspaceTab !== "general"}>
+            <CompanyGeneralForm company={company} companies={companies} canEdit={canEdit} onSave={onUpdateCompany} />
+          </div>
           {workspaceTab === "contacts" && <>
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <TableSearch id="company-contact-search" value={contactSearch} onChange={setContactSearch} placeholder="Search contacts..." aria-label="Search contacts" className="min-w-52 max-w-[480px] flex-1" />
               <div className="ml-auto flex flex-wrap items-center gap-2">
-              <ComboboxFilter label="Role" options={contactRoles.map((role) => ({ value: role, label: role }))} selectedValues={contactRoleFilter} onChange={setContactRoleFilter} singleSelect placeholder="Search roles..." />
+              <ComboboxFilter hideClear label="Role" options={contactRoles.map((role) => ({ value: role, label: role }))} selectedValues={contactRoleFilter} onChange={setContactRoleFilter} singleSelect placeholder="Search roles..." />
+              {contactRoleFilter.length > 0 && <ClearTableFiltersButton onClear={() => setContactRoleFilter([])} />}
               <Button tone="plain" type="button" onClick={() => { setNewContact({ name: "", role: "", email: "", phone: "" }); setContactFlags({ primary: false, escalation: false }); setIsAddingContact(true); }} disabled={!canEdit} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#119DA4] px-3 text-xs font-semibold text-white transition hover:bg-[#0E858D] disabled:cursor-not-allowed disabled:opacity-50"><Icon aria-hidden="true" className="text-base">person_add</Icon>Add contact</Button>
               </div>
             </div>
-              <div className="overflow-x-auto"><DataTable><TableHead tone="compact"><TableRow><TableHeader density="compact">Name</TableHeader><TableHeader density="compact">Role</TableHeader><TableHeader density="compact">Email</TableHeader><TableHeader density="compact">Phone</TableHeader><TableHeader density="compact">Primary</TableHeader><TableHeader density="compact">Escalation</TableHeader><TableHeader density="compact" scope="col" className="w-[1%] whitespace-nowrap">Actions</TableHeader></TableRow></TableHead><TableBody>{filteredContacts.length ? filteredContacts.map((contact) => { const isPrimary = contact.id === primaryContact.id; return <TableRow key={contact.id}><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 font-semibold text-[#1F2041]"><span className="inline-flex items-center gap-1.5">{contact.name}{isPrimary && <Icon aria-label="Primary contact" title="Primary contact" className="text-base leading-none text-[#119DA4]">star</Icon>}</span></TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.role || "—"}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-[#19647E]">{contact.email}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.phone}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{isPrimary ? "Yes" : "—"}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{contact.id === escalationContact?.id ? "Yes" : "—"}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5"><div className="inline-flex items-center gap-1 align-middle"><Button tone="plain" type="button" onClick={() => editContact(contact)} disabled={!canEdit} aria-label={`Edit ${contact.name}`} title="Edit contact" className="inline-flex size-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><Icon aria-hidden="true" className="text-base">edit</Icon></Button><Button tone="plain" type="button" onClick={() => deleteContact(contact)} disabled={!canEdit || contacts.length <= 1} aria-label={`Delete ${contact.name}`} title={contacts.length <= 1 ? "A company must have at least one contact" : "Delete contact"} className="inline-flex size-8 items-center justify-center rounded-md text-slate-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"><Icon aria-hidden="true" className="text-base">delete</Icon></Button></div></TableCell></TableRow>; }) : <TableRow><TableCell density="plain" className="px-2 py-6 text-center text-slate-500" colSpan={7}>No contacts match these filters.</TableCell></TableRow>}</TableBody></DataTable></div>
+              <PaginatedDataTable rows={filteredContacts} scroll>{(pageRows) => <><TableHead tone="compact"><TableRow><TableHeader density="compact">Name</TableHeader><TableHeader density="compact">Role</TableHeader><TableHeader density="compact">Email</TableHeader><TableHeader density="compact">Phone</TableHeader><TableHeader density="compact">Primary</TableHeader><TableHeader density="compact">Escalation</TableHeader><TableHeader density="compact" scope="col" className="w-[1%] whitespace-nowrap">Actions</TableHeader></TableRow></TableHead><TableBody>{filteredContacts.length ? pageRows.map((contact) => { const isPrimary = contact.id === primaryContact.id; return <TableRow key={contact.id}><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 font-semibold text-[#1F2041]">{contact.name}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600"><TableValue icon="badge">{contact.role}</TableValue></TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-[#19647E]"><TableValue icon="mail">{contact.email}</TableValue></TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600"><TableValue icon="call">{contact.phone}</TableValue></TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600"><CategoryBadge variant="flag" category={isPrimary ? "Yes" : "No"} /></TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600"><CategoryBadge variant="flag" category={contact.id === escalationContact?.id ? "Yes" : "No"} /></TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5"><div className="inline-flex items-center gap-1 align-middle"><Button tone="plain" type="button" onClick={() => editContact(contact)} disabled={!canEdit} aria-label={`Edit ${contact.name}`} title="Edit contact" className="inline-flex size-8 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"><Icon aria-hidden="true" className="text-base">edit</Icon></Button><Button tone="plain" type="button" onClick={() => deleteContact(contact)} disabled={!canEdit || contacts.length <= 1} aria-label={`Delete ${contact.name}`} title={contacts.length <= 1 ? "A company must have at least one contact" : "Delete contact"} className="inline-flex size-8 items-center justify-center rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"><Icon aria-hidden="true" className="text-base">delete</Icon></Button></div></TableCell></TableRow>; }) : <TableRow><TableCell density="plain" className="px-2 py-6 text-center text-slate-500" colSpan={7}>No contacts match these filters.</TableCell></TableRow>}</TableBody></>}</PaginatedDataTable>
           </>}
           {workspaceTab === "tickets" && <>
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <TableSearch id="company-ticket-search" value={ticketSearch} onChange={setTicketSearch} placeholder="Search tickets..." aria-label="Search tickets" className="min-w-52 max-w-[480px] flex-1" />
               <div className="ml-auto flex flex-wrap items-center gap-2">
-              <ComboboxFilter label="Status" options={[...new Set(openTickets.map((ticket) => ticket.status))].map((status) => ({ value: status, label: status }))} selectedValues={ticketStatusFilter} onChange={setTicketStatusFilter} singleSelect placeholder="Search statuses..." />
-              <ComboboxFilter label="Priority" options={[...new Set(openTickets.map((ticket) => ticket.priority))].map((priority) => ({ value: priority, label: priority }))} selectedValues={ticketPriorityFilter} onChange={setTicketPriorityFilter} singleSelect placeholder="Search priorities..." />
+              <ComboboxFilter hideClear label="Status" options={[...new Set(openTickets.map((ticket) => ticket.status))].map((status) => ({ value: status, label: status }))} selectedValues={ticketStatusFilter} onChange={setTicketStatusFilter} singleSelect placeholder="Search statuses..." />
+              <ComboboxFilter hideClear label="Priority" options={[...new Set(openTickets.map((ticket) => ticket.priority))].map((priority) => ({ value: priority, label: priority }))} selectedValues={ticketPriorityFilter} onChange={setTicketPriorityFilter} singleSelect placeholder="Search priorities..." />
+              {(ticketStatusFilter.length > 0 || ticketPriorityFilter.length > 0) && <ClearTableFiltersButton onClear={() => { setTicketStatusFilter([]); setTicketPriorityFilter([]); }} />}
               </div>
             </div>
-            <div className="overflow-x-auto"><DataTable><TableHead tone="compact"><TableRow><TableHeader density="compact">Ticket</TableHeader><TableHeader density="compact">Subject</TableHeader><TableHeader density="compact">Status</TableHeader><TableHeader density="compact">Priority</TableHeader><TableHeader density="compact">Assignee</TableHeader><TableHeader density="compact">Updated</TableHeader></TableRow></TableHead><TableBody>{filteredTickets.length ? filteredTickets.map((ticket) => <TableRow key={ticket.id}><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5"><Button tone="plain" type="button" className="font-bold text-indigo-700 hover:underline" onClick={() => onOpenTicket?.(ticket.id)}>{ticket.code}</Button></TableCell><TableCell density="plain" className="px-2 py-2.5 text-slate-700">{ticket.title}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.status}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.priority}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-600">{ticket.assignedToName || "Unassigned"}</TableCell><TableCell density="plain" className="whitespace-nowrap px-2 py-2.5 text-slate-500">{ticket.timeAgo}</TableCell></TableRow>) : <TableRow><TableCell density="plain" className="px-2 py-6 text-center text-slate-500" colSpan={6}>No active tickets match these filters.</TableCell></TableRow>}</TableBody></DataTable></div>
+            <RelatedTicketsTable tickets={filteredTickets} emptyMessage="No active tickets match these filters." />
           </>}
           {workspaceTab === "contracts" && <CompanyContracts company={company} services={services} canEdit={canEdit} onUpdate={onUpdateCompany} getServiceHref={getServiceHref} />}
         </div>
@@ -214,27 +203,6 @@ export const CompanyDetailHero: React.FC<CompanyDetailHeroProps> = ({
           <CheckboxField checked={contactFlags.primary} onChange={(event) => setContactFlags((current) => ({ ...current, primary: event.target.checked }))} label="Primary support contact" />
           <CheckboxField checked={contactFlags.escalation} onChange={(event) => setContactFlags((current) => ({ ...current, escalation: event.target.checked }))} label="Escalation contact" />
         </div>
-      </DetailEditDialog>}
-
-      {isEditing && <DetailEditDialog title="Edit company details" onCancel={() => setIsEditing(false)} onSave={(event) => {
-        event.preventDefault();
-        const name = draft.name.trim();
-        if (!name) { setEditError("Enter a company name."); return; }
-        onUpdateCompany({
-          name, tier: draft.tier, status: draft.status,
-          preferredChannel: draft.preferredChannel, logo: draft.logo,
-        });
-        setIsEditing(false);
-      }}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Label variant="compact">Company name<Input required value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></Label>
-          <Label variant="plain" className="space-y-1.5 text-xs"><span className="block">Preferred support channel</span><SelectDropdown label="Preferred support channel" options={["email", "phone", "whatsapp"].map((value) => ({ value, label: value }))} value={draft.preferredChannel} onChange={(value) => setDraft({ ...draft, preferredChannel: value as Company["preferredChannel"] })} /></Label>
-          <Label variant="compact">Account tier<Input required value={draft.tier} onChange={(event) => setDraft({ ...draft, tier: event.target.value })} /></Label>
-          <Label variant="plain" className="space-y-1.5 text-xs"><span className="block">Account status</span><SelectDropdown label="Account status" options={["Active", "Inactive"].map((value) => ({ value, label: value }))} value={draft.status} onChange={(value) => setDraft({ ...draft, status: value as Company["status"] })} /></Label>
-          <Label variant="plain" className="block space-y-1.5 text-xs"><span>Company logo</span><span className="relative flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-[1.5px] border-[#c4d2e5] bg-white px-3.5 py-2 text-sm font-semibold text-[#1f2041] transition hover:border-teal-500"><Icon className="text-[18px]" aria-hidden="true">upload</Icon>Upload company logo<Input appearance="plain" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" type="file" accept="image/*" aria-label="Upload company logo" onChange={(event) => uploadCompanyLogo(event.target.files?.[0])} /></span></Label>
-        </div>
-        <p className="text-xs text-slate-500">Internal company ID {company.id}</p>
-        {editError && <p role="alert" className="text-sm text-red-700">{editError}</p>}
       </DetailEditDialog>}
 
       {isDeleteDialogOpen && onDeleteCompany && <DeleteDialog

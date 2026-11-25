@@ -1,4 +1,4 @@
-import { ExternalLink, DeleteDialog, Button, Heading, Icon, Input, Label, Textarea } from "../../../ui/barrel";
+import { ExternalLink, FilesTable, FileUploadDialog, TableSearch, DeleteDialog, Button, Heading, Icon, LabeledDetails, Textarea } from "../../../ui/barrel";
 import React, { useState } from "react";
 import type {
   Company,
@@ -15,6 +15,7 @@ import { useTicketStore } from "../../../store/barrel";
 import { canTransitionTicket, ROLE_PERMISSIONS } from "../../../utils/rolePermissions";
 import type { Attachment } from "../../../types/barrel";
 import { formatSupportDeadline, ticketSlaRisk } from "../../../utils/supportPolicy";
+import { getTicketContactDetails } from "../../../utils/ticketContact";
 
 interface TicketDetailHeroProps {
   ticket: Ticket;
@@ -64,9 +65,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
     fileNames && `Files: ${fileNames}`,
   ].filter(Boolean).join("\n\n");
   const company = companies?.find((item) => item.id === ticket.companyId);
-  const contact = company?.contacts?.find((item) => item.id === ticket.contactId);
-  const clientEmail = contact?.email || (ticket.channel === "email" ? ticket.channelIdentifier : company?.contactEmail) || "";
-  const clientPhone = contact?.phone || (ticket.channel === "phone" || ticket.channel === "whatsapp" ? ticket.channelIdentifier : company?.contactPhone) || "";
+  const { clientEmail, clientPhone } = getTicketContactDetails(ticket, company);
   const stages: TicketStatus[] = ["Open", "In Progress", "Escalated", "Under Review", "Pending QA", "Resolved", "Closed"];
   const stageIndex = stages.indexOf(ticket.status);
   const previousStage = stageIndex > 0 ? stages[stageIndex - 1] : undefined;
@@ -89,7 +88,7 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
   const isResolvedStage = ticket.status === "Resolved";
   const isClosedStage = ticket.status === "Closed";
   const detailTabs = [
-    ["issue", "Issue"], ["history", "History"], ["notes", "Notes"], ["files", "Files"], ["client", "Client"],
+    ["issue", "Issue"], ["history", "History"], ["notes", "Notes"], ["files", "Files"], ["client", "Company"],
     ...(isQaStage ? [["resolution", "Resolution"]] : []),
     ...(isResolvedStage || isClosedStage ? [["notify", "Notify"]] : []),
   ] as [typeof activeDetailTab, string][];
@@ -118,8 +117,8 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
     setTabSelection({ status: ticket.status, tab: "resolution" });
   };
 
-  const handleAddInternalNote = (body: string) => {
-    addTicketTimelineNote(ticket.id, body);
+  const handleAddInternalNote: React.ComponentProps<typeof TicketNotesPanel>["onAddNote"] = (body, type) => {
+    addTicketTimelineNote(ticket.id, body, type);
     addToast("Internal note added", "success");
   };
 
@@ -129,10 +128,19 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
     addToast(`${files.length} file${files.length === 1 ? "" : "s"} added to ${ticket.code}`, "success");
   };
 
-  const handleRemoveFile = (attachmentId: string) => {
+  const handleRemoveFiles = (attachmentIds: string[]) => {
     if (!onUpdateTicket) return;
-    onUpdateTicket({ attachments: (ticket.attachments ?? []).filter((attachment) => attachment.id !== attachmentId) });
-    addToast("File removed", "success");
+    onUpdateTicket({ attachments: (ticket.attachments ?? []).filter((attachment) => !attachmentIds.includes(attachment.id)) });
+    addToast(`${attachmentIds.length} file${attachmentIds.length === 1 ? "" : "s"} removed`, "success");
+  };
+
+  const copyDetails = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      addToast(`${label} copied`, "success");
+    } catch {
+      addToast(`Couldn't copy ${label.toLowerCase()} to the clipboard.`, "error");
+    }
   };
 
   return (
@@ -206,14 +214,14 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div role="tablist" aria-label="Ticket information" className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 pt-2">
-          {detailTabs.map(([key, label]) => <Button tone="plain" key={key} type="button" role="tab" aria-selected={activeDetailTab === key} onClick={() => setTabSelection({ status: ticket.status, tab: key })} className={`whitespace-nowrap rounded-t-lg px-4 py-2.5 text-xs font-semibold ${activeDetailTab === key ? "border-b-2 border-blue-700 text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>{label}{key === "files" && ticket.attachments?.length ? <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px]">{ticket.attachments.length}</span> : null}</Button>)}
+          {detailTabs.map(([key, label]) => <Button tone="plain" key={key} type="button" role="tab" aria-selected={activeDetailTab === key} onClick={() => setTabSelection({ status: ticket.status, tab: key })} className={`whitespace-nowrap rounded-t-lg px-4 py-2.5 text-xs font-semibold ${activeDetailTab === key ? "border-b-2 border-blue-700 text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}>{label}</Button>)}
         </div>
         <div role="tabpanel">
-          {activeDetailTab === "issue" && <IssueOverviewCard ticket={ticket} />}
-          {activeDetailTab === "history" && <TicketHistoryPanel ticket={ticket} employees={employees} canManageTeam={ROLE_PERMISSIONS[activeRole].canManageTeam} canEscalate={canTransitionTicket(activeRole, ticket.status, "Escalated")} onEscalate={handleEscalate} canRequestQa={canTransitionTicket(activeRole, ticket.status, "Pending QA")} onRequestQa={handleRequestQa} canResolve={canTransitionTicket(activeRole, ticket.status, "Resolved")} onMarkResolved={handleOpenResolution} onAssigneeChange={onAssigneeChange} onStatusChange={onStatusChange} onViewEmployee={onViewEmployee} />}
-          {activeDetailTab === "notes" && <TicketNotesPanel notes={ticket.internalNotes ?? []} employees={employees} onAddNote={handleAddInternalNote} />}
-          {activeDetailTab === "files" && <FilesPanel attachments={ticket.attachments ?? []} onAddFiles={handleAddFiles} onRemoveFile={handleRemoveFile} canAddFiles={Boolean(onUpdateTicket)} />}
-          {activeDetailTab === "client" && <ClientPanel ticket={ticket} company={company} clientEmail={clientEmail} clientPhone={clientPhone} onViewCompany={onViewCompany} />}
+          {activeDetailTab === "issue" && <IssueOverviewCard ticket={ticket} onCopy={copyDetails} />}
+          {activeDetailTab === "history" && <TicketHistoryPanel ticket={ticket} employees={employees} canManageTeam={ROLE_PERMISSIONS[activeRole].canManageTeam} canEscalate={canTransitionTicket(activeRole, ticket.status, "Escalated")} onEscalate={handleEscalate} canRequestQa={canTransitionTicket(activeRole, ticket.status, "Pending QA")} onRequestQa={handleRequestQa} canResolve={canTransitionTicket(activeRole, ticket.status, "Resolved")} onMarkResolved={handleOpenResolution} onAssigneeChange={(employeeId, note) => { onAssigneeChange(employeeId, note); if (note) addTicketTimelineNote(ticket.id, note, "Handover"); }} onViewEmployee={onViewEmployee} />}
+          {activeDetailTab === "notes" && <TicketNotesPanel notes={ticket.internalNotes ?? []} employees={employees} onAddNote={handleAddInternalNote} onChangeNotes={onUpdateTicket ? (internalNotes) => onUpdateTicket({ internalNotes }) : undefined} />}
+          {activeDetailTab === "files" && <FilesPanel attachments={ticket.attachments ?? []} onAddFiles={handleAddFiles} onRemoveFiles={handleRemoveFiles} canAddFiles={Boolean(onUpdateTicket)} onViewFile={(name) => addToast(`Opening ${name}…`, "info")} />}
+          {activeDetailTab === "client" && <ClientPanel ticket={ticket} company={company} clientEmail={clientEmail} clientPhone={clientPhone} onViewCompany={onViewCompany} onCopy={copyDetails} />}
           {activeDetailTab === "resolution" && isQaStage && <ResolutionPanel ticket={ticket} resolutionDetails={resolutionDetails} setResolutionDetails={setResolutionDetails} onResolve={handleResolve} />}
           {activeDetailTab === "notify" && (isResolvedStage || isClosedStage) && <NotifyPanel ticket={ticket} message={clientMessage} onMessageChange={setMessageDraft} onNotify={handleNotify} clientEmail={clientEmail} clientPhone={clientPhone} primaryChannel={company?.preferredChannel} closed={isClosedStage} />}
         </div>
@@ -225,44 +233,42 @@ export const TicketDetailHero: React.FC<TicketDetailHeroProps> = ({
 const FilesPanel: React.FC<{
   attachments: Attachment[];
   onAddFiles: (files: Attachment[]) => void;
-  onRemoveFile: (attachmentId: string) => void;
+  onRemoveFiles: (attachmentIds: string[]) => void;
   canAddFiles: boolean;
-}> = ({ attachments, onAddFiles, onRemoveFile, canAddFiles }) => {
+  onViewFile: (name: string) => void;
+}> = ({ attachments, onAddFiles, onRemoveFiles, canAddFiles, onViewFile }) => {
+  const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [category, setCategory] = useState("General");
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
-  const handleFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const accepted = files.filter((file) => file.size <= 5 * 1024 * 1024);
-    const rejected = files.filter((file) => file.size > 5 * 1024 * 1024);
-    setError(rejected.length ? `${rejected.map((file) => file.name).join(", ")} ${rejected.length === 1 ? "was" : "were"} skipped. Files must be 5 MB or smaller.` : "");
-    event.target.value = "";
-    if (!accepted.length) return;
+  const handleFiles = () => {
+    const rejected = pendingFiles.filter((file) => file.size > 5 * 1024 * 1024);
+    setError(rejected.length ? `${rejected.map((file) => file.name).join(", ")} skipped. Files must be 5 MB or smaller.` : "");
+    if (!pendingFiles.length || rejected.length) return;
     setLoading(true);
-    Promise.all(accepted.map((file) => new Promise<Attachment>((resolve, reject) => {
+    Promise.all(pendingFiles.map((file) => new Promise<Attachment>((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve({ id: crypto.randomUUID(), name: file.name, url: String(reader.result), mimeType: file.type || "application/octet-stream", size: file.size });
+      reader.onload = () => resolve({ id: crypto.randomUUID(), name: file.name, url: String(reader.result), mimeType: file.type || "application/octet-stream", size: file.size, uploadedAt: new Date().toISOString(), category });
       reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(file);
-    }))).then(onAddFiles).catch(() => setError("A file could not be read. Check the file and try again.")).finally(() => setLoading(false));
+    }))).then((files) => { onAddFiles(files); setPendingFiles([]); setUploadOpen(false); }).catch(() => setError("A file could not be read. Check the file and try again.")).finally(() => setLoading(false));
   };
 
-  return <section className="p-5" aria-labelledby="ticket-files-heading">
+  return <section className="p-5" aria-label="Ticket files">
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <Heading as="h3" variant="subsection" id="ticket-files-heading">Attached files</Heading>
-        <p className="mt-1 text-xs text-slate-500">Files submitted with or added to this ticket.</p>
-      </div>
-      {canAddFiles && <div className="flex flex-col items-end gap-1">
-        <Label variant="plain" className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md bg-blue-700 px-3 py-2 text-xs font-bold text-white hover:bg-blue-800 has-[:disabled]:cursor-wait has-[:disabled]:opacity-60">
-          <Icon className="text-base" aria-hidden="true">upload_file</Icon>{loading ? "Reading files…" : "Add files"}
-          <Input appearance="plain" type="file" multiple className="sr-only" onChange={handleFiles} disabled={loading} aria-label="Add files" />
-        </Label>
-        <p className="text-[11px] text-slate-400">Any file type, up to 5 MB per file.</p>
+      <TableSearch id="ticket-file-search" value={search} onChange={setSearch} placeholder="Search files..." aria-label="Search files by name" compact className="w-full sm:max-w-xs" />
+      {canAddFiles && <div className="flex flex-wrap items-center justify-end gap-2">
+        {selectedIds.length > 0 && <Button tone="plain" type="button" onClick={() => { onRemoveFiles(selectedIds); setSelectedIds([]); }} className="inline-flex items-center gap-1 rounded-md border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50"><Icon className="text-base" aria-hidden="true">delete</Icon>Delete selected ({selectedIds.length})</Button>}
+        <Button tone="plain" type="button" onClick={() => { setError(""); setUploadOpen(true); }} className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-3 py-2 text-xs font-bold text-white hover:bg-blue-800"><Icon className="text-base" aria-hidden="true">upload_file</Icon>Add files</Button>
       </div>}
     </div>
-    {error && <p role="alert" className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>}
-    {attachments.length ? <ul className="grid gap-3 sm:grid-cols-2">{attachments.map((attachment) => <li key={attachment.id} className="flex items-center gap-2 rounded-xl border border-slate-200 p-3"><ExternalLink href={attachment.url} target="_blank" rel="noreferrer" className="flex min-w-0 flex-1 items-center gap-3 text-xs font-semibold text-indigo-700 hover:text-indigo-900"><Icon className="text-[20px]" aria-hidden="true">attach_file</Icon><span className="min-w-0 truncate">{attachment.name}</span></ExternalLink>{canAddFiles && <Button tone="plain" type="button" onClick={() => onRemoveFile(attachment.id)} className="inline-flex shrink-0 items-center justify-center rounded-md p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500" aria-label={`Remove ${attachment.name}`} title="Remove file"><Icon className="text-[18px]" aria-hidden="true">delete</Icon></Button>}</li>)}</ul> : <p className="rounded-xl bg-slate-50 p-6 text-center text-xs text-slate-400">No attached files.</p>}
+    {uploadOpen && <FileUploadDialog category={category} onCategoryChange={setCategory} onFilesChange={setPendingFiles} fileCount={pendingFiles.length} loading={loading} error={error} onSave={handleFiles} onCancel={() => { setUploadOpen(false); setPendingFiles([]); setError(""); }} />}
+    {error && !uploadOpen && <p role="alert" className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{error}</p>}
+    <FilesTable files={attachments.filter((file) => file.name.toLowerCase().includes(search.trim().toLowerCase()))} onView={onViewFile} selectedIds={selectedIds} onSelectionChange={canAddFiles ? setSelectedIds : undefined} hasFiles={attachments.length > 0} />
   </section>;
 };
 
@@ -332,24 +338,31 @@ const ClientPanel: React.FC<{
   clientEmail: string;
   clientPhone: string;
   onViewCompany?: (companyId: string) => void;
-}> = ({ ticket, company, clientEmail, clientPhone, onViewCompany }) => {
+  onCopy: (text: string, label: string) => void;
+}> = ({ ticket, company, clientEmail, clientPhone, onViewCompany, onCopy }) => {
   const contact = company?.contacts?.find((item) => item.id === ticket.contactId);
   const details = [
-    ["Company", company?.name || ticket.companyName],
-    ["Company code", company?.code || ticket.companyCode],
-    ["Client", contact?.name || ticket.clientContact],
-    ["Role", contact?.role || company?.contactRole || "—"],
-    ["Email", clientEmail || "Not available"],
-    ["Phone", clientPhone || "Not available"],
-    ...(ticket.supportSite ? [["Affected site or tenant", ticket.supportSite]] : []),
+    { label: "Name", icon: "business", value: company?.name || ticket.companyName },
+    { label: "Client", icon: "person", value: contact?.name || ticket.clientContact },
+    { label: "Role", icon: "badge", value: contact?.role || company?.contactRole },
+    { label: "Email", icon: "mail", value: clientEmail },
+    { label: "Phone", icon: "phone", value: clientPhone },
   ];
-  return <div className="space-y-4">
-    <section className="p-5" aria-labelledby="client-details-heading">
-      <Heading as="h3" variant="subsection" id="client-details-heading">Client details</Heading>
-      <p className="mt-1 text-xs text-slate-600">Contact information linked to this ticket.</p>
-      <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-        {details.map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5"><dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-slate-900">{label === "Company" && onViewCompany ? <Button tone="plain" type="button" onClick={() => onViewCompany(ticket.companyId)} className="text-left text-indigo-700 hover:text-indigo-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">{value}</Button> : value}</dd></div>)}
-      </dl>
+  if (ticket.supportSite) {
+    details.push({ label: "Affected site or tenant", icon: "location_on", value: ticket.supportSite });
+  }
+  return (
+    <section className="p-5" aria-label="Company details">
+      <LabeledDetails className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" items={details.map(({ label, icon, value }) => ({
+        label,
+        icon,
+        value: label === "Name" && value && onViewCompany ? (
+          <Button tone="plain" type="button" onClick={() => onViewCompany(ticket.companyId)} className="text-left font-semibold text-indigo-700 hover:underline">
+            {value}
+          </Button>
+        ) : value || "Not available",
+        onCopy: value ? () => onCopy(value, label) : undefined,
+      }))} />
     </section>
-  </div>;
+  );
 };

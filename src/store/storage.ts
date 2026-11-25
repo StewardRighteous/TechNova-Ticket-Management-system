@@ -65,6 +65,7 @@ function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
           supportSchedule: employee.supportSchedule ?? seedEmployee.supportSchedule,
           emergencyContactName: employee.emergencyContactName ?? seedEmployee.emergencyContactName,
           emergencyContactPhone: employee.emergencyContactPhone ?? seedEmployee.emergencyContactPhone,
+          emergencyContactEmail: employee.emergencyContactEmail ?? seedEmployee.emergencyContactEmail,
           bankName: employee.bankName ?? seedEmployee.bankName,
           accountHolderName: employee.accountHolderName ?? seedEmployee.accountHolderName,
           accountNumber: employee.accountNumber ?? seedEmployee.accountNumber,
@@ -95,11 +96,18 @@ function reconcileTicketReferences(state: MockupDatabase): MockupDatabase {
       };
     }),
     tickets: state.tickets.map((ticket) => {
+      const seedTicket = (initialData as MockupDatabase).tickets.find((item) => item.id === ticket.id);
       const company = state.companies.find((item) => item.id === ticket.companyId);
       const service = state.services.find((item) => item.id === ticket.serviceId);
+      const reconciledTicket: typeof ticket & { companyCode?: string } = { ...ticket };
+      delete reconciledTicket.companyCode;
       return {
-        ...ticket,
-        ...(company ? { companyName: company.name, companyCode: company.code } : {}),
+        ...reconciledTicket,
+        attachments: ticket.attachments?.map((file) => {
+          const seedFile = seedTicket?.attachments?.find((item) => item.id === file.id && item.name === file.name);
+          return file.uploadedAt || !seedFile?.uploadedAt ? file : { ...file, uploadedAt: seedFile.uploadedAt };
+        }),
+        ...(company ? { companyName: company.name } : {}),
         ...(service ? { serviceName: service.name } : {}),
       };
     }),

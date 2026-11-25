@@ -1,8 +1,10 @@
 import type { ComponentPropsWithRef } from "react";
+import { Icon } from "./Icon";
 
 const tones = {
   primary: "border-transparent bg-teal-600 text-white hover:bg-teal-700",
   secondary: "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+  secondaryDanger: "border-slate-300 bg-white text-red-700 hover:bg-red-50",
   danger: "border-transparent bg-red-700 text-white hover:bg-red-800",
   ghost: "border-transparent text-slate-700 hover:bg-slate-100",
   inverse: "border-white/30 text-white hover:bg-white/10",
@@ -19,6 +21,8 @@ const sizes = {
 type ButtonProps = ComponentPropsWithRef<"button"> & {
   tone?: keyof typeof tones | "plain";
   size?: keyof typeof sizes;
+  cancel?: boolean;
+  save?: boolean;
 };
 
 export function Button({
@@ -26,6 +30,9 @@ export function Button({
   size = "medium",
   type,
   className = "",
+  cancel = false,
+  save = false,
+  children,
   ...props
 }: ButtonProps) {
   const appearance =
@@ -36,7 +43,11 @@ export function Button({
     <button
       {...props}
       type={type}
-      className={`focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-teal ${appearance} ${className}`}
-    />
+      className={`focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-teal ${appearance} ${cancel && size === "medium" && tone !== "plain" ? "pl-3" : ""} ${className}`}
+    >
+      {cancel && <Icon aria-hidden="true" className="text-[18px]">close</Icon>}
+      {save && <Icon aria-hidden="true" className="text-[18px]">save</Icon>}
+      {children}
+    </button>
   );
 }

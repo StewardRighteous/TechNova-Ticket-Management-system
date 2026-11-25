@@ -27,7 +27,7 @@ export const VolumeBreakdownCards: React.FC<VolumeBreakdownCardsProps> = ({ tick
   const isChannel = activeTab === "channel";
   const getComparisonLabel = (key: string) => {
     const comparison = (isChannel ? channelComparisons : departmentComparisons)[key];
-    if (!comparison || comparison.percentage === 0) return "—";
+    if (!comparison || comparison.percentage === 0) return "N/A";
     if (comparison.percentage === null) return "New · 7d";
     return `${comparison.difference > 0 ? "↑" : "↓"} ${comparison.percentage}% · 7d`;
   };

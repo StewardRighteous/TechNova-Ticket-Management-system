@@ -22,6 +22,7 @@ export interface ComboboxFilterProps {
   showBadges?: boolean;
   className?: string;
   portal?: boolean;
+  hideClear?: boolean;
 }
 
 export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
@@ -34,6 +35,7 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
   showBadges = false,
   className = "",
   portal = false,
+  hideClear = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +44,7 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
   const listboxRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0, width: 208, maxHeight: 224 });
+  const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0, width: 208, maxHeight: 224, opensAbove: false });
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => { if (isOpen) { setActiveIndex(0); searchRef.current?.focus({ preventScroll: true }); } }, [isOpen]);
@@ -56,7 +58,7 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
     const maxHeight = Math.max(120, Math.min(224, opensAbove ? spaceAbove : spaceBelow));
     const width = Math.max(208, bounds.width);
     const left = Math.min(bounds.left - 12, window.innerWidth - width - 8);
-    setPanelPosition({ top: opensAbove ? Math.max(8, bounds.top - maxHeight - 4) : bounds.bottom + 4, left: Math.max(8, left), width, maxHeight });
+    setPanelPosition({ top: opensAbove ? bounds.top - 4 : bounds.bottom + 4, left: Math.max(8, left), width, maxHeight, opensAbove });
   }, []);
 
   // Close dropdown on click outside
@@ -172,7 +174,7 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
       </div>
 
       {/* Removable filter badges under or beside filter */}
-      {showBadges && selectedValues.length > 0 && (
+      {showBadges && !hideClear && selectedValues.length > 0 && (
         <div className="flex flex-wrap items-center gap-1">
           {selectedValues.map((val) => {
             const opt = options.find((o) => o.value === val);
@@ -203,7 +205,7 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
           const panel = <div
           ref={listboxRef}
           role="listbox"
-          style={portal ? { position: "fixed", top: panelPosition.top, left: panelPosition.left, width: panelPosition.width, maxHeight: panelPosition.maxHeight } : undefined}
+          style={portal ? { position: "fixed", top: panelPosition.opensAbove ? undefined : panelPosition.top, bottom: panelPosition.opensAbove ? window.innerHeight - panelPosition.top : undefined, left: panelPosition.left, width: panelPosition.width, maxHeight: panelPosition.maxHeight } : undefined}
           className={`${portal ? "z-[120]" : "absolute top-10 right-0 z-50 min-w-52"} rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150`}
         >
           {/* Search filter input */}
@@ -232,7 +234,8 @@ export const ComboboxFilter: React.FC<ComboboxFilterProps> = ({
                 return (
                   <Label variant="plain"
                     key={opt.value}
-                    className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 select-none ${index === activeIndex ? "bg-slate-50" : ""}`}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 hover:bg-teal-100 hover:text-teal-900 focus-within:bg-teal-100 select-none ${index === activeIndex ? "bg-teal-100 text-teal-900" : ""}`}
                   >
                     <div className="flex items-center gap-2">
                       <Checkbox

@@ -63,7 +63,7 @@ export function DeleteDialog({
           />
         </FormField>
         <FormActions>
-          <Button autoFocus type="button" onClick={onCancel}>
+          <Button cancel autoFocus type="button" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" tone="danger" disabled={!canDelete}>

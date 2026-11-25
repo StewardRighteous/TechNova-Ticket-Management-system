@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { ClientNotificationChannel } from "../../types/barrel";
 import { useTicketStore } from "../../store/barrel";
 import { canAccessTicket, canTransitionTicket } from "../../utils/rolePermissions";
+import { getTicketContactDetails } from "../../utils/ticketContact";
 
 export const ClientNotificationPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -11,9 +12,7 @@ export const ClientNotificationPage: React.FC = () => {
   const { data, activeRole, currentUser, notifyTicketClient, updateTicketStatus, addToast } = useTicketStore();
   const ticket = data.tickets.find((item) => item.id === ticketId && canAccessTicket(item, activeRole, currentUser?.id));
   const company = ticket ? data.companies.find((item) => item.id === ticket.companyId) : undefined;
-  const contact = company?.contacts?.find((item) => item.id === ticket?.contactId);
-  const clientEmail = contact?.email || (ticket?.channel === "email" ? ticket.channelIdentifier : company?.contactEmail) || "";
-  const clientPhone = contact?.phone || (ticket?.channel === "phone" || ticket?.channel === "whatsapp" ? ticket.channelIdentifier : company?.contactPhone) || "";
+  const { clientEmail, clientPhone } = getTicketContactDetails(ticket, company);
   const phoneHref = clientPhone.replace(/[^\d+]/g, "");
 
   if (!ticket) {

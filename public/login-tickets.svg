@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900" fill="none">
+  <defs>
+    <linearGradient id="background" x2="800" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#0b5063"/><stop offset="1" stop-color="#11183d"/></linearGradient>
+    <linearGradient id="panel" x2="1" y2="1"><stop stop-color="#72d8d3" stop-opacity=".24"/><stop offset="1" stop-color="#5781c2" stop-opacity=".08"/></linearGradient>
+  </defs>
+  <path fill="url(#background)" d="M0 0h800v900H0z"/>
+  <circle cx="720" cy="150" r="300" fill="#2fc1bc" opacity=".12"/>
+  <circle cx="50" cy="820" r="280" fill="#5e7fce" opacity=".12"/>
+  <g transform="rotate(-12 480 450)" stroke="#c1f4f0" stroke-opacity=".35">
+    <rect x="280" y="85" width="520" height="700" rx="28" fill="url(#panel)" stroke-width="2"/>
+    <path d="M280 165h520" stroke-width="2"/>
+    <circle cx="322" cy="125" r="7" fill="#a0e9e2"/><circle cx="347" cy="125" r="7"/><circle cx="372" cy="125" r="7"/>
+    <rect x="325" y="210" width="190" height="16" rx="8" fill="#d2faf6" fill-opacity=".5" stroke="none"/>
+    <rect x="325" y="248" width="430" height="115" rx="14" fill="#b4efeb" fill-opacity=".1"/>
+    <rect x="350" y="274" width="50" height="50" rx="12" fill="#7de1d7" fill-opacity=".3"/>
+    <path d="M362 292h26v6a5 5 0 0 0 0 10v6h-26v-6a5 5 0 0 0 0-10z" stroke-width="2"/>
+    <path d="M425 282h170m-170 24h110" stroke-linecap="round" stroke-width="8"/>
+    <rect x="325" y="383" width="430" height="115" rx="14" fill="#b4efeb" fill-opacity=".1"/>
+    <circle cx="375" cy="440" r="24" fill="#7de1d7" fill-opacity=".2"/><path d="m365 440 7 7 14-15" stroke-width="3"/>
+    <path d="M425 417h155m-155 24h125" stroke-linecap="round" stroke-width="8"/>
+    <rect x="325" y="518" width="430" height="115" rx="14" fill="#b4efeb" fill-opacity=".1"/>
+    <circle cx="375" cy="575" r="24" fill="#7de1d7" fill-opacity=".2"/><path d="M375 561v15l10 6" stroke-width="3" stroke-linecap="round"/>
+    <path d="M425 552h180m-180 24h95" stroke-linecap="round" stroke-width="8"/>
+  </g>
+</svg>

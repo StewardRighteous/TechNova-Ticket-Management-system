@@ -2,8 +2,7 @@ import { useState, type FormEvent } from "react";
 import type { Company, ServiceLine, SupportContract } from "../../types/barrel";
 import { matchesService } from "../../utils/matchesService";
 import { contractStatus, durationMinutes, isContractActive, policyError } from "../../utils/supportPolicy";
-import { FieldHint, ActionLink, Button, Checkbox, DataTable, Heading, Icon, Input, Label, TableBody, TableCell, TableHead, TableHeader, TableRow, SelectDropdown } from "../../ui/barrel";
-import { DetailEditDialog } from "../../ui/sections/DetailEditDialog";
+import { CategoryBadge, TableValue, FieldHint, ActionLink, Button, Checkbox, PaginatedDataTable, DetailEditDialog, DetailFieldGroup, FormField, Icon, Input, Label, TableBody, TableCell, TableHead, TableHeader, TableRow, SelectDropdown } from "../../ui/barrel";
 import { SlaPolicyFields } from "../shared/SlaPolicyFields";
 
 export function CompanyContracts({ company, services, canEdit, onUpdate, getServiceHref }: {
@@ -43,39 +42,43 @@ export function CompanyContracts({ company, services, canEdit, onUpdate, getServ
   };
 
   return (
-    <div className="space-y-4 text-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Heading as="h3" variant="plain" className="font-semibold">Support contracts ({activeCount} active)</Heading>
-        {canEdit && <Button tone="plain" type="button" onClick={() => editContract()} className="rounded-md bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white">Add contract</Button>}
+    <div className="@container space-y-3">
+      <div className="space-y-3">
+        <DetailFieldGroup title={`Support contracts (${activeCount} active)`} icon="description" actions={canEdit && <Button size="small" tone="primary" type="button" onClick={() => editContract()}><Icon aria-hidden="true" className="text-sm">add</Icon>Add contract</Button>}>
+          <div className="col-span-full">
+            {contracts.length ? <PaginatedDataTable rows={contracts} scroll>
+              {(pageRows) => <>
+                <TableHead tone="plain" className="bg-slate-50 text-slate-600"><TableRow>{["Reference", "Covered services", "Status", "Start date", "Expiry date", "SLA"].map((label) => <TableHeader density="compact" key={label}>{label}</TableHeader>)}{canEdit && <TableHeader density="compact">Action</TableHeader>}</TableRow></TableHead>
+                <TableBody className="divide-slate-200">{pageRows.map((contract) => <TableRow key={contract.id}>
+                  <TableCell density="compact" className="font-semibold">{contract.reference}</TableCell>
+                  <TableCell density="compact">{contract.serviceIds.map((id) => services.find((service) => service.id === id)?.name ?? id).join(", ")}</TableCell>
+                  <TableCell density="compact"><CategoryBadge variant="status" category={contractStatus(contract)} /></TableCell>
+                  <TableCell density="compact"><TableValue icon="calendar_today">{contract.startsOn}</TableValue></TableCell>
+                  <TableCell density="compact"><TableValue icon="event">{contract.endsOn}</TableValue></TableCell>
+                  <TableCell density="compact"><CategoryBadge variant="policy" category={contract.slaPolicy ? "Contract override" : "Default policy"} /></TableCell>
+                  {canEdit && <TableCell density="compact"><Button tone="plain" type="button" onClick={() => editContract(contract)} className="font-semibold text-teal-700">Edit<span className="sr-only"> {contract.reference}</span></Button></TableCell>}
+                </TableRow>)}</TableBody>
+              </>}
+            </PaginatedDataTable> : <p className="text-xs text-slate-600">No support contracts recorded.</p>}
+          </div>
+        </DetailFieldGroup>
+        <DetailFieldGroup title="Subscribed services" icon="apps" actions={canEdit && <Button size="small" type="button" onClick={() => setSubscriptions(company.subscribedServices.map((reference) => services.find((service) => matchesService(service, reference))?.id ?? reference))}><Icon aria-hidden="true" className="text-sm">edit</Icon>Edit subscriptions</Button>}>
+          <div className="col-span-full">
+            {company.subscribedServices.length ? <ul className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+              {company.subscribedServices.map((reference) => {
+                const service = services.find((item) => matchesService(item, reference));
+                const href = service && getServiceHref?.(service);
+                return <li key={reference}>{service && href ? <ActionLink to={href} className="font-semibold text-teal-700 hover:underline">{service.name}</ActionLink> : service?.name ?? reference}</li>;
+              })}
+            </ul> : <p className="text-xs text-slate-600">No subscribed services.</p>}
+          </div>
+        </DetailFieldGroup>
+        <DetailFieldGroup title="SLA fallback" icon="timer" actions={canEdit && <Button size="small" type="button" onClick={() => { setError(""); setFallback(company.slaResponseTime); }}><Icon aria-hidden="true" className="text-sm">edit</Icon>Edit target</Button>}>
+          <FormField label="First-response target" density="compact">
+            <Input appearance="compact" readOnly value={durationMinutes(company.slaResponseTime) ? company.slaResponseTime : "N/A"} />
+          </FormField>
+        </DetailFieldGroup>
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-        <strong>Fallback first-response target</strong>
-        <span>{durationMinutes(company.slaResponseTime) ? company.slaResponseTime : "—"}</span>
-        {canEdit && <Button tone="plain" type="button" onClick={() => { setError(""); setFallback(company.slaResponseTime); }} className="font-semibold text-teal-700 hover:text-teal-800">Edit target</Button>}
-      </div>
-      {contracts.length ? <div className="overflow-x-auto"><DataTable>
-        <TableHead tone="plain" className="bg-slate-50 text-slate-600"><TableRow>{["Reference", "Covered services", "Status", "Start date", "Expiry date", "SLA"].map((label) => <TableHeader density="compact" key={label}>{label}</TableHeader>)}{canEdit && <TableHeader density="compact">Action</TableHeader>}</TableRow></TableHead>
-        <TableBody className="divide-slate-200">{contracts.map((contract) => <TableRow key={contract.id}>
-          <TableCell density="compact" className="font-semibold">{contract.reference}</TableCell>
-          <TableCell density="compact">{contract.serviceIds.map((id) => services.find((service) => service.id === id)?.name ?? id).join(", ")}</TableCell>
-          <TableCell density="compact">{contractStatus(contract)}</TableCell>
-          <TableCell density="compact">{contract.startsOn || "—"}</TableCell>
-          <TableCell density="compact">{contract.endsOn || "—"}</TableCell>
-          <TableCell density="compact">{contract.slaPolicy ? "Contract override" : "Default policy"}</TableCell>
-          {canEdit && <TableCell density="compact"><Button tone="plain" type="button" onClick={() => editContract(contract)} className="font-semibold text-teal-700">Edit<span className="sr-only"> {contract.reference}</span></Button></TableCell>}
-        </TableRow>)}</TableBody>
-      </DataTable></div> : <p className="text-slate-600">No support contracts recorded.</p>}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-3">
-        <Heading as="h3" variant="plain" className="font-semibold">Subscribed services</Heading>
-        {canEdit && <Button tone="plain" type="button" onClick={() => setSubscriptions(company.subscribedServices.map((reference) => services.find((service) => matchesService(service, reference))?.id ?? reference))} className="text-xs font-semibold text-teal-700">Edit subscriptions</Button>}
-      </div>
-      {company.subscribedServices.length ? <ul className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-        {company.subscribedServices.map((reference) => {
-          const service = services.find((item) => matchesService(item, reference));
-          const href = service && getServiceHref?.(service);
-          return <li key={reference}>{service && href ? <ActionLink to={href} className="font-semibold text-teal-700 hover:underline">{service.name}</ActionLink> : service?.name ?? reference}</li>;
-        })}
-      </ul> : <p className="text-slate-600">No subscribed services.</p>}
       {draft && <DetailEditDialog title={contracts.some((contract) => contract.id === draft.id) ? "Edit support contract" : "Add support contract"} onCancel={() => setDraft(null)} onSave={saveContract}>
         <div className="grid gap-3 sm:grid-cols-2">
           <Label variant="compact">Reference <FieldHint label="contract reference">Enter the unique reference shown on the company’s support contract.</FieldHint><Input required value={draft.reference} onChange={(event) => setDraft({ ...draft, reference: event.target.value })} /></Label>

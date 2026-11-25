@@ -119,7 +119,7 @@ export const Header: React.FC = () => {
         <Button tone="plain" type="button" onClick={() => navigate("/dashboard")} className="text-indigo-600 hover:text-indigo-800">Dashboard</Button>
         <span aria-hidden="true" className="text-slate-300">›</span>
         <Heading as="h1" variant="plain" className="font-extrabold tracking-tight text-slate-900">{location.pathname === "/notifications" ? "Notifications" : "Latest Updates"}</Heading>
-      </nav> : <Heading as="h1" variant="plain" className="text-xl font-extrabold tracking-tight capitalize sm:text-2xl">{location.pathname === "/tickets" ? (permissions.canManageTeam ? "All Tickets" : "My Tickets") : activeTab}</Heading>}
+      </nav> : <Heading as="h1" variant="pageHeader" className="min-w-0 truncate capitalize">{location.pathname === "/tickets" ? (permissions.canManageTeam ? "All Tickets" : "My Tickets") : activeTab}</Heading>}
       <nav aria-label="Header shortcuts" className="ml-auto mr-2 flex shrink-0 items-center justify-end gap-2 sm:mr-4">
         <Button tone="plain" type="button" onClick={() => navigate("/tickets?view=mine")} aria-label="My Queue" title="My Queue" className="inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <Icon aria-hidden="true" className="text-lg">checklist</Icon>

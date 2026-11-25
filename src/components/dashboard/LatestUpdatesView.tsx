@@ -1,7 +1,6 @@
-import { SelectDropdown, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/barrel";
+import { PriorityBadge, StatusBadge, TableValue, SelectDropdown, Button, PaginatedDataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/barrel";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Ticket } from "../../types/barrel";
 import { useTicketStore } from "../../store/barrel";
 import { filterTicketsByRole } from "../../utils/barrel";
 
@@ -12,23 +11,6 @@ const displayDate = (value: string) =>
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
-
-const priorityStyles: Record<Ticket["priority"], string> = {
-  "P1 Urgent": "bg-rose-50 text-rose-700 ring-rose-200",
-  "P2 Normal": "bg-amber-50 text-amber-700 ring-amber-200",
-  "P3 Low": "bg-sky-50 text-sky-700 ring-sky-200",
-  "P4 Trivial": "bg-slate-100 text-slate-600 ring-slate-200",
-};
-
-const statusStyles: Record<Ticket["status"], string> = {
-  Open: "bg-blue-50 text-blue-700",
-  "Under Review": "bg-cyan-50 text-cyan-700",
-  "In Progress": "bg-indigo-50 text-indigo-700",
-  "Pending QA": "bg-violet-50 text-violet-700",
-  Resolved: "bg-emerald-50 text-emerald-700",
-  Closed: "bg-slate-100 text-slate-600",
-  Escalated: "bg-rose-50 text-rose-700",
-};
 
 export const LatestUpdatesView: React.FC = () => {
   const navigate = useNavigate();
@@ -81,20 +63,20 @@ export const LatestUpdatesView: React.FC = () => {
             ]} />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <DataTable className="min-w-[900px] border-collapse">
+        <PaginatedDataTable rows={tickets} scroll className="min-w-[900px] border-collapse">
+          {(pageRows) => <>
             <TableHead tone="compact">
               <TableRow>
-                <TableHeader density="plain" scope="col" className="px-4 py-3">Last activity</TableHeader>
-                <TableHeader density="plain" scope="col" className="px-4 py-3">Ticket</TableHeader>
-                <TableHeader density="plain" scope="col" className="px-4 py-3">Company / service</TableHeader>
-                <TableHeader density="plain" scope="col" className="px-4 py-3">Status</TableHeader>
-                <TableHeader density="plain" scope="col" className="px-4 py-3">Priority</TableHeader>
-                <TableHeader density="plain" scope="col" className="px-4 py-3">Assignee</TableHeader>
+                <TableHeader>Last activity</TableHeader>
+                <TableHeader>Ticket</TableHeader>
+                <TableHeader>Company / service</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Priority</TableHeader>
+                <TableHeader>Assignee</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
-              {tickets.map((ticket) => (
+              {pageRows.map((ticket) => (
                 <TableRow
                   key={ticket.id}
                   tabIndex={0}
@@ -102,7 +84,7 @@ export const LatestUpdatesView: React.FC = () => {
                   onSelect={() => setSelectedRowId(ticket.id)}
                   onOpen={() => openTicket(ticket.id)}
                 >
-                  <TableCell density="plain" className="whitespace-nowrap px-4 py-3 text-xs text-slate-600"><span className="cursor-text">{displayDate(ticket.updatedAt)}</span></TableCell>
+                  <TableCell density="plain" className="whitespace-nowrap px-4 py-3 text-xs text-slate-600"><TableValue icon="schedule">{displayDate(ticket.updatedAt)}</TableValue></TableCell>
                   <TableCell density="plain" className="px-4 py-3">
                     <span className="block w-fit cursor-text font-mono text-xs font-bold text-slate-500">{ticket.code}</span>
                     <span className="mt-1 block w-fit max-w-[360px] cursor-text truncate text-xs font-semibold text-slate-900">{ticket.title}</span>
@@ -123,10 +105,10 @@ export const LatestUpdatesView: React.FC = () => {
                     <span className="mt-1 block w-fit max-w-[200px] cursor-text truncate text-[11px] text-slate-500">{ticket.serviceName}</span>
                   </TableCell>
                   <TableCell density="plain" className="px-4 py-3">
-                    <span className={`inline-flex cursor-text whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-semibold ${statusStyles[ticket.status]}`}>{ticket.status}</span>
+                    <StatusBadge status={ticket.status} />
                   </TableCell>
                   <TableCell density="plain" className="px-4 py-3">
-                    <span className={`inline-flex cursor-text whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-semibold ring-1 ring-inset ${priorityStyles[ticket.priority]}`}>{ticket.priority}</span>
+                    <PriorityBadge priority={ticket.priority} showCode />
                   </TableCell>
                   <TableCell density="plain" className="px-4 py-3">
                     <Button tone="plain"
@@ -150,8 +132,8 @@ export const LatestUpdatesView: React.FC = () => {
                 </TableRow>
               )}
             </TableBody>
-          </DataTable>
-        </div>
+          </>}
+        </PaginatedDataTable>
       </section>
     </div>
   );

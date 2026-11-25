@@ -17,10 +17,10 @@ export function DetailEditDialog({ title, onCancel, onSave, children, width }: D
       <form onSubmit={onSave} className="space-y-4 px-5 py-4 sm:px-7">
         {children}
         <FormActions>
-          <Button type="button" onClick={onCancel}>
+          <Button cancel type="button" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" tone="primary">
+          <Button save type="submit" tone="primary">
             Save
           </Button>
         </FormActions>

@@ -1,17 +1,20 @@
+import { useTicketStore } from "../../../store/barrel";
 import React, { useState, useEffect } from "react";
 import type {
   Ticket,
   Team,
   Department,
   Employee,
+  Company,
 } from "../../../types/barrel";
-import { SortableTableHeader, CallToAction, TableToolbar, Button, DataTable, Heading, Icon, TableBody, TableCell, TableHead, TableHeader, TableRow, PriorityBadge, StatusBadge, NumericPagination, StaffAvatar, TableSearch } from "../../../ui/barrel";
+import { TableRefreshButton, CallToAction, TableToolbar, Button, DataTable, getTablePageRows, Heading, Icon, LogoMark, TableBody, TableCell, TableHead, TableHeader, TableRow, PriorityBadge, StatusBadge, StaffAvatar, TableSearch } from "../../../ui/barrel";
 import { TicketTableFilters } from "../TicketTableFilters";
 import type { TicketTableFocus } from "../../../store/ticketStore";
 import { getOverdueTickets, isTicketSlaAtRisk } from "../../dashboard/dashboardMetrics";
 
 interface TicketTableProps {
   tickets: Ticket[];
+  companies?: readonly Company[];
   teams?: Team[];
   departments?: Department[];
   employees?: Employee[];
@@ -24,14 +27,11 @@ interface TicketTableProps {
   initialStatusFilter?: string[];
   initialPriorityFilter?: string[];
   initialDepartmentFilter?: string[];
-  initialSortField?: string;
-  initialSortAsc?: boolean;
   initialFocus?: TicketTableFocus;
   activeScope?: TicketTableFocus | null;
   viewTitle?: string;
   onClearScope?: () => void;
   onReturnToAllTickets?: () => void;
-  onSortChange?: (field: SortField, ascending: boolean) => void;
   onTableStateChange?: (state: {
     page: number;
     pageSize: number;
@@ -40,15 +40,12 @@ interface TicketTableProps {
     statusFilter: string[];
     priorityFilter: string[];
     departmentFilter: string[];
-    sortField?: string;
-    sortAsc?: boolean;
   }) => void;
 }
 
-type SortField = "code" | "title" | "company" | "priority" | "status" | "time";
-
 export const TicketTable: React.FC<TicketTableProps> = ({
   tickets,
+  companies = [],
   teams = [],
   departments = [],
   employees = [],
@@ -61,16 +58,14 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   initialStatusFilter,
   initialPriorityFilter,
   initialDepartmentFilter,
-  initialSortField,
-  initialSortAsc,
   initialFocus,
   activeScope = null,
   viewTitle,
-  onClearScope,
   onReturnToAllTickets,
-  onSortChange,
   onTableStateChange,
 }) => {
+  const addToast = useTicketStore((state) => state.addToast);
+  const companyLogos = new Map(companies.map(({ id, logo }) => [id, logo]));
   const [searchInput, setSearchInput] = useState(initialSearch ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
   const [selectedTicketRowId, setSelectedTicketRowId] = useState<string | null>(null);
@@ -79,18 +74,8 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   const [priorityFilter, setPriorityFilter] = useState<string[]>(initialPriorityFilter ?? []);
   const [departmentFilter, setDepartmentFilter] = useState<string[]>(initialDepartmentFilter ?? []);
 
-  const sortField = (initialSortField as SortField) || "time";
-  // The time comparator is newest first, so the initial direction is ascending.
-  const sortAsc = initialSortAsc ?? true;
   const [page, setPage] = useState<number>(initialPage ?? 1);
   const [pageSize, setPageSize] = useState<number>(initialPageSize ?? 10);
-  const sortBy = (field: SortField) => {
-    setPage(1);
-    onSortChange?.(field, sortField !== field || !sortAsc);
-  };
-  const sortDirection = (field: SortField) => sortField === field ? (sortAsc ? "ascending" : "descending") : undefined;
-
-
   // Debounce search input by 200ms
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -109,10 +94,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
       channelFilter,
       statusFilter,
       priorityFilter,
-      departmentFilter,
-      sortField,
-      sortAsc,
-    });
+      departmentFilter,    });
   }, [
     page,
     pageSize,
@@ -120,10 +102,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
     channelFilter,
     statusFilter,
     priorityFilter,
-    departmentFilter,
-    sortField,
-    sortAsc,
-    onTableStateChange,
+    departmentFilter,    onTableStateChange,
   ]);
 
   // Map team to department lookup
@@ -201,21 +180,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
   });
   const scopeFilteredCount = filtered.length;
 
-  const sorted = [...filtered].sort((a, b) => {
-    let cmp = 0;
-    if (sortField === "code") cmp = a.code.localeCompare(b.code);
-    else if (sortField === "title") cmp = a.title.localeCompare(b.title);
-    else if (sortField === "company")
-      cmp = a.companyName.localeCompare(b.companyName);
-    else if (sortField === "priority")
-      cmp = a.priority.localeCompare(b.priority);
-    else if (sortField === "status") cmp = a.status.localeCompare(b.status);
-    else if (sortField === "time")
-      cmp = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    return sortAsc ? cmp : -cmp;
-  });
-
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = getTablePageRows(filtered, page, pageSize);
   const kpiCards = [
     ["TOTAL", tickets.length, "border-blue-400/30 bg-blue-500/15 text-blue-200"],
     ["ACTIVE", tickets.filter((ticket) => ["Open", "In Progress"].includes(ticket.status)).length, "border-indigo-400/30 bg-indigo-500/15 text-indigo-200"],
@@ -238,13 +203,13 @@ export const TicketTable: React.FC<TicketTableProps> = ({
           {kpiCards.map(([label, count, styles]) => <div key={label} className={`min-w-20 rounded-lg border px-3 py-1.5 text-center ${styles}`}><span className="block text-[9px] font-bold tracking-wide">{label}</span><strong className="block text-lg leading-5">{count}</strong></div>)}
         </div>
       </div>
-      <DataTable className="ticket-list-table border-collapse"
+      <DataTable rowCount={filtered.length} className="ticket-list-table border-collapse"
         scroll
         toolbar={
           <TableToolbar>
             <TableSearch id="ticket-search" value={searchInput} onChange={setSearchInput} placeholder="Search tickets..." aria-label="Search tickets" className="min-w-52 w-full sm:w-auto sm:flex-1 sm:max-w-[480px]" />
-            {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span><Button tone="plain" type="button" aria-label="Remove dashboard scope" onClick={onClearScope} className="rounded-full px-1 text-indigo-700 hover:bg-indigo-100">×</Button></div>}
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
+            {activeScope && <div className="flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800"><span>{({ active: "Active", overdue: "Overdue", "sla-risk": "SLA risk", resolved: "Resolved" } as Record<TicketTableFocus, string>)[activeScope]}</span></div>}
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             <TicketTableFilters
               channelFilter={channelFilter}
               setChannelFilter={(c) => { setChannelFilter(c); setPage(1); }}
@@ -256,34 +221,27 @@ export const TicketTable: React.FC<TicketTableProps> = ({
               setDepartmentFilter={(d) => { setDepartmentFilter(d); setPage(1); }}
               departmentOptions={departments}
               onClearAll={clearAllFilters}
+              hasExtraFilters={Boolean(activeScope)}
               showStatus
               showPriority
               showChannelFilter={false}
               showDepartmentFilter={false}
             />
-            {onCreateNew && <CallToAction icon="add" onClick={onCreateNew} className="shrink-0">New Ticket</CallToAction>}
+            <TableRefreshButton onRefresh={() => addToast("Tickets refreshed", "success")} />
+            {onCreateNew && <CallToAction icon="add" onClick={onCreateNew} className="h-8 shrink-0 px-3 py-0 text-xs">New Ticket</CallToAction>}
             </div>
           </TableToolbar>
         }
-        pagination={
-          <NumericPagination
-            totalItems={filtered.length}
-            currentPage={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-            pageSizeOptions={[10, 25, 50]}
-          />
-        }
+        pagination={{ currentPage: page, pageSize, onPageChange: setPage, onPageSizeChange: setPageSize }}
       >
         <TableHead>
           <TableRow>
-            <SortableTableHeader density="edge" direction={sortDirection("code")} onSort={() => sortBy("code")}>ID</SortableTableHeader>
-            <SortableTableHeader direction={sortDirection("title")} onSort={() => sortBy("title")}>Incident</SortableTableHeader>
-            <SortableTableHeader density="narrow" direction={sortDirection("priority")} onSort={() => sortBy("priority")}>Priority</SortableTableHeader>
-            <SortableTableHeader direction={sortDirection("company")} onSort={() => sortBy("company")}>Company</SortableTableHeader>
+            <TableHeader density="edge">ID</TableHeader>
+            <TableHeader>Incident</TableHeader>
+            <TableHeader density="narrow">Priority</TableHeader>
+            <TableHeader>Company</TableHeader>
             <TableHeader>Assignee</TableHeader>
-            <SortableTableHeader density="narrow" direction={sortDirection("status")} onSort={() => sortBy("status")}>Status</SortableTableHeader>
+            <TableHeader density="narrow">Status</TableHeader>
             <TableHeader density="edge">Action</TableHeader>
           </TableRow>
         </TableHead>
@@ -309,7 +267,10 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                 </TableCell>
 
                 <TableCell className="whitespace-nowrap">
-                  <span className="cursor-text font-semibold text-slate-900">{t.companyName}</span>
+                  <div className="flex items-center gap-1.5">
+                    <LogoMark variant="compact" src={companyLogos.get(t.companyId) || "/company-marks.svg#company"} />
+                    <span className="cursor-text font-semibold text-slate-900">{t.companyName}</span>
+                  </div>
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   <span className="inline-flex items-center gap-2 font-medium text-slate-700">
@@ -344,16 +305,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
                       {tickets.length === 0 ? "Tickets available to your role will appear here." : "No tickets match the selected search criteria or filter tags."}
                     </p>
                   </div>
-                  {(tickets.length > 0 || onReturnToAllTickets) && <Button tone="plain"
-                    type="button"
-                    onClick={tickets.length === 0 ? onReturnToAllTickets : clearAllFilters}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50"
-                  >
-                    <Icon className="text-[16px]">
-                      restart_alt
-                    </Icon>
-                    <span>{tickets.length === 0 ? "Return to ticket queue" : "Clear all filters"}</span>
-                  </Button>}
+                  {tickets.length === 0 && onReturnToAllTickets && <Button tone="plain" type="button" onClick={onReturnToAllTickets}>Return to ticket queue</Button>}
                 </div>
               </TableCell>
             </TableRow>
@@ -361,7 +313,7 @@ export const TicketTable: React.FC<TicketTableProps> = ({
         </TableBody>
       </DataTable>
 
-      <p className="sr-only" role="status" aria-live="polite">{scopeFilteredCount} tickets match the current search and filters. Sorted by {sortField}, {sortAsc ? "ascending" : "descending"}.</p>
+      <p className="sr-only" role="status" aria-live="polite">{scopeFilteredCount} tickets match the current search and filters.</p>
     </div>
   );
 };

@@ -80,7 +80,7 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-between gap-4 border-t border-slate-200 bg-white px-6 py-3.5 select-none sm:flex-row ${className}`}
+      className={`flex flex-col items-center justify-between gap-2 border-t border-slate-200 bg-white px-6 py-2 select-none sm:flex-row ${className}`}
       data-testid="numeric-pagination"
     >
       {/* Range summary */}
@@ -158,7 +158,7 @@ export const NumericPagination: React.FC<NumericPaginationProps> = ({
             aria-haspopup="listbox"
             aria-expanded={isPageSizeOpen}
             onClick={() => setIsPageSizeOpen((open) => !open)}
-            className="inline-flex h-9 min-w-20 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 py-1 pl-3 pr-2 text-sm font-semibold text-slate-800 outline-none transition hover:border-slate-300 hover:bg-white focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
+            className="inline-flex h-8 min-w-20 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 py-1 pl-3 pr-2 text-sm font-semibold text-slate-800 outline-none transition hover:border-slate-300 hover:bg-white focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
           >
             <span>{pageSize}</span>
             <Icon aria-hidden="true" className="text-[18px] text-slate-500">{isPageSizeOpen ? "expand_less" : "expand_more"}</Icon>

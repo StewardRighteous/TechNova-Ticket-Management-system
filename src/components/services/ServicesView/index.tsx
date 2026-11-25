@@ -50,7 +50,6 @@ export const ServicesView: React.FC = () => {
           teams={data.teams}
           onUpdateService={handleUpdateService}
           onDeleteService={canManageTeam ? handleDeleteService : undefined}
-          onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
           />
         </>}
         <div hidden={Boolean(activeServiceId)}><ServiceTable

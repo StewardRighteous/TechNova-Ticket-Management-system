@@ -123,6 +123,7 @@ export const DashboardView: React.FC = () => {
         <div className="space-y-3">
           <HighAttentionTicketsTable
             tickets={tickets}
+            companies={data.companies}
             employees={data.employees}
             onSelectTicket={openTicket}
             onSelectCompany={(companyId) => navigate(`/companies/${encodeURIComponent(companyId)}`)}

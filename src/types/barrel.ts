@@ -79,12 +79,18 @@ export interface Attachment {
   url: string;
   mimeType: string;
   size: number;
+  uploadedAt?: string;
+  category?: string;
 }
+
+export type NoteType = "General" | "Enquiry" | "Client-provided details" | "Investigation" | "Handover";
 
 export interface InternalNote {
   id: string;
   authorId: string;
   body: string;
+  type?: NoteType;
+  pinned?: boolean;
   createdAt: string;
 }
 
@@ -95,7 +101,6 @@ export interface Ticket {
   description: string;
   companyId: string;
   companyName: string;
-  companyCode: string;
   contactId?: string;
   serviceId: string;
   serviceName: string;
@@ -105,6 +110,8 @@ export interface Ticket {
   channel: InboundChannel;
   channelIdentifier: string;
   clientContact: string;
+  clientEmailOverride?: string;
+  clientPhoneOverride?: string;
   assignedToId: string;
   assignedToName: string;
   assignedToRole: string;
@@ -197,6 +204,7 @@ export interface Employee {
   managerName?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyContactEmail?: string;
   bankName?: string;
   accountHolderName?: string;
   accountNumber?: string;

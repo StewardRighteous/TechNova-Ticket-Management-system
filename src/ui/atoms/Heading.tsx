@@ -2,6 +2,7 @@ import type { ComponentPropsWithRef } from "react";
 
 const variants = {
   page: "text-xl font-bold tracking-tight text-slate-900 sm:text-2xl",
+  pageHeader: "text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl",
   notice: "text-lg font-semibold text-slate-900",
   dialog: "text-lg font-bold text-slate-900",
   region: "text-base font-bold text-slate-900",

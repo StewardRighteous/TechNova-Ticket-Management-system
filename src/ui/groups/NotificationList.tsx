@@ -103,12 +103,11 @@ function NotificationRow({
     <span role="img" aria-label="Unread" className="size-2 shrink-0 rounded-full bg-teal-500" />
   );
   const badge = (
-    <Icon
-      aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-lg ${compact ? "size-8 text-lg" : "size-12 text-2xl"} ${style.badge}`}
-    >
-      {style.icon}
-    </Icon>
+    <span className={`flex shrink-0 items-center justify-center rounded-lg ${compact ? "size-8" : "size-12"} ${style.badge}`}>
+      <Icon aria-hidden="true" className={compact ? "text-lg" : "text-2xl"}>
+        {style.icon}
+      </Icon>
+    </span>
   );
   const body = (
     <span className="min-w-0 flex-1">

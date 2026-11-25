@@ -12,9 +12,6 @@ export const TicketRegistryView: React.FC = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { ticketId } = useParams<{ ticketId: string }>();
-  const validSortFields = ["time", "code", "title", "company", "priority", "status"];
-  const sortField = validSortFields.includes(searchParams.get("sort") || "") ? searchParams.get("sort")! : "time";
-  const sortAsc = searchParams.get("dir") !== "desc";
   const parseList = (key: string) => searchParams.getAll(key).flatMap((value) => value.split(",")).filter(Boolean);
   const {
     data,
@@ -52,8 +49,6 @@ export const TicketRegistryView: React.FC = () => {
     statusFilter: string[];
     priorityFilter: string[];
     departmentFilter: string[];
-    sortField?: string;
-    sortAsc?: boolean;
     focusTicketId?: string;
   }>({
     page: 1,
@@ -86,10 +81,10 @@ export const TicketRegistryView: React.FC = () => {
     }
   }, [ticketId]);
 
-  const updateUrlState = useCallback((state: { page: number; pageSize: number; search: string; channelFilter: string[]; statusFilter: string[]; priorityFilter: string[]; departmentFilter: string[]; sortField?: string; sortAsc?: boolean }) => {
+  const updateUrlState = useCallback((state: { page: number; pageSize: number; search: string; channelFilter: string[]; statusFilter: string[]; priorityFilter: string[]; departmentFilter: string[] }) => {
     tableStateRef.current = { ...tableStateRef.current, ...state };
     const params = new URLSearchParams(location.search);
-    const entries: Record<string, string | string[] | undefined> = { page: state.page > 1 ? String(state.page) : undefined, size: state.pageSize !== 10 ? String(state.pageSize) : undefined, q: state.search || undefined, channel: state.channelFilter, status: state.statusFilter, priority: state.priorityFilter, department: state.departmentFilter, sort: state.sortField && state.sortField !== "time" ? state.sortField : undefined, dir: state.sortAsc === false ? "desc" : undefined };
+    const entries: Record<string, string | string[] | undefined> = { page: state.page > 1 ? String(state.page) : undefined, size: state.pageSize !== 10 ? String(state.pageSize) : undefined, q: state.search || undefined, channel: state.channelFilter, status: state.statusFilter, priority: state.priorityFilter, department: state.departmentFilter };
     for (const [key, values] of Object.entries(entries)) { params.delete(key); if (Array.isArray(values)) values.forEach((value) => params.append(key, value)); else if (values) params.set(key, values); }
     if (params.toString() !== new URLSearchParams(location.search).toString()) setSearchParams(params, { replace: true });
   }, [location.search, setSearchParams]);
@@ -161,6 +156,7 @@ export const TicketRegistryView: React.FC = () => {
           tickets={visibleTickets}
           teams={data.teams}
           departments={data.departments}
+          companies={data.companies}
           employees={data.employees}
           onViewTicket={handleViewTicket}
           onCreateNew={permissions.canCreateTicket ? () => navigate("/tickets/new") : undefined}
@@ -171,16 +167,6 @@ export const TicketRegistryView: React.FC = () => {
           initialStatusFilter={parseList("status").length ? parseList("status") : tableStateRef.current.statusFilter}
           initialPriorityFilter={parseList("priority").length ? parseList("priority") : tableStateRef.current.priorityFilter}
           initialDepartmentFilter={parseList("department").length ? parseList("department") : tableStateRef.current.departmentFilter}
-          initialSortField={sortField}
-          initialSortAsc={sortAsc}
-          onSortChange={(field, ascending) => {
-            const params = new URLSearchParams(searchParams);
-            params.set("sort", field);
-            if (ascending) params.delete("dir");
-            else params.set("dir", "desc");
-            params.delete("page");
-            setSearchParams(params, { replace: true });
-          }}
           initialFocus={tableFocus ?? undefined}
           activeScope={validFocus}
           viewTitle={viewTitle}

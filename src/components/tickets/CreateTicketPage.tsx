@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTicketStore } from "../../store/barrel";
 import { canAccessTicket } from "../../utils/rolePermissions";
 import type { Attachment, CustomerContact, InboundChannel, Ticket, TicketDiagnosticData, TicketPriority } from "../../types/barrel";
-import { StepAction, ConfirmationDialog, FieldHint, FormActions, Button, Heading, Icon, Input, Textarea, FormField, SelectDropdown } from "../../ui/barrel";
+import { StepAction, StepProgress, ConfirmationDialog, FieldHint, FormActions, Button, Heading, Icon, Input, Textarea, FormField, SelectDropdown } from "../../ui/barrel";
 import { ChannelSelector } from "../../ui/groups/ChannelSelector";
 import { formatSupportDeadline, isEligibleAssignee, ticketPriorities } from "../../utils/supportPolicy";
 
@@ -105,7 +105,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
     setSubmitting(true);
     const created = addTicket({
       code: "", title: title.trim(), description: description.trim(), companyId: company.id,
-      companyName: company.name, companyCode: company.code, serviceId: service.id, serviceName: service.name,
+      companyName: company.name, serviceId: service.id, serviceName: service.name,
       priority, status: "Open", channel, contactId: selectedContact.id,
       channelIdentifier: `${channel.toUpperCase()} Inbound #${Math.floor(1000 + Math.random() * 9000)}`,
       clientContact: selectedContact.name, assignedToId: assignee.id,
@@ -155,7 +155,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
         <section aria-labelledby="ticket-details-heading">
           <Heading variant="plain" id="ticket-details-heading" className="text-sm font-bold uppercase tracking-wide text-slate-500">Details</Heading>
           <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[['Company', `${savedTicket.companyName} (${savedTicket.companyCode})`], ['Customer contact', savedTicket.clientContact], ['Service', savedTicket.serviceName], ['Priority', savedTicket.priority], ['Channel', channelLabel], ['Assigned to', `${savedTicket.assignedToName} · ${savedTicket.assignedToRole}`], ...(savedTicket.firstResponseDueAt ? [['First response due', formatSupportDeadline(savedTicket.firstResponseDueAt)]] : []), ...(savedTicket.dueAt ? [['Resolution due', formatSupportDeadline(savedTicket.dueAt)]] : []), ['Channel reference', savedTicket.channelIdentifier], ['Attachments', `${savedTicket.attachments?.length || 0} image${savedTicket.attachments?.length === 1 ? "" : "s"}`]].map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 px-3 py-2.5"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd></div>)}
+            {[['Company', savedTicket.companyName], ['Customer contact', savedTicket.clientContact], ['Service', savedTicket.serviceName], ['Priority', savedTicket.priority], ['Channel', channelLabel], ['Assigned to', `${savedTicket.assignedToName} · ${savedTicket.assignedToRole}`], ...(savedTicket.firstResponseDueAt ? [['First response due', formatSupportDeadline(savedTicket.firstResponseDueAt)]] : []), ...(savedTicket.dueAt ? [['Resolution due', formatSupportDeadline(savedTicket.dueAt)]] : []), ['Channel reference', savedTicket.channelIdentifier], ['Attachments', `${savedTicket.attachments?.length || 0} image${savedTicket.attachments?.length === 1 ? "" : "s"}`]].map(([label, value]) => <div key={label} className="rounded-lg border border-slate-200 px-3 py-2.5"><dt className="text-xs font-semibold text-slate-500">{label}</dt><dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd></div>)}
           </dl>
         </section>
 
@@ -177,28 +177,26 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
   return <div className="w-full bg-white">
     <form onSubmit={submit} className="space-y-4 px-4 py-4 sm:px-6 sm:py-5">
       <Heading variant="plain" ref={headingRef} tabIndex={-1} className="sr-only focus:outline-none">{step === 1 ? "Create a ticket · Ticket details" : "Ticket diagnostics"}</Heading>
-      <div className="flex items-center gap-3" aria-label={`Step ${step} of 2`}>
-        <span className="shrink-0 text-xs font-bold text-slate-700">{step} of 2</span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-brand-indigo transition-all" style={{ width: `${step === 1 ? 50 : 100}%` }} /></div>
-        <span className="shrink-0 text-xs font-semibold text-slate-500">{step === 1 ? "Ticket details" : "Diagnostics"}</span>
-      </div>
+      <StepProgress steps={["Ticket details", "Diagnostics"]} currentStep={step} />
 
       {step === 1 ? <div className="grid gap-x-4 gap-y-3 lg:grid-cols-2">
-        <ChannelSelector channel={channel} setChannel={setChannel} />
-        <FormField label="Ticket title" required><Input required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField>
+        <div className="lg:col-span-2"><FormField label="Ticket title" required><Input required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. API webhook delivery timeout" /></FormField></div>
+        <div className="lg:col-span-2"><ChannelSelector channel={channel} setChannel={setChannel} /></div>
         <div><SelectDropdown showLabel label="Company" value={companyId} onChange={(value) => { setCompanyId(value); setContactId(""); setSupportSite(""); }} options={matchingCompanies.map((item) => ({ value: item.id, label: `${item.name} (${item.code})` }))} placeholder="Select a company" required /></div>
         <SelectDropdown showLabel label="Customer contact" value={contactId} onChange={setContactId} options={contacts.map((contact) => ({ value: contact.id, label: `${contact.name} · ${contact.email}` }))} placeholder={company ? "Select a contact" : "Choose a company first"} disabled={!company} required />
-        <SelectDropdown showLabel label="Priority" value={priority} onChange={(value) => setPriority(value as TicketPriority | "")} options={ticketPriorities.map((item) => ({ value: item, label: item }))} placeholder="Select priority" required info="P1 is reserved for critical incidents." />
         <SelectDropdown showLabel label="Service" value={serviceId} onChange={(value) => {
           setServiceId(value);
           if (assignee && !isEligibleAssignee(assignee, value)) setAssigneeId("");
         }} options={data.services.map((item) => ({ value: item.id, label: item.name }))} placeholder="Select a service" required />
+        <SelectDropdown showLabel label="Priority" value={priority} onChange={(value) => setPriority(value as TicketPriority | "")} options={ticketPriorities.map((item) => ({ value: item, label: item }))} placeholder="Select priority" required info="P1 is reserved for critical incidents." />
+        <div className="lg:col-span-2">
         <SelectDropdown showLabel label="Assign to" value={assignee?.id ?? ""} onChange={setAssigneeId} options={eligibleAssignees.map((item) => ({
           value: item.id,
           label: activeRole === "operations_manager"
             ? `${item.name} · ${item.status} · ${activeLoad.get(item.id) ?? 0}/${item.capacityMax}`
             : `${item.name} · ${item.status}`,
         }))} placeholder="Select an owner" required />
+        </div>
         {!!company?.supportSites?.length && <SelectDropdown showLabel label="Affected site or tenant" value={supportSite} onChange={setSupportSite} options={[
           { value: "", label: "Unspecified" }, ...company.supportSites.map((site) => ({ value: site, label: site })),
         ]} placeholder="Select a site or tenant" />}
@@ -217,7 +215,7 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
         {step === 1 && attemptedContinue && !detailsValid && <p className="text-right text-xs text-amber-800" role="status">Complete all fields marked * to continue.</p>}
         {step === 2 && attemptedCreate && !description.trim() && <p className="text-right text-xs text-amber-800" role="status">Add a problem description to create this ticket.</p>}
         <div className="flex w-full justify-end gap-2">
-          <Button type="button" onClick={step === 1 ? leaveIntake : () => setStep(1)}>{step === 1 ? "Cancel" : "Back"}</Button>
+          <Button cancel={step === 1} type="button" onClick={step === 1 ? leaveIntake : () => setStep(1)}>{step === 1 ? "Cancel" : "Back"}</Button>
           <StepAction
             onContinue={step === 1 ? () => {
               if (!detailsValid) { setAttemptedContinue(true); return; }
@@ -235,9 +233,12 @@ export const CreateTicketPage: React.FC<{ onCreated?: () => void }> = ({ onCreat
       title="Save this ticket draft?"
       description="You can return to the new ticket form to continue later."
       cancelLabel="Keep editing"
-      confirmLabel="Save draft and exit"
+      confirmLabel="Save draft"
+      alternativeLabel="Discard"
+      actionIcons={{ alternative: "delete", cancel: "edit", confirm: "save" }}
       onCancel={() => setConfirmLeave(false)}
       onConfirm={() => navigate("/tickets")}
+      onAlternative={() => { sessionStorage.removeItem(draftKey); navigate("/tickets"); }}
     />}
   </div>;
 };

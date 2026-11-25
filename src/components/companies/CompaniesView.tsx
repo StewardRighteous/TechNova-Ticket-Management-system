@@ -54,7 +54,6 @@ export const CompaniesView: React.FC = () => {
             onUpdateCompany={handleUpdateCompany}
             onDeleteCompany={handleDeleteCompany}
             tickets={roleTickets.filter((ticket) => ticket.companyId === selectedCompany.id)}
-            onOpenTicket={(ticketId) => navigate(`/tickets/${encodeURIComponent(ticketId)}`)}
             services={data.services}
             companies={data.companies}
             employees={data.employees}

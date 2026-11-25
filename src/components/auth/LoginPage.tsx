@@ -24,23 +24,28 @@ export const LoginPage: React.FC<{ onSignedIn: () => void }> = ({ onSignedIn }) 
   return (
     <main className="login-shell min-h-screen bg-white">
       <div className="grid min-h-screen grid-rows-[auto_1fr] lg:grid-cols-2 lg:grid-rows-1">
-        <aside className="relative isolate flex flex-col justify-between overflow-hidden bg-brand-indigo px-6 py-5 text-white lg:px-12 lg:py-10 xl:px-16">
-          <img src="/login-atrium.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-t from-brand-indigo/95 via-brand-indigo/70 via-45% to-brand-indigo/45" />
-          <div className="flex items-center gap-3">
-            <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-blue text-white shadow-sm">
-              <Icon className="text-[20px]">confirmation_number</Icon>
-            </span>
-            <span className="text-xl font-bold tracking-tight">TechNova</span>
-          </div>
-          <div className="hidden max-w-lg lg:block">
+        <aside className="relative isolate flex flex-col overflow-hidden bg-brand-indigo px-6 py-5 text-white lg:px-12 lg:py-10 xl:px-16">
+          <img src="/login-tickets.svg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-brand-indigo/90" />
+          <div className="flex flex-1 items-center">
+            <div className="max-w-lg lg:py-10">
+            <div className="flex items-center gap-3 lg:mb-8">
+              <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-blue text-white shadow-sm">
+                <Icon className="text-[20px]">confirmation_number</Icon>
+              </span>
+              <span className="text-xl font-bold tracking-tight">TechNova</span>
+            </div>
+            <div className="hidden lg:block">
             <Heading variant="plain" className="text-5xl leading-[1.04] font-bold tracking-[-0.045em] xl:text-6xl">Ticket Management System</Heading>
-            <p className="mt-5 max-w-sm text-base leading-relaxed text-white">Manage IT support requests and workplace services for TechNova employees.</p>
-            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm leading-relaxed marker:text-teal-200">
-              <li>Report an issue and attach screenshots.</li>
-              <li>See who owns a ticket and track its progress.</li>
-              <li>Check response and resolution deadlines.</li>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-white">A central place for TechNova employees to request support and follow work through to resolution.</p>
+            <ul className="mt-6 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-100 marker:text-teal-200">
+              <li>Report issues or request workplace services with screenshots.</li>
+              <li>Follow ticket status, priority, and assigned support staff.</li>
+              <li>Keep track of response and resolution deadlines.</li>
+              <li>Review updates and ticket history in one place.</li>
             </ul>
+            </div>
+            </div>
           </div>
         </aside>
 

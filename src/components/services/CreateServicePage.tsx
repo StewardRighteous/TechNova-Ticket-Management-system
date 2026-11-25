@@ -88,7 +88,7 @@ export const CreateServicePage: React.FC = () => {
           <FormField label="Description" className="service-create-wide"><Textarea rows={3} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Briefly describe the service, its purpose, and key functionality." /></FormField>
         </div>
       </section>}
-      <FormActions><Button type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }}>{step === 1 ? "Cancel" : "Back"}</Button><StepAction onContinue={step === 1 ? () => { if (validateStep(1)) setStep(2); } : undefined} submitLabel="Create service" /></FormActions>
+      <FormActions><Button cancel={step === 1} type="button" onClick={step === 1 ? cancel : () => { setError(""); setStep(1); }}>{step === 1 ? "Cancel" : "Back"}</Button><StepAction continueLabel="Create service" showContinueArrow={false} onContinue={step === 1 ? () => { if (validateStep(1)) setStep(2); } : undefined} submitLabel="Create service" /></FormActions>
     </form>
     {confirmDiscard && <ConfirmationDialog
         title="Discard this service draft?"

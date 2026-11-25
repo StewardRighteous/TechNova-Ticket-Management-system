@@ -32,6 +32,25 @@ export function durationMinutes(value?: string) {
   return Number.isSafeInteger(minutes) && minutes > 0 && minutes <= 525_600 ? minutes : undefined;
 }
 
+export function ticketSlaRemainingMinutes(ticket: Ticket, now = Date.now()) {
+  if (!ticket.slaPolicyApplied) {
+    const label = ticket.slaDeadline.trim().toLowerCase();
+    if (label === "breached" || ticket.slaRisk === "Breached") return Number.NEGATIVE_INFINITY;
+    if (label.endsWith(" remaining")) {
+      const durations = label.match(/\d+(?:\.\d+)?\s*(?:days?|d|hours?|hrs?|h|minutes?|mins?|m)\b/g);
+      if (durations) return durations.reduce((total, duration) => total + (durationMinutes(duration) ?? 0), 0);
+    }
+  }
+
+  const deadlines = [
+    ticket.firstRespondedAt ? undefined : ticket.firstResponseDueAt,
+    ticket.resolvedAt ? undefined : ticket.dueAt,
+  ].map((value) => Date.parse(value ?? "")).filter(Number.isFinite);
+
+  if (!deadlines.length) return undefined;
+  return (Math.min(...deadlines) - now) / 60_000;
+}
+
 export function contractStatus(contract: SupportContract, day = new Date().toISOString().slice(0, 10)) {
   if (contract.status === "Inactive") return "Inactive";
   if (contract.startsOn && contract.startsOn > day) return "Scheduled";

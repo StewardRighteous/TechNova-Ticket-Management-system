@@ -20,6 +20,7 @@ interface SelectDropdownProps {
   disabled?: boolean;
   className?: string;
   showLabel?: boolean;
+  density?: "standard" | "compact";
   info?: string;
 }
 
@@ -33,12 +34,14 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
   disabled = false,
   className = "",
   showLabel = false,
+  density = "standard",
   info,
 }) => {
+  const compact = density === "compact";
   const [isOpen, setIsOpen] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [query, setQuery] = useState("");
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 320 });
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 320, opensAbove: false });
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listboxRef = useRef<HTMLDivElement>(null);
@@ -58,10 +61,11 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
     const opensAbove = spaceBelow < 220 && spaceAbove > spaceBelow;
     const maxHeight = Math.max(120, Math.min(320, opensAbove ? spaceAbove : spaceBelow));
     setPosition({
-      top: opensAbove ? Math.max(12, bounds.top - maxHeight - 4) : bounds.bottom + 4,
+      top: opensAbove ? bounds.top - 4 : bounds.bottom + 4,
       left: bounds.left,
       width: bounds.width,
       maxHeight,
+      opensAbove,
     });
   };
 
@@ -123,7 +127,7 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
       }}
     >
       {showLabel && (
-        <div className="mb-1 flex items-center gap-1 text-sm font-semibold text-slate-700">
+        <div className={`mb-1 flex items-center gap-1 font-semibold ${compact ? "text-xs text-slate-600" : "text-sm text-slate-700"}`}>
           {label}
           {required && (
             <span className="text-red-600" aria-hidden="true">
@@ -155,14 +159,14 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
           setQuery("");
           setIsOpen((open) => !open);
         }}
-        className="flex min-h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 transition hover:border-teal-500 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+        className={`flex w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 text-left text-slate-900 transition hover:border-teal-500 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${compact ? "min-h-9 py-1.5 text-xs" : "min-h-10 py-2 text-sm"}`}
       >
         <span className={selectedOption ? "truncate" : "truncate text-slate-400"}>
           {selectedOption?.label || placeholder}
         </span>
         <Icon
           aria-hidden="true"
-          className={`ml-2 shrink-0 text-[20px] text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`ml-2 shrink-0 text-slate-500 transition-transform ${compact ? "text-[16px]" : "text-[20px]"} ${isOpen ? "rotate-180" : ""}`}
         >
           expand_more
         </Icon>
@@ -174,7 +178,8 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
             ref={listboxRef}
             className="fixed z-[100] overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl"
             style={{
-              top: position.top,
+              top: position.opensAbove ? undefined : position.top,
+              bottom: position.opensAbove ? window.innerHeight - position.top : undefined,
               left: position.left,
               width: position.width,
               maxHeight: position.maxHeight,
@@ -212,7 +217,7 @@ export const SelectDropdown: React.FC<SelectDropdownProps> = ({
                         onChange(option.value);
                         closeAndFocus();
                       }}
-                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${selected ? "bg-teal-50 font-semibold text-teal-800" : "text-slate-700 hover:bg-slate-50"}`}
+                      className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors outline-none focus:bg-teal-100 focus:text-teal-900 ${selected ? "bg-teal-50 font-semibold text-teal-800 hover:bg-teal-100" : "text-slate-700 hover:bg-teal-100 hover:text-teal-900"}`}
                     >
                       <span>{option.label}</span>
                       {selected && (

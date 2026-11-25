@@ -10,6 +10,7 @@ import type {
   ClientNotificationChannel,
   ToastMessage,
   ToastType,
+  NoteType,
 } from "../types/barrel";
 import { clearSessionPersona, getSessionPersonaId, loadInitialState, persistState, resetStoredState, setSessionPersonaId } from "./storage";
 import {
@@ -69,7 +70,7 @@ interface TicketStore {
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
   removeTicket: (ticketId: string) => void;
   assignTicket: (ticketId: string, employeeId: string, note?: string) => void;
-  addTicketTimelineNote: (ticketId: string, note: string) => void;
+  addTicketTimelineNote: (ticketId: string, note: string, type?: NoteType) => void;
   markNotificationRead: (notificationId: string) => void;
   addCompany: (company: Company) => void;
   addService: (service: ServiceLine) => void;
@@ -93,6 +94,7 @@ function canAccessTicketByState(
 const editableProfileFields: ReadonlySet<string> = new Set<keyof Employee>([
   "name", "email", "phone", "avatar", "status", "timeZone", "skills",
   "dateOfBirth", "gender", "personalAddress", "emergencyContactName", "emergencyContactPhone",
+  "emergencyContactEmail",
   "bankName", "accountHolderName", "accountNumber", "routingNumber", "taxId",
 ]);
 
@@ -187,7 +189,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     const createdAt = new Date();
     const sla = calculateTicketSla(company, service, ticketInput.priority, createdAt);
     const { newTicket, updatedData } = createNewTicket(
-      { ...ticketInput, ...sla, slaRisk: "On Target", clientContact: canonicalContactName, companyName: company.name, companyCode: company.code,
+      { ...ticketInput, ...sla, slaRisk: "On Target", clientContact: canonicalContactName, companyName: company.name,
         serviceName: service.name, assignedToName: employee.name, assignedToRole: employee.roleTitle, currentStageRole: employee.role, teamId: employee.teamId },
       state.activeRole,
       state.data,
@@ -277,10 +279,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     if (!existingTicket) return;
     if (updates.assignedToId || updates.assignedToName || updates.assignedToRole || updates.currentStageRole) return;
     const safeUpdates = { ...updates };
-    if (!safeUpdates.companyId) {
-      delete safeUpdates.companyName;
-      delete safeUpdates.companyCode;
-    }
+    if (!safeUpdates.companyId) delete safeUpdates.companyName;
     if (!safeUpdates.serviceId) delete safeUpdates.serviceName;
     if (safeUpdates.companyId || safeUpdates.contactId || safeUpdates.clientContact) {
       const companyId = safeUpdates.companyId ?? existingTicket.companyId;
@@ -292,9 +291,12 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       if (!company.contacts?.length && safeUpdates.clientContact && safeUpdates.clientContact !== company.contactName) return;
       safeUpdates.companyId = company.id;
       safeUpdates.companyName = company.name;
-      safeUpdates.companyCode = company.code;
       safeUpdates.contactId = contactId ?? `legacy-${company.id}`;
       safeUpdates.clientContact = contact?.name ?? company.contactName;
+      if (companyId !== existingTicket.companyId || safeUpdates.contactId !== (existingTicket.contactId ?? `legacy-${company.id}`)) {
+        safeUpdates.clientEmailOverride = undefined;
+        safeUpdates.clientPhoneOverride = undefined;
+      }
     }
     if (safeUpdates.serviceId) {
       const service = state.data.services.find((item) => item.id === safeUpdates.serviceId);
@@ -356,7 +358,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     set({ data: updatedData });
   },
 
-  addTicketTimelineNote: (ticketId, note) => {
+  addTicketTimelineNote: (ticketId, note, type) => {
     if (!note.trim()) return;
     const state = get();
     if (!canAccessTicketByState(state, ticketId)) return;
@@ -366,6 +368,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
       ticketId,
       currentEmp,
       note,
+      type,
     );
     persistState(updatedData);
     set({ data: updatedData });
@@ -468,7 +471,7 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     const updatedData = {
       ...state.data,
       companies: state.data.companies.map((item) => item.id === id ? revised : item),
-      tickets: state.data.tickets.map((item) => item.companyId === id ? { ...item, companyName: revised.name, companyCode: revised.code } : item),
+      tickets: state.data.tickets.map((item) => item.companyId === id ? { ...item, companyName: revised.name } : item),
     };
     persistState(updatedData);
     set({ data: updatedData });

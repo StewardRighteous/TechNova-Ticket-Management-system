@@ -1,4 +1,4 @@
-import type { Employee, MockupDatabase } from '../types/barrel';
+import type { Employee, MockupDatabase, NoteType } from '../types/barrel';
 
 export function authenticateByEmail(
   email: string,
@@ -13,7 +13,8 @@ export function addTimelineNoteToTicket(
   db: MockupDatabase,
   ticketId: string,
   currentEmp: Employee,
-  note: string
+  note: string,
+  type: NoteType = "General"
 ): MockupDatabase {
   if (!note.trim()) return db;
   const updatedTickets = db.tickets.map((t) => {
@@ -26,6 +27,7 @@ export function addTimelineNoteToTicket(
             id: `note-${Date.now()}`,
             authorId: currentEmp.id,
             body: note,
+            type,
             createdAt: new Date().toISOString()
           }
         ],
